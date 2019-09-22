@@ -1,0 +1,13 @@
+// Defaults commented
+
+const mongoDBConnection = {
+    "user": "codematch",
+    "password": "password",
+    "database": "codematch",
+//    "port": 27017,
+//    "host": "localhost"
+};
+
+module.exports = {
+    mongoDBConnection: mongoDBConnection
+};
