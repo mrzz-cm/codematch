@@ -1,22 +1,32 @@
 const MongoClient = require('mongodb').MongoClient;
+const assert = require('assert');
 
-// Secrets and connection details
-const config = require('../config.js');
+let _database;
+let _client;
 
-// 'mongodb://user:password@host:port'
-const connectionHost = config.mongoDBConnection.host || "localhost";
-const connectionPort = config.mongoDBConnection.port || 27017;
-const connectionURI = 'mongodb://' +
-    config.mongoDBConnection.user + ":" + config.mongoDBConnection.password + "@" +
-    connectionHost + ":" + connectionPort + "/" + config.mongoDBConnection.database;
+const initDatabase = function (database, uri, callback) {
+    assert.ok(database);
 
-const client = new MongoClient(connectionURI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-});
+    if (_database) {
+        throw new Error("Database has already been initialized.");
+    }
+    _client = new MongoClient.connect(uri, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true
+    }, function (err, client) {
+        _database = client.db(database);
+        callback();
+    });
+};
+
+const getDatabase = function () {
+    assert.ok(_database, "Database " + _database + "hasn't been initialized");
+    return _database;
+};
 
 module.exports = {
-    client: client
+    getDatabase: getDatabase,
+    initDatabase: initDatabase
 };
 
 
