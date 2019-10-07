@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "start": "node ./bin/www",
+    "doc-gen": "documentation",
     "test": "mocha tests/**/*.js --recursive --exit"
   },
   "dependencies": {
@@ -16,6 +17,7 @@
   "devDependencies": {
     "chai": "^4.2.0",
     "chai-http": "^4.3.0",
+    "documentation": "^12.1.2",
     "mocha": "^6.2.0"
   }
 }
