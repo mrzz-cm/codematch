@@ -4,9 +4,6 @@
  * Module dependencies.
  */
 const app = require('../app');
-const database = require('../database');
-const config = require('../config.js');
-
 const fastify = app.fastify;
 
 /**
@@ -22,16 +19,8 @@ const port = normalizePort(process.env.PORT || '3000');
 /**
  * Listen on provided port, on all network interfaces after database initialized
  */
-// 'mongodb://user:password@host:port'
-const connectionHost = config.mongoDBConnection.host || "localhost";
-const connectionPort = config.mongoDBConnection.port || 27017;
-const connectionURI = 'mongodb://' +
-    config.mongoDBConnection.user + ":" + config.mongoDBConnection.password + "@" +
-    connectionHost + ":" + connectionPort + "/" + config.mongoDBConnection.database;
 
-database.initDatabase(config.mongoDBConnection.database, connectionURI, () => {
-  app.start(fastify, port, (err, fastify) => {})
-});
+app.start(fastify, port, (err, fastify) => {});
 
 /**
  * Normalize a port into a number, string, or false.

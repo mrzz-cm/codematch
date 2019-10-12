@@ -3,13 +3,6 @@ const app = require('../app.js');
 const test = t.test;
 const request = require('request');
 
-const routes = [
-    {
-        plugin: require('../routes/api/v1.0'),
-        options: {}
-    }
-];
-
 app.start(app.fastify, 0, (err, fastify) => {
     t.error(err);
 

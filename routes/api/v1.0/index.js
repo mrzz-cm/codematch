@@ -1,5 +1,4 @@
 const assert = require('assert');
-const database = require('../../../database');
 
 function routes (fastify, opts, done) {
     /* GET home page. */
@@ -29,11 +28,11 @@ function routes (fastify, opts, done) {
         handler: (request, reply) => {
             console.log(request.body);
 
-            const db = database.getDatabase();
+            const db = fastify.mongo.db;
 
             const insertDocuments = function (db, data, callback) {
                 // Get the documents collection
-                const collection = db.collection('documents');
+                const collection = fastify.mongo.db.collection('documents');
                 // Insert document
                 collection.insertOne(data, function (err, result) {
                     assert.ok(err === null);

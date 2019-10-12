@@ -1,6 +1,20 @@
 const fastify = require('fastify')({logger: true});
+const config = require('./config');
+
+const mCfg = config.mongoDBConnection;
+const mHost = config.mongoDBConnection.host || "localhost";
+const mPort = config.mongoDBConnection.port || 27017;
 
 const routes = [
+    {
+        plugin: require('fastify-mongodb'),
+        options: {
+            // force to close the mongodb connection when app stopped
+            // the default value is false
+            forceClose: true,
+            url: `mongodb://${mCfg.user}:${mCfg.password}@${mHost}:${mPort}/${mCfg.database}`
+        }
+    },
     {
         plugin: require('./routes/api/v1.0'),
         options: {}
@@ -9,7 +23,6 @@ const routes = [
 
 routes.forEach((p) => fastify.register(p.plugin, p.options));
 
-// https://lmammino.github.io/fastify/docs/testing/
 function startServer(fastify, port, callback) {
     fastify.listen(port, (err, address) => {
         if (err) {
@@ -25,5 +38,4 @@ function startServer(fastify, port, callback) {
 module.exports = {
     fastify: fastify,
     start: startServer,
-
 };
