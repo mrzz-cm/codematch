@@ -1,15 +1,29 @@
-const express = require('express');
-const logger = require('morgan');
+const fastify = require('fastify')({logger: true});
 
-const apiRouter = require('./routes/api/v1.0');
+const routes = [
+    {
+        plugin: require('./routes/api/v1.0'),
+        options: {}
+    }
+];
 
-const app = express();
+routes.forEach((p) => fastify.register(p.plugin, p.options));
 
-app.use(logger('dev'));
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
-app.use(express.json());
+// https://lmammino.github.io/fastify/docs/testing/
+function startServer(fastify, port, callback) {
+    fastify.listen(port, (err, address) => {
+        if (err) {
+            fastify.log.error(err);
+            process.exit(1);
+        }
+        fastify.log.info(`server listening on ${address}`);
+        callback(err, fastify);
+    })
+}
 
-app.use('/api/v1.0', apiRouter);
+// Options currently unused
+module.exports = {
+    fastify: fastify,
+    start: startServer,
 
-module.exports = app;
+};

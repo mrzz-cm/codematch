@@ -1,35 +1,52 @@
-const express = require('express');
-const router = express.Router();
-
 const assert = require('assert');
 const database = require('../../../database');
 
-/* GET home page. */
-router.get('/', function (req, res, next) {
-    res.json({"title": 'API'});
-});
+function routes (fastify, opts, done) {
+    /* GET home page. */
+    fastify.route({
+        method: 'GET',
+        url: '/',
+        schema: {
+            querystring: {},
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+                        title: {type: 'string'}
+                    }
+                }
+            }
+        },
+    handler: (request, reply) => {
+        reply.send({"title": 'API'});
+    }});
 
-/* PUT MongoDB. */
-router.post('/testdb', function (req, res, next) {
-    console.log(req.body);
+    /* PUT MongoDB. */
+    fastify.route({
+        method: 'POST',
+        url: '/testdb',
+        // schema: {},
+        handler: (request, reply) => {
+            console.log(request.body);
 
-    const db = database.getDatabase();
+            const db = database.getDatabase();
 
-    const insertDocuments = function (db, data, callback) {
-        // Get the documents collection
-        const collection = db.collection('documents');
-        // Insert document
-        collection.insertOne(data, function (err, result) {
-            assert.ok(err === null);
-            console.log("Inserted document into the collection");
-            callback();
-        });
-    };
+            const insertDocuments = function (db, data, callback) {
+                // Get the documents collection
+                const collection = db.collection('documents');
+                // Insert document
+                collection.insertOne(data, function (err, result) {
+                    assert.ok(err === null);
+                    console.log("Inserted document into the collection");
+                    callback();
+                });
+            };
 
-    insertDocuments(db, req.body, function () {
-        res.end()
+            insertDocuments(db, request.body, () => { reply.send(); });
+        }
     });
 
-});
+    done();
+}
 
-module.exports = router;
+module.exports = routes;

@@ -82,7 +82,8 @@ class User {
     }
 
     /**
-     * @returns {User} Empty helper
+     * Create an Empty User
+     * @returns {User} Empty User
      */
     static emptyUser() {
         return new User('', 0);

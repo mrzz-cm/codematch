@@ -1,21 +1,30 @@
-const chai = require('chai');
-const chaiHttp = require('chai-http');
+const t = require('tap');
 const app = require('../app.js');
+const test = t.test;
+const request = require('request');
 
-chai.use(chaiHttp);
-chai.should();
+const routes = [
+    {
+        plugin: require('../routes/api/v1.0'),
+        options: {}
+    }
+];
 
-describe("API", () => {
-    describe("GET /api/v1.0", () => {
-        // Test dummy
-        it("should return API", (done) => {
-            chai.request(app)
-                .get('/api/v1.0')
-                .end((err, res) => {
-                    res.should.have.status(200);
-                    res.body.should.have.property('title').eql('API');
-                    done();
-                });
-        });
+app.start(app.fastify, 0, (err, fastify) => {
+    t.error(err);
+
+    test('The server should start', t => {
+        t.plan(3);
+        // Perform the request
+        request({
+            method: 'GET',
+            uri: `http://localhost:${fastify.server.address().port}`
+        }, (err, response, body) => {
+            // Unit test
+            t.error(err);
+            t.strictEqual(response.statusCode, 200);
+            t.deepEqual(JSON.parse(body), {title: 'API'});
+            fastify.close()
+        })
     });
 });

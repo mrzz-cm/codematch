@@ -5,19 +5,19 @@
   "scripts": {
     "start": "node ./bin/www",
     "doc-gen": "documentation",
-    "test": "mocha tests/**/*.js --recursive --exit"
+    "test": "tap"
   },
   "dependencies": {
     "debug": "^4.1.1",
-    "express": "^4.17.1",
+    "fastify": "^2.9.0",
+    "minimist": "^1.2.0",
     "mongodb": "^3.3.2",
-    "morgan": "~1.9.1",
     "saslprep": "^1.0.3"
   },
   "devDependencies": {
-    "chai": "^4.2.0",
-    "chai-http": "^4.3.0",
     "documentation": "^12.1.2",
-    "mocha": "^6.2.0"
+    "request": "^2.88.0",
+    "shot": "^4.0.7",
+    "tap": "^14.6.9"
   }
 }
