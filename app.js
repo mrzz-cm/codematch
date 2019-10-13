@@ -1,5 +1,6 @@
 const fastify = require('fastify')({logger: true});
 const config = require('./config');
+const authentication = require('./authentication');
 
 const mCfg = config.mongoDBConnection;
 const mHost = config.mongoDBConnection.host || "localhost";
@@ -16,8 +17,16 @@ const routes = [
         }
     },
     {
-        plugin: require('./routes/api/v1.0'),
+        plugin: authentication.plugin,
+        options: authentication.options
+    },
+    {
+        plugin: require('./routes/api/v1.0/index'),
         options: {}
+    },
+    {
+        plugin: require('./routes/api/v1.0/auth'),
+        options: { prefix: '/auth' }
     }
 ];
 

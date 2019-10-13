@@ -20,30 +20,30 @@ function routes (fastify, opts, done) {
         reply.send({"title": 'API'});
     }});
 
-    /* PUT MongoDB. */
-    fastify.route({
-        method: 'POST',
-        url: '/testdb',
-        // schema: {},
-        handler: (request, reply) => {
-            console.log(request.body);
-
-            const db = fastify.mongo.db;
-
-            const insertDocuments = function (db, data, callback) {
-                // Get the documents collection
-                const collection = fastify.mongo.db.collection('documents');
-                // Insert document
-                collection.insertOne(data, function (err, result) {
-                    assert.ok(err === null);
-                    console.log("Inserted document into the collection");
-                    callback();
-                });
-            };
-
-            insertDocuments(db, request.body, () => { reply.send(); });
-        }
-    });
+    // /* POST MongoDB. */
+    // fastify.route({
+    //     method: 'POST',
+    //     url: '/testdb',
+    //     // schema: {},
+    //     handler: (request, reply) => {
+    //         console.log(request.body);
+    //
+    //         const db = fastify.mongo.db;
+    //
+    //         const insertDocuments = function (db, data, callback) {
+    //             // Get the documents collection
+    //             const collection = fastify.mongo.db.collection('documents');
+    //             // Insert document
+    //             collection.insertOne(data, function (err, result) {
+    //                 assert.ok(err === null);
+    //                 console.log("Inserted document into the collection");
+    //                 callback();
+    //             });
+    //         };
+    //
+    //         insertDocuments(db, request.body, () => { reply.send(); });
+    //     }
+    // });
 
     done();
 }
