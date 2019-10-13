@@ -8,6 +8,22 @@ const mongoDBConnection = {
 //    "host": "localhost"
 };
 
+const googleAuth = {
+    "web": {
+        "client_id": "REDACTED.apps.googleusercontent.com",
+        "project_id": "codematch",
+        "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+        "token_uri": "https://oauth2.googleapis.com/token",
+        "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+        "client_secret": "REDACTED",
+        "redirect_uris": ["https://cm.johnramsden.ca/auth/google", "https://cm.johnramsden.ca/auth/google/callback"]
+    }
+};
+
+const domain = 'cm.johnramsden.ca';
+
 module.exports = {
-    mongoDBConnection: mongoDBConnection
+    mongoDBConnection: mongoDBConnection,
+    googleAuth: googleAuth,
+    domain: domain
 };

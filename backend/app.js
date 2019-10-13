@@ -1,15 +1,50 @@
-const express = require('express');
-const logger = require('morgan');
+const fastify = require('fastify')({logger: true});
+const config = require('./config');
+const authentication = require('./authentication');
 
-const apiRouter = require('./routes/api/v1.0');
+const mCfg = config.mongoDBConnection;
+const mHost = config.mongoDBConnection.host || "localhost";
+const mPort = config.mongoDBConnection.port || 27017;
 
-const app = express();
+const routes = [
+    {
+        plugin: require('fastify-mongodb'),
+        options: {
+            // force to close the mongodb connection when app stopped
+            // the default value is false
+            forceClose: true,
+            url: `mongodb://${mCfg.user}:${mCfg.password}@${mHost}:${mPort}/${mCfg.database}`
+        }
+    },
+    {
+        plugin: authentication.plugin,
+        options: authentication.options
+    },
+    {
+        plugin: require('./routes/api/v1.0/index'),
+        options: {}
+    },
+    {
+        plugin: require('./routes/api/v1.0/auth'),
+        options: { prefix: '/auth' }
+    }
+];
 
-app.use(logger('dev'));
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
-app.use(express.json());
+routes.forEach((p) => fastify.register(p.plugin, p.options));
 
-app.use('/api/v1.0', apiRouter);
+function startServer(fastify, port, callback) {
+    fastify.listen(port, (err, address) => {
+        if (err) {
+            fastify.log.error(err);
+            process.exit(1);
+        }
+        fastify.log.info(`server listening on ${address}`);
+        callback(err, fastify);
+    })
+}
 
-module.exports = app;
+// Options currently unused
+module.exports = {
+    fastify: fastify,
+    start: startServer,
+};

@@ -1,39 +1,51 @@
-const express = require('express');
-const router = express.Router();
-
 const assert = require('assert');
-const config = require('../../../config.js');
-const database = require('../../../database');
 
-/* GET home page. */
-router.get('/', function(req, res, next) {
-  res.json({ "title": 'API' });
-});
+function routes (fastify, opts, done) {
+    /* GET home page. */
+    fastify.route({
+        method: 'GET',
+        url: '/',
+        schema: {
+            querystring: {},
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+                        title: {type: 'string'}
+                    }
+                }
+            }
+        },
+    handler: (request, reply) => {
+        reply.send({"title": 'API'});
+    }});
 
-/* PUT MongoDB. */
-router.post('/testdb', function (req, res, next) {
-  console.log(req.body);
+    // /* POST MongoDB. */
+    // fastify.route({
+    //     method: 'POST',
+    //     url: '/testdb',
+    //     // schema: {},
+    //     handler: (request, reply) => {
+    //         console.log(request.body);
+    //
+    //         const db = fastify.mongo.db;
+    //
+    //         const insertDocuments = function (db, data, callback) {
+    //             // Get the documents collection
+    //             const collection = fastify.mongo.db.collection('documents');
+    //             // Insert document
+    //             collection.insertOne(data, function (err, result) {
+    //                 assert.ok(err === null);
+    //                 console.log("Inserted document into the collection");
+    //                 callback();
+    //             });
+    //         };
+    //
+    //         insertDocuments(db, request.body, () => { reply.send(); });
+    //     }
+    // });
 
-  database.client.connect(function(err) {
-    assert.ok(null === err);
-    const db = database.client.db(config.mongoDBConnection.database);
+    done();
+}
 
-    insertDocuments(db, req.body, function() {
-      database.client.close();
-    });
-  });
-
-  const insertDocuments = function(db, data, callback) {
-    // Get the documents collection
-    const collection = db.collection('documents');
-    // Insert document
-    collection.insertOne(data, function(err, result) {
-      assert.ok(err === null);
-      console.log("Inserted document into the collection");
-      callback(result);
-    });
-  };
-  res.end();
-});
-
-module.exports = router;
+module.exports = routes;

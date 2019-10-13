@@ -4,18 +4,21 @@
   "private": true,
   "scripts": {
     "start": "node ./bin/www",
-    "test": "mocha tests/*.js --exit"
+    "doc-gen": "documentation",
+    "test": "tap"
   },
   "dependencies": {
     "debug": "^4.1.1",
-    "express": "^4.17.1",
-    "mongodb": "^3.3.2",
-    "morgan": "~1.9.1",
-    "saslprep": "^1.0.3"
+    "fastify": "^2.9.0",
+    "fastify-mongodb": "^2.0.0",
+    "fastify-oauth2": "^2.3.0",
+    "minimist": "^1.2.0",
+    "saslprep": "^1.0.3",
+    "request": "^2.88.0"
   },
   "devDependencies": {
-    "chai": "^4.2.0",
-    "chai-http": "^4.3.0",
-    "mocha": "^6.2.0"
+    "documentation": "^12.1.2",
+    "shot": "^4.0.7",
+    "tap": "^14.6.9"
   }
 }
