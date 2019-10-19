@@ -27,6 +27,10 @@ const routes = [
     {
         plugin: require('./routes/api/v1.0/auth'),
         options: { prefix: '/auth' }
+    },
+    {
+        plugin: require('./routes/api/v1.0/questions'),
+        options: { prefix: '/questions' }
     }
 ];
 

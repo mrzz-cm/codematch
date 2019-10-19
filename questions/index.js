@@ -157,3 +157,21 @@ class Question {
         }
     }
 }
+
+
+/**
+ * Module Functions
+ */
+
+exports.createQuestion = function(request, reply) {
+    var q_data = request.body;
+
+    if (q_data.user == 123) {
+        reply.status(200);
+        reply.send('success');
+    } else {
+        reply.status(400);
+        reply.send('error');
+    }
+}
+
