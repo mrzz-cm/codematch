@@ -24,7 +24,7 @@ public class PostingView extends AppCompatActivity {
         setContentView(R.layout.activity_posting_view);
 
         setTitle("Post a new question");
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+//        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         Button postButton = (Button) findViewById(R.id.postQuestionButton);
         postButton.setOnClickListener(new View.OnClickListener(){
@@ -65,6 +65,8 @@ public class PostingView extends AppCompatActivity {
                 } catch (FileNotFoundException e) {
                     e.printStackTrace();
                 }
+
+                System.out.println("detected image");
                 Bitmap bitmapedimage = BitmapFactory.decodeStream(imageStream);
 
             }
