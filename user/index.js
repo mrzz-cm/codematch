@@ -1,5 +1,7 @@
 const authentication = require("../authentication");
 
+const userCollection = 'users';
+
 let mongo;
 
 /**
@@ -60,6 +62,7 @@ class Helper {
  * Class representing a User
  */
 class User {
+
     /**
      * @param {string}      userId
      * @param {number}      points
@@ -156,7 +159,7 @@ class User {
      * Add a course
      * @param {string}  course_id
      */
-    add_course(course_id) {
+    addCourse(course_id) {
         if (!this._courses.includes(course_id)) {
             this._courses.push(course_id);
         }
@@ -239,6 +242,24 @@ class User {
             console.log("Inserted user " + jsonData.userId + " into the collection");
         });
     }
+
+    /**
+     * Retrieve a user from database.
+     * @param {string} email
+     * @param {function} callback
+     */
+    static retrieve(email, callback) {
+        const collection = mongo.db.collection(userCollection);
+        collection.findOne({ userId: email }, function (err, result) {
+            if (err !== null) {
+                console.log(`Failed to retrieve ${email} from the collection`);
+            } else {
+                console.log(`Retrieved user ${result} from the collection`);
+            }
+            callback(err, result)
+        })
+    }
+    
 }
 
 /**

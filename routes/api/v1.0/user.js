@@ -31,11 +31,36 @@ function routes (fastify, opts, done) {
                 console.log(newUser.toJson());
 
                 // store to database
-                newUser.addToDatabase();
+                newUser.create();
 
                 // done
                 reply.status(200);
                 reply.send();
+            });
+        }
+    });
+
+    fastify.route({
+        method: 'GET',
+        url: '/retrieve',
+        schema: {
+            querystring: {
+                userId: { type: 'string' }
+            },
+        },
+        handler: function(request, reply) {
+            const um = userModule({ mongo: fastify.mongo });
+            console.log(request.query);
+
+            um.User.retrieve(request.query.userId, function (err, data) {
+                if (err || data === null) {
+                    reply.status(401);
+                    reply.send(err);
+                    return
+                }
+                // done
+                reply.status(200);
+                reply.send(data);
             });
         }
     });
