@@ -16,9 +16,10 @@ function routes (fastify, opts, done) {
                 }
             }
         },
-    handler: (request, reply) => {
-        reply.send({"title": 'API'});
-    }});
+        preValidation: [fastify.authenticate],
+        handler: (request, reply) => {
+            reply.send({"title": 'API'});
+        }});
 
     // /* POST MongoDB. */
     // fastify.route({

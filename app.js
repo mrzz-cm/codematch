@@ -7,6 +7,12 @@ const mHost = config.mongoDBConnection.host || "localhost";
 const mPort = config.mongoDBConnection.port || 27017;
 
 const routes = [
+
+    {
+        // Must be first
+        plugin: authentication.plugin,
+        options: authentication.options
+    },
     {
         plugin: require('fastify-mongodb'),
         options: {
@@ -17,21 +23,23 @@ const routes = [
         }
     },
     {
-        plugin: authentication.plugin,
-        options: authentication.options
-    },
-    {
         plugin: require('./routes/api/v1.0/index'),
-        options: {}
+        options: { }
     },
     {
         plugin: require('./routes/api/v1.0/auth'),
-        options: { prefix: '/auth' }
-    },
-    {
-        plugin: require('./routes/api/v1.0/questions'),
-        options: { prefix: '/questions' }
+        options: {
+            prefix: '/auth'
+        }
     }
+    //,
+    // {
+    //     plugin: require('./routes/api/v1.0/questions'),
+    //     options: {
+    //         prefix: '/questions',
+    //         preValidation: [fastify.authenticate]
+    //     }
+    // }
 ];
 
 routes.forEach((p) => fastify.register(p.plugin, p.options));

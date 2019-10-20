@@ -1,24 +1,27 @@
-const oauthPlugin = require('fastify-oauth2');
+const fastifyPlugin = require("fastify-plugin");
+const jwtPlugin = require("fastify-jwt");
 
 const config = require('../config');
 
-// https://github.com/fastify/fastify-oauth2
+// https://github.com/fastify/fastify-jwt
 
+// Authentication preValidation plugin
+const jwtValdatorPlugin = fastifyPlugin(async function(fastify, opts) {
+    fastify.register(jwtPlugin, {
+        secret: config.jwtSecret
+    });
+
+    fastify.decorate("authenticate", async function(request, reply) {
+        try {
+            await request.jwtVerify()
+        } catch (err) {
+            reply.send(err)
+        }
+    })
+});
+
+// https://github.com/fastify/fastify-oauth2
 module.exports = {
-    plugin: oauthPlugin,
-    options: {
-        name: 'googleOAuth2',
-        scope: ['email'],
-        credentials: {
-            client: {
-                id: config.googleAuth.web.client_id,
-                secret: config.googleAuth.web.client_secret
-            },
-            auth: oauthPlugin.GOOGLE_CONFIGURATION
-        },
-        // register a fastify url to start the redirect flow
-        startRedirectPath: '/auth/google',
-        // Google redirect here after the user login
-        callbackUri: `https://${config.domain}/auth/google/callback`
-    }
+    plugin: jwtValdatorPlugin,
+    options: {}
 };
