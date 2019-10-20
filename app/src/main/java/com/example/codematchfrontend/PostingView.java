@@ -1,6 +1,7 @@
 package com.example.codematchfrontend;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 
 import android.app.Activity;
 import android.content.Context;
@@ -24,7 +25,10 @@ public class PostingView extends AppCompatActivity {
         setContentView(R.layout.activity_posting_view);
 
         setTitle("Post a new question");
-//        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         Button postButton = (Button) findViewById(R.id.postQuestionButton);
         postButton.setOnClickListener(new View.OnClickListener(){
