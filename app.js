@@ -16,6 +16,8 @@ fastify.register(
     }
 );
 
+fastify.register(require('fastify-multipart'));
+
 const routes = [
     {
         // Must be first
