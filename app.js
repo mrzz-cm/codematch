@@ -24,28 +24,21 @@ const routes = [
     },
     {
         plugin: require('./routes/api/v1.0/index'),
-        options: { }
+        options: {}
     },
     {
         plugin: require('./routes/api/v1.0/auth'),
         options: { prefix: '/auth' }
     },
     {
-        plugin: require('./routes/api/v1.0/user')({ db: fastify.mongo.db }),
-        options: { prefix: '/user' }
-    },
-    {
         plugin: require('./routes/api/v1.0/questions'),
         options: { prefix: '/questions' }
     }
-    //,
-    // {
-    //     plugin: require('./routes/api/v1.0/questions'),
-    //     options: {
-    //         prefix: '/questions',
-    //         preValidation: [fastify.authenticate]
-    //     }
-    // }
+    ,
+    {
+        plugin: require('./routes/api/v1.0/user'),
+        options: { prefix: '/user' }
+    }
 ];
 routes.forEach((p) => fastify.register(p.plugin, p.options));
 

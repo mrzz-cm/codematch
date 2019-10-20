@@ -1,5 +1,6 @@
-const req = require('request');
-var _db;
+const authentication = require("../authentication");
+
+let mongo;
 
 /**
  * Class representing a Helper
@@ -225,13 +226,20 @@ class User {
             currentQuestion: this.currentQuestion
         }
     }
+
+    /**
+     * Adds a user to our database.
+     */
+    addToDatabase() {
+        const collection = mongo.db.collection('users');
+
+        const jsonData = this.toJson();
+        collection.insertOne(jsonData, function (err, result) {
+            // assert.ok(err === null); // TODO: Gracefully handle error
+            console.log("Inserted user " + jsonData.userId + " into the collection");
+        });
+    }
 }
-
-// module.exports = {
-//     User: User,
-//     Helper: Helper
-// };
-
 
 /**
  * User Functions
@@ -240,76 +248,18 @@ class User {
  /**
   * Creates a new user from a client request.
   */
-function createUser(request, reply) {
-    const u_data = request.body;
-
-    // get the user's google account information from google
-    const google_token = u_data.google_token;
-
-    // send request to google
-    req({
-        url: 'https://openidconnect.googleapis.com/v1/userinfo',
-        method: 'GET',
-        qs: { scope: "openid email"},
-        headers: {
-            Authorization: 'Bearer ' + google_token
-        },
-        json: true
-    }, function (err, res, data) {
-        if (err || res.statusCode !== 200) {
-            reply.status(res.statusCode);
-            reply.send(err);
-            return
-        }
-        
-        // get the user's email
-        const email = data.email;
-        if (!email) {
-            reply.status(401);
-            reply.send();
-            return;
-        }
-
-        // make a new account
-        const newUser = User.newUser(email);
-
-        console.log(newUser);
-
-        // test toJSON
-        console.log(newUser.toJson());
-
-        // store to database
-        addToDatabase(newUser)
-
-        // done
-        reply.status(200);
-        reply.send();
-    });
-}
-
-
-/**
- * Adds a user to our database.
- * @param {User} user
- */
-function addToDatabase(user) {
-    const collection = _db.collection('users');
-
-    const jsonData = user.toJson();
-
-    collection.insertOne(jsonData, function (err, result) {
-        assert.ok(err === null);
-        console.log("Inserted user " + jsonData.userId + " into the collection");
-    });
+function createUser(userData, callback) {
+    console.log("Token: " + userData.google_token);
+    authentication.requestEmail(userData.google_token, callback);
 }
 
 module.exports = function (options) {
-    _db = options.db;
+    mongo = options.mongo;
 
-    var module = {};
+    const module = {};
 
     module.createUser = createUser;
-    module.addToDatabase = addToDatabase;
+    module.User = User;
 
     return module;
-}
+};

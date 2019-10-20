@@ -14,7 +14,29 @@ function routes (fastify, opts, done) {
             }
         },
         handler: function(request, reply) {
-            userModule.createUser(request, reply);
+            const um = userModule({ mongo: fastify.mongo });
+
+            um.createUser(request.body, function (err, res, data) {
+                if (err || (res.statusCode !== 200) || !data.email) {
+                    console.log(data);
+                    reply.status(res.statusCode);
+                    reply.send(err);
+                    return
+                }
+
+                // make a new account
+                const newUser = um.User.newUser(data.email);
+
+                // test toJSON
+                console.log(newUser.toJson());
+
+                // store to database
+                newUser.addToDatabase();
+
+                // done
+                reply.status(200);
+                reply.send();
+            });
         }
     });
 

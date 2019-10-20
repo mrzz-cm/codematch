@@ -1,5 +1,6 @@
 const fastifyPlugin = require("fastify-plugin");
 const jwtPlugin = require("fastify-jwt");
+const req = require('request');
 
 const config = require('../config');
 
@@ -20,8 +21,22 @@ const jwtValdatorPlugin = fastifyPlugin(async function(fastify, opts) {
     })
 });
 
+const requestEmail = function(token, callback) {
+    console.log("request token: " + token);
+    req({
+        url: 'https://openidconnect.googleapis.com/v1/userinfo',
+        method: 'GET',
+        qs: { scope: "openid email"},
+        headers: {
+            Authorization: 'Bearer ' + token
+        },
+        json: true
+    }, callback);
+};
+
 // https://github.com/fastify/fastify-oauth2
 module.exports = {
     plugin: jwtValdatorPlugin,
-    options: {}
+    options: {},
+    requestEmail: requestEmail
 };
