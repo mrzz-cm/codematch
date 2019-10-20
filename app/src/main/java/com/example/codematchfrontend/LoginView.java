@@ -35,6 +35,7 @@ public class LoginView extends AppCompatActivity {
 
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestEmail()
+                .requestId()
                 .build();
         mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
     }
@@ -65,11 +66,9 @@ public class LoginView extends AppCompatActivity {
         try {
             GoogleSignInAccount account = task.getResult(ApiException.class);
 
-            // Signed in successfully, show authenticated UI.
+            // signed in successfully, show the notification UI
             updateUI(account);
         } catch (ApiException e) {
-            // The ApiException status code indicates the detailed failure reason.
-            // Please refer to the GoogleSignInStatusCodes class reference for more information.
             System.out.println("signInResult:failed code=" + e.getStatusCode());
             updateUI(null);
         }
@@ -79,7 +78,8 @@ public class LoginView extends AppCompatActivity {
         if (account == null) {
             System.out.println("Account was null\n");
         } else {
-            Intent intent = new Intent(this, MainActivity.class);
+            System.out.println(account.getId());
+            Intent intent = new Intent(this, NotifyView.class);
             startActivity(intent);
         }
     }
