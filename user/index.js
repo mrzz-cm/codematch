@@ -157,11 +157,11 @@ class User {
 
     /**
      * Add a course
-     * @param {string}  course_id
+     * @param {string} courseId
      */
-    addCourse(course_id) {
-        if (!this._courses.includes(course_id)) {
-            this._courses.push(course_id);
+    addCourse(courseId) {
+        if (!this._courses.includes(courseId)) {
+            this._courses.push(courseId);
         }
     }
 
@@ -208,10 +208,10 @@ class User {
 
     /**
      * Sets the current question the user is posting or helping for
-     * @param {string} question_id
+     * @param {string} questionId
      */
-    set currentQuestion(question_id) {
-        this._currentQuestion = question_id;
+    set currentQuestion(questionId) {
+        this._currentQuestion = questionId;
     }
 
     /**
