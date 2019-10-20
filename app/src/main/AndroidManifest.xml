@@ -11,6 +11,7 @@
         android:theme="@style/AppTheme">
         <activity android:name=".PostingView"></activity>
         <activity android:name=".NotifyView" />
+        <activity android:name=".ProfileView"></activity>
         <activity android:name=".LoginView">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
