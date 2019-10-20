@@ -16,7 +16,8 @@
     "fastify-plugin": "latest",
     "minimist": "^1.2.0",
     "request": "^2.88.0",
-    "saslprep": "^1.0.3"
+    "saslprep": "^1.0.3",
+    "uuid": "^3.3.3"
   },
   "devDependencies": {
     "documentation": "^12.1.2",
