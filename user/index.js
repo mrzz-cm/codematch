@@ -230,6 +230,14 @@ class User {
         }
     }
 
+    static async exists(userId) {
+        const count = await mongo.db.collection(userCollection)
+            .find({ "userId": { $exists: true, $eq: userId } })
+            .count();
+
+        return count !== 0;
+    }
+
     /**
      * Adds a user to our database.
      */
