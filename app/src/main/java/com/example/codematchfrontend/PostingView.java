@@ -69,6 +69,8 @@ public class PostingView extends AppCompatActivity {
                 } catch (FileNotFoundException e) {
                     e.printStackTrace();
                 }
+
+                System.out.println("detected image");
                 Bitmap bitmapedimage = BitmapFactory.decodeStream(imageStream);
 
             }
