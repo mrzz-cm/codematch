@@ -6,23 +6,24 @@
     android:layout_height="match_parent"
     tools:context=".LoginView">
 
-    <EditText
+    <TextView
         android:id="@+id/editText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="85dp"
-        android:layout_marginLeft="85dp"
         android:layout_marginTop="113dp"
         android:layout_marginEnd="113dp"
-        android:layout_marginRight="113dp"
         android:layout_marginBottom="573dp"
         android:ems="10"
         android:inputType="textPersonName"
         android:text="Login to CodeMatch"
+        android:textSize="24sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.315"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="1.0" />
 
     <com.google.android.gms.common.SignInButton
         android:id="@+id/sign_in_button"
