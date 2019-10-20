@@ -240,14 +240,21 @@ class User {
 
     /**
      * Adds a user to our database.
+     * @param {function} callback
      */
-    addToDatabase() {
-        const collection = mongo.db.collection('users');
+    create(callback) {
+        const collection = mongo.db.collection(userCollection);
 
         const jsonData = this.toJson();
-        collection.insertOne(jsonData, function (err, result) {
-            // assert.ok(err === null); // TODO: Gracefully handle error
-            console.log("Inserted user " + jsonData.userId + " into the collection");
+        collection.ensureIndex({ userId: 1 }, { unique: true }, () => {
+            collection.insertOne(jsonData, function (err, result) {
+                if (err !== null) {
+                    console.log(`Failed to insert ${jsonData.userId} into the collection`);
+                } else {
+                    console.log(`Inserted user  ${jsonData.userId} into the collection`);
+                }
+                callback(err)
+            })
         });
     }
 
@@ -267,7 +274,7 @@ class User {
             callback(err, result)
         })
     }
-    
+
 }
 
 /**
@@ -277,9 +284,9 @@ class User {
  /**
   * Creates a new user from a client request.
   */
-function createUser(userData, callback) {
-    console.log("Token: " + userData.google_token);
-    authentication.requestEmail(userData.google_token, callback);
+function createUser(googleToken, callback) {
+    console.log("Token: " + googleToken);
+    authentication.requestEmail(googleToken, callback);
 }
 
 module.exports = function (options) {

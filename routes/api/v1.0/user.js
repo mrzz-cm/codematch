@@ -15,8 +15,11 @@ function routes (fastify, opts, done) {
         },
         handler: function(request, reply) {
             const um = userModule({ mongo: fastify.mongo });
+            console.log(request.body);
 
-            um.createUser(request.body, function (err, res, data) {
+
+
+            um.createUser(request.body.google_token, async function (err, res, data) {
                 if (err || (res.statusCode !== 200) || !data.email) {
                     console.log(data);
                     reply.status(res.statusCode);
@@ -24,43 +27,25 @@ function routes (fastify, opts, done) {
                     return
                 }
 
-                // make a new account
-                const newUser = um.User.newUser(data.email);
+                const userExists = await um.User.exists(data.email);
 
-                // test toJSON
-                console.log(newUser.toJson());
-
-                // store to database
-                newUser.create();
-
-                // done
-                reply.status(200);
-                reply.send();
-            });
-        }
-    });
-
-    fastify.route({
-        method: 'GET',
-        url: '/retrieve',
-        schema: {
-            querystring: {
-                userId: { type: 'string' }
-            },
-        },
-        handler: function(request, reply) {
-            const um = userModule({ mongo: fastify.mongo });
-            console.log(request.query);
-
-            um.User.retrieve(request.query.userId, function (err, data) {
-                if (err || data === null) {
-                    reply.status(401);
-                    reply.send(err);
+                if (userExists) {
+                    reply.status(500);
+                    reply.send("User exists");
                     return
                 }
-                // done
-                reply.status(200);
-                reply.send(data);
+
+                // store to database
+                um.User.newUser(data.email).create((err) => {
+                    if (err) {
+                        reply.status(500);
+                        reply.send(err);
+                        return
+                    }
+                    // done
+                    reply.status(200);
+                    reply.send();
+                });
             });
         }
     });

@@ -16,7 +16,7 @@ function routes (fastify, opts, done) {
                 }
             }
         },
-        preValidation: [fastify.authenticate],
+        preValidation: [ fastify.authenticate ],
         handler: (request, reply) => {
             reply.send({"title": 'API'});
         }});
