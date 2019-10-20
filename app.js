@@ -6,16 +6,17 @@ const mCfg = config.mongoDBConnection;
 const mHost = config.mongoDBConnection.host || "localhost";
 const mPort = config.mongoDBConnection.port || 27017;
 
-const routes = [
+fastify.register(
+    require('fastify-mongodb'),
     {
-        plugin: require('fastify-mongodb'),
-        options: {
-            // force to close the mongodb connection when app stopped
-            // the default value is false
-            forceClose: true,
-            url: `mongodb://${mCfg.user}:${mCfg.password}@${mHost}:${mPort}/${mCfg.database}`
-        }
-    },
+        // force to close the mongodb connection when app stopped
+        // the default value is false
+        forceClose: true,
+        url: `mongodb://${mCfg.user}:${mCfg.password}@${mHost}:${mPort}/${mCfg.database}`
+    }
+);
+
+const routes = [
     {
         plugin: authentication.plugin,
         options: authentication.options
@@ -29,11 +30,14 @@ const routes = [
         options: { prefix: '/auth' }
     },
     {
+        plugin: require('./routes/api/v1.0/user')({ db: fastify.mongo.db }),
+        options: { prefix: '/user' }
+    },
+    {
         plugin: require('./routes/api/v1.0/questions'),
         options: { prefix: '/questions' }
     }
 ];
-
 routes.forEach((p) => fastify.register(p.plugin, p.options));
 
 function startServer(fastify, port, callback) {
