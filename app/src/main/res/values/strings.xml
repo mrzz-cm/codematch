@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">codematchfrontend</string>
+    <string name="profileviewbutton">profileViewButton</string>
+    <string name="profileviewtext">profileViewText</string>
+    <string name="postingviewbutton">postingViewButton</string>
+    <string name="notificationviewbutton">notificationViewButton</string>
+    <string name="button">Button</string>
+
 </resources>
