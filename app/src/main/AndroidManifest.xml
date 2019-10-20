@@ -13,7 +13,9 @@
         <activity android:name=".PostingView"
             android:parentActivityName=".NotifyView">
         </activity>
-        <activity android:name=".NotifyView" />
+        <activity android:name=".NotifyView"
+            android:launchMode="singleTop">
+        </activity>
         <activity android:name=".ProfileView"></activity>
         <activity android:name=".LoginView">
             <intent-filter>
