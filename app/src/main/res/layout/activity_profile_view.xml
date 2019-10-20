@@ -27,7 +27,7 @@
         android:id="@+id/button5"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:onClick="switchTabtoPostingView"
+        android:onClick="switchTabToPostingView"
         android:text="@string/postingviewbutton"
         app:layout_constraintBottom_toTopOf="@+id/button4"
         app:layout_constraintEnd_toEndOf="parent" />
@@ -36,7 +36,7 @@
         android:id="@+id/button6"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:onClick="switchTabtoNotifyView"
+        android:onClick="switchTabToNotifyView"
         android:text="@string/notificationviewbutton"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/button4" />

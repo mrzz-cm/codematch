@@ -10,9 +10,13 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import java.io.FileNotFoundException;
 import java.io.InputStream;
@@ -83,4 +87,43 @@ public class PostingView extends AppCompatActivity {
         String courseIDs = ((EditText) findViewById(R.id.coursesInput)).getText().toString();
 
     }
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.toolbar_menu, menu);
+        return true;
+    }
+    public void switchTabToNotifyView() {
+        // Do something in response to button
+        Intent intent = new Intent(this, NotifyView.class);
+        startActivity(intent);
+    }
+    public void switchTabToPostingView() {
+        // Do something in response to button
+        Intent intent = new Intent(this, PostingView.class);
+        startActivity(intent);
+    }
+    public void switchTabToProfileView() {
+        Intent intent = new Intent (this, ProfileView.class);
+        startActivity(intent);
+    }
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch(item.getItemId()) {
+            case R.id.postingViewButton:
+                Toast.makeText(this, "Posting View selected!!", Toast.LENGTH_SHORT).show();
+                switchTabToPostingView();
+                return true;
+            case R.id.notifyViewButton:
+                Toast.makeText(this, "Notification View selected!!", Toast.LENGTH_SHORT).show();
+                switchTabToNotifyView();
+
+                return true;
+            case R.id.profileViewButton:
+                Toast.makeText(this, "Profile View selected!!", Toast.LENGTH_SHORT).show();
+                switchTabToProfileView();
+            default: return super.onOptionsItemSelected(item);
+        }
+    }
+
 }

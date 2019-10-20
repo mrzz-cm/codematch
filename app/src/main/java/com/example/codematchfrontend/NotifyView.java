@@ -10,10 +10,14 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.method.ScrollingMovementMethod;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
@@ -70,10 +74,7 @@ public class NotifyView extends AppCompatActivity implements NotifyViewAdapter.N
         });
     }
 
-    public void switchTabToProfileView(View view ) {
-        Intent intent = new Intent (this, ProfileView.class);
-        startActivity(intent);
-    }
+
 
 
     @Override
@@ -131,5 +132,48 @@ public class NotifyView extends AppCompatActivity implements NotifyViewAdapter.N
     public void goToQuestionView() {
         Intent postQuestionIntent = new Intent(this, PostingView.class);
         startActivity(postQuestionIntent);
+    }
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.toolbar_menu, menu);
+        return true;
+    }
+    public void switchTabToProfileView(View view) {
+        // Do something in response to button
+        Intent intent = new Intent(this, ProfileView.class);
+        startActivity(intent);
+    }
+    public void switchTabToNotifyView() {
+        // Do something in response to button
+        Intent intent = new Intent(this, NotifyView.class);
+        startActivity(intent);
+    }
+    public void switchTabToPostingView() {
+        // Do something in response to button
+        Intent intent = new Intent(this, PostingView.class);
+        startActivity(intent);
+    }
+    public void switchTabToProfileView() {
+        Intent intent = new Intent (this, ProfileView.class);
+        startActivity(intent);
+    }
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch(item.getItemId()) {
+            case R.id.postingViewButton:
+                Toast.makeText(this, "Posting View selected!!", Toast.LENGTH_SHORT).show();
+                switchTabToPostingView();
+                return true;
+            case R.id.notifyViewButton:
+                Toast.makeText(this, "Notification View selected!!", Toast.LENGTH_SHORT).show();
+                switchTabToNotifyView();
+
+                return true;
+            case R.id.profileViewButton:
+                Toast.makeText(this, "Profile View selected!!", Toast.LENGTH_SHORT).show();
+                switchTabToProfileView();
+            default: return super.onOptionsItemSelected(item);
+        }
     }
 }
