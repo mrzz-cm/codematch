@@ -70,6 +70,11 @@ public class NotifyView extends AppCompatActivity implements NotifyViewAdapter.N
         });
     }
 
+    public void switchTabToProfileView(View view ) {
+        Intent intent = new Intent (this, ProfileView.class);
+        startActivity(intent);
+    }
+
 
     @Override
     public void onItemClick(View view, int position) {

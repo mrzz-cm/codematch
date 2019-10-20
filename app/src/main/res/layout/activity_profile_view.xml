@@ -1,4 +1,4 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/frameLayout"
@@ -7,14 +7,18 @@
 
     <include
         android:id="@+id/toolbar"
-        layout="@layout/toolbar" />
+        layout="@layout/toolbar"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <Button
         android:id="@+id/button4"
         style="@style/profileViewButton"
-        android:layout_above="@+id/button6"
-        android:layout_marginEnd="4dp"
-        android:layout_marginBottom="44dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:text="@string/profileviewbutton"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
@@ -23,8 +27,6 @@
         android:id="@+id/button5"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_marginBottom="370dp"
         android:onClick="switchTabtoPostingView"
         android:text="@string/postingviewbutton"
         app:layout_constraintBottom_toTopOf="@+id/button4"
@@ -34,11 +36,28 @@
         android:id="@+id/button6"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_above="@+id/button5"
-        android:layout_marginBottom="52dp"
         android:onClick="switchTabtoNotifyView"
         android:text="@string/notificationviewbutton"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/button4" />
 
-</RelativeLayout>
+    <EditText
+        android:id="@+id/editText3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:inputType="textPersonName"
+        android:text="X's Profile"
+        tools:layout_editor_absoluteX="88dp"
+        tools:layout_editor_absoluteY="109dp" />
+
+    <ImageView
+        android:id="@+id/imageView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        tools:layout_editor_absoluteX="127dp"
+        tools:layout_editor_absoluteY="165dp"
+        tools:srcCompat="@tools:sample/avatars[1]" />
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

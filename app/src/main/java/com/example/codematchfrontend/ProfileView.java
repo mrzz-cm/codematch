@@ -21,6 +21,10 @@ public class ProfileView extends AppCompatActivity {
         Intent intent = new Intent(this, PostingView.class);
         startActivity(intent);
     }
+    public void switchTabToProfileView(View view ) {
+        Intent intent = new Intent (this, ProfileView.class);
+        startActivity(intent);
+    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
