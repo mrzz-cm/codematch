@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.Toast;
 
 import com.google.android.gms.auth.api.signin.*;
 import com.google.android.gms.common.SignInButton;
@@ -38,6 +39,9 @@ public class LoginView extends AppCompatActivity {
                 .requestId()
                 .build();
         mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
+
+        GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(this);
+        updateUI(account);
     }
 
     private void signIn(){
@@ -48,8 +52,8 @@ public class LoginView extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(this);
-        updateUI(account);
+//        GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(this);
+//        updateUI(account);
     }
 
     @Override
@@ -76,11 +80,22 @@ public class LoginView extends AppCompatActivity {
 
     private void updateUI(GoogleSignInAccount account) {
         if (account == null) {
-            System.out.println("Account was null\n");
+            Toast toast = Toast.makeText(getApplicationContext(),
+                    "Unable to sign in, try again",
+                    Toast.LENGTH_SHORT);
+
+            toast.show();
         } else {
             System.out.println(account.getId());
             Intent intent = new Intent(this, NotifyView.class);
             startActivity(intent);
         }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+
     }
 }
