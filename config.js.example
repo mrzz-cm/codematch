@@ -22,8 +22,11 @@ const googleAuth = {
 
 const domain = 'cm.johnramsden.ca';
 
+const jwtSecret = "SECRET_HERE";
+
 module.exports = {
     mongoDBConnection: mongoDBConnection,
     googleAuth: googleAuth,
-    domain: domain
+    domain: domain,
+    jwtSecret: jwtSecret
 };

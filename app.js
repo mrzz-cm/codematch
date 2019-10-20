@@ -18,12 +18,13 @@ fastify.register(
 
 const routes = [
     {
+        // Must be first
         plugin: authentication.plugin,
         options: authentication.options
     },
     {
         plugin: require('./routes/api/v1.0/index'),
-        options: {}
+        options: { }
     },
     {
         plugin: require('./routes/api/v1.0/auth'),
@@ -37,6 +38,14 @@ const routes = [
         plugin: require('./routes/api/v1.0/questions'),
         options: { prefix: '/questions' }
     }
+    //,
+    // {
+    //     plugin: require('./routes/api/v1.0/questions'),
+    //     options: {
+    //         prefix: '/questions',
+    //         preValidation: [fastify.authenticate]
+    //     }
+    // }
 ];
 routes.forEach((p) => fastify.register(p.plugin, p.options));
 
