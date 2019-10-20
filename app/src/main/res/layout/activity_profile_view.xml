@@ -16,6 +16,7 @@
         android:id="@+id/button5"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:onClick="switchTabtoPostingView"
         android:text="@string/postingviewbutton"
         app:layout_constraintBottom_toTopOf="@+id/button4"
         app:layout_constraintEnd_toEndOf="parent" />
