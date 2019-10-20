@@ -5,9 +5,12 @@ import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.TextView;
+
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.LinkedList;
 
@@ -49,11 +52,25 @@ public class NotifyView extends AppCompatActivity implements NotifyViewAdapter.N
 
         adapter = new NotifyViewAdapter(this, this.notifications);
         newQuestionsView.setAdapter(adapter);
+
+        FloatingActionButton postNewQuestionFAB = (FloatingActionButton) findViewById(R.id.postQuestionFAB);
+
+        postNewQuestionFAB.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                goToQuestionView();
+            }
+        });
     }
 
 
     @Override
     public void onItemClick(View view, int position) {
         System.out.println(position + " clicked\n");
+    }
+
+    public void goToQuestionView() {
+        Intent postQuestionIntent = new Intent(this, PostingView.class);
+        startActivity(postQuestionIntent);
     }
 }
