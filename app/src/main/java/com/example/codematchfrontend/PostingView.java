@@ -35,6 +35,8 @@ public class PostingView extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 postQuestion();
+                ((EditText) findViewById(R.id.questionText)).getText().clear();
+                ((EditText) findViewById(R.id.coursesInput)).getText().clear();
             }
         });
 
