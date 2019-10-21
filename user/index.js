@@ -259,6 +259,21 @@ class User {
     }
 
     /**
+     * Updates the user in the database.
+     * @param {object}      update
+     * @param {function}    callback
+     */
+    update(update, callback) {
+        const collection = mongo.db.collection(userCollection);
+
+        collection.findOneAndUpdate(
+            { userId: this.userId },
+            update,
+            callback
+        );
+    }
+
+    /**
      * Retrieve a user from database.
      * @param {string} email
      * @param {function} callback
