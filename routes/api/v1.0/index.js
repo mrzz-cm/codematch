@@ -1,24 +1,24 @@
-const assert = require('assert');
+const user = require("../../../user");
 
 function routes (fastify, opts, done) {
     /* GET home page. */
     fastify.route({
-        method: 'GET',
-        url: '/',
+        method: "GET",
+        url: "/",
         schema: {
             querystring: {},
             response: {
                 200: {
-                    type: 'object',
+                    type: "object",
                     properties: {
-                        title: {type: 'string'}
+                        title: {type: "string"}
                     }
                 }
             }
         },
         preValidation: [ fastify.authenticate ],
         handler: (request, reply) => {
-            reply.send({"title": 'API'});
+            reply.send({"title": "API"});
         }});
 
     done();

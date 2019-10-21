@@ -239,7 +239,7 @@ class User {
             lastOnline: this.lastOnline,
             currentQuestion: this.currentQuestion,
             token: this.token
-        }
+        };
     }
 
     static async exists(userId) {
@@ -265,8 +265,8 @@ class User {
                 } else {
                     console.log(`Inserted user  ${jsonData.userId} into the collection`);
                 }
-                callback(err)
-            })
+                callback(err);
+            });
         });
     }
 
@@ -299,8 +299,8 @@ class User {
             } else {
                 console.log(`Retrieved user ${result} from the collection`);
             }
-            callback(err, result)
-        })
+            callback(err, result);
+        });
     }
 
     /**
@@ -309,9 +309,9 @@ class User {
      */
     static async getAllUsers() {
         const r = await mongo.db.collection(userCollection)
-                .find({})
-                .toArray();
-                // .map();
+            .find({})
+            .toArray();
+        // .map();
         return r.map((q, index, array) => (q));
     }
 

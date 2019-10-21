@@ -1,10 +1,10 @@
 const fastifyPlugin = require("fastify-plugin");
 const jwtPlugin = require("fastify-jwt");
-const oauthPlugin = require('fastify-oauth2');
+const oauthPlugin = require("fastify-oauth2");
 
-const req = require('request');
+const req = require("request");
 
-const config = require('../config');
+const config = require("../config");
 
 // https://github.com/fastify/fastify-jwt
 
@@ -16,21 +16,21 @@ const jwtValdatorPlugin = fastifyPlugin(async function(fastify, opts) {
 
     fastify.decorate("authenticate", async function(request, reply) {
         try {
-            await request.jwtVerify()
+            await request.jwtVerify();
         } catch (err) {
-            reply.send(err)
+            reply.send(err);
         }
-    })
+    });
 });
 
 const requestEmail = function(token, callback) {
     console.log("request token: " + token);
     req({
-        url: 'https://openidconnect.googleapis.com/v1/userinfo',
-        method: 'GET',
+        url: "https://openidconnect.googleapis.com/v1/userinfo",
+        method: "GET",
         qs: { scope: "openid email"},
         headers: {
-            Authorization: 'Bearer ' + token
+            Authorization: "Bearer " + token
         },
         json: true
     }, callback);
@@ -43,8 +43,8 @@ module.exports = {
     requestEmail: requestEmail,
     oauthPlugin: oauthPlugin,
     oauthOptions: {
-        name: 'googleOAuth2',
-        scope: ['email'],
+        name: "googleOAuth2",
+        scope: ["email"],
         credentials: {
             client: {
                 id: config.googleAuth.web.client_id,
@@ -53,7 +53,7 @@ module.exports = {
             auth: oauthPlugin.GOOGLE_CONFIGURATION
         },
         // register a fastify url to start the redirect flow
-        startRedirectPath: '/auth/google',
+        startRedirectPath: "/auth/google",
         // Google redirect here after the user login
         callbackUri: `https://${config.domain}/auth/google/callback`
     }

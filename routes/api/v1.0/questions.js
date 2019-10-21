@@ -1,19 +1,19 @@
-const questionsModule = require('../../../questions');
-const userModule = require('../../../user');
+const questionsModule = require("../../../questions");
+const userModule = require("../../../user");
 
 function routes (fastify, opts, done) {
     fastify.route({
-        method: 'POST',
-        url: '/create',
+        method: "POST",
+        url: "/create",
         schema: {
             body: {
-                type: 'object',
-                required: ['userId', 'title', 'courseCode', 'questionText'],
+                type: "object",
+                required: ["userId", "title", "courseCode", "questionText"],
                 properties: {
-                    userId: { type: 'string' },
-                    title: { type: 'string' },
-                    courseCode: { type: 'string' },
-                    questionText:  { type: 'string' }
+                    userId: { type: "string" },
+                    title: { type: "string" },
+                    courseCode: { type: "string" },
+                    questionText:  { type: "string" }
                 }
             }
         },
@@ -39,7 +39,7 @@ function routes (fastify, opts, done) {
             //     reply.status(200);
             //     reply.send('Question posted.');
             // });
-            var user;
+            let user;
 
             function updateUserCallback(err, newUserJson) {
                 user = um.User.fromJson(newUserJson);
@@ -51,7 +51,7 @@ function routes (fastify, opts, done) {
                 }
 
                 reply.status(200);
-                reply.send('yes');
+                reply.send("yes");
             }
 
             function createQuestionCallback(err, status, new_question) {
@@ -86,8 +86,8 @@ function routes (fastify, opts, done) {
 
                 if (user.currentQuestion) {
                     reply.status(401);
-                    reply.send('Cannot post a question when you are already ' +
-                            'registered to another question!');
+                    reply.send("Cannot post a question when you are already " +
+                               "registered to another question!");
                     return;
                 }
 
@@ -101,7 +101,7 @@ function routes (fastify, opts, done) {
                     um.User.retrieve(request.body.userId, getUserCallback);
                 } else {
                     reply.status(400);
-                    reply.send('Provided user doesn\'t exist.');
+                    reply.send("Provided user doesn't exist.");
                 }
             }
 

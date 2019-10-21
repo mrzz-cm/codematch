@@ -1,15 +1,15 @@
-const userModule = require('../../../user');
+const userModule = require("../../../user");
 
 function routes (fastify, opts, done) {
     fastify.route({
-        method: 'POST',
-        url: '/register',
+        method: "POST",
+        url: "/register",
         schema: {
             body: {
-                type: 'object',
-                required: ['google_token'],
+                type: "object",
+                required: ["googleToken"],
                 properties: {
-                    google_token: { type: 'string' }
+                    google_token: { type: "string" }
                 }
             }
         },
@@ -18,12 +18,12 @@ function routes (fastify, opts, done) {
             const um = userModule({ mongo: fastify.mongo });
             console.log(request.body);
 
-            um.createUser(request.body.google_token, async function (err, res, data) {
+            authentication.requestEmail(request.body.googleToken, async function (err, res, data) {
                 if (err || (res.statusCode !== 200) || !data.email) {
                     console.log(data);
                     reply.status(res.statusCode);
                     reply.send(err);
-                    return
+                    return;
                 }
 
                 const userExists = await um.User.exists(data.email);
@@ -31,7 +31,7 @@ function routes (fastify, opts, done) {
                 if (userExists) {
                     reply.status(500);
                     reply.send("User exists");
-                    return
+                    return;
                 }
 
                 // store to database
@@ -39,7 +39,7 @@ function routes (fastify, opts, done) {
                     if (err) {
                         reply.status(500);
                         reply.send(err);
-                        return
+                        return;
                     }
                     // done
                     reply.status(200);
