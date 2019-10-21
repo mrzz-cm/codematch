@@ -156,4 +156,29 @@ public class ProfileView extends AppCompatActivity implements CoursesListAdapter
             default: return super.onOptionsItemSelected(item);
         }
     }
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.toolbar_menu, menu);
+        return true;
+    }
+
+    @Override
+     public boolean onOptionsItemSelected(MenuItem item) {
+        switch(item.getItemId()) {
+            case R.id.postingViewButton:
+                Toast.makeText(this, "Posting View selected!!", Toast.LENGTH_SHORT).show();
+                switchTabToPostingView();
+                return true;
+            case R.id.notifyViewButton:
+                Toast.makeText(this, "Notification View selected!!", Toast.LENGTH_SHORT).show();
+                switchTabToNotifyView();
+
+                return true;
+            case R.id.profileViewButton:
+                Toast.makeText(this, "Profile View selected!!", Toast.LENGTH_SHORT).show();
+                switchTabToProfileView();
+            default: return super.onOptionsItemSelected(item);
+        }
+    }
 }
