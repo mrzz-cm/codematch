@@ -11,11 +11,15 @@ import android.app.Dialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.method.ScrollingMovementMethod;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
@@ -30,18 +34,21 @@ public class ProfileView extends AppCompatActivity implements CoursesListAdapter
 
 
     /** Called when the user taps the notificationviewbutton button */
-    public void switchTabtoNotifyView(View view) {
+    public void switchTabToNotifyView() {
         // Do something in response to button
         Intent intent = new Intent(this, NotifyView.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
         startActivity(intent);
     }
-    public void switchTabtoPostingView(View view) {
+    public void switchTabToPostingView() {
         // Do something in response to button
         Intent intent = new Intent(this, PostingView.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
         startActivity(intent);
     }
-    public void switchTabToProfileView(View view ) {
+    public void switchTabToProfileView() {
         Intent intent = new Intent (this, ProfileView.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
         startActivity(intent);
     }
     @Override
@@ -123,5 +130,30 @@ public class ProfileView extends AppCompatActivity implements CoursesListAdapter
 
     private void addcourse(String course) {
 
+    }
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.toolbar_menu, menu);
+        return true;
+    }
+
+    @Override
+     public boolean onOptionsItemSelected(MenuItem item) {
+        switch(item.getItemId()) {
+            case R.id.postingViewButton:
+                Toast.makeText(this, "Posting View selected!!", Toast.LENGTH_SHORT).show();
+                switchTabToPostingView();
+                return true;
+            case R.id.notifyViewButton:
+                Toast.makeText(this, "Notification View selected!!", Toast.LENGTH_SHORT).show();
+                switchTabToNotifyView();
+
+                return true;
+            case R.id.profileViewButton:
+                Toast.makeText(this, "Profile View selected!!", Toast.LENGTH_SHORT).show();
+                switchTabToProfileView();
+            default: return super.onOptionsItemSelected(item);
+        }
     }
 }

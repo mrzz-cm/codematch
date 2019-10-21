@@ -2,15 +2,18 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <item android:id="@+id/item1"
-        android:icon="@drawable/ic_testicon"
+    <item
+        android:id="@+id/postingViewButton"
+        android:icon="@drawable/ic_postingviewicon"
         android:title="Posting View"
         app:showAsAction="ifRoom" />
-    <item android:id="@+id/item2"
+    <item
+        android:id="@+id/notifyViewButton"
         android:icon="@drawable/ic_notificationicon"
         android:title="Notification View"
         app:showAsAction="ifRoom" />
-    <item android:id="@+id/item3"
+    <item
+        android:id="@+id/profileViewButton"
         android:icon="@drawable/ic_person_black_24dp"
         android:title="Profile View"
         app:showAsAction="ifRoom" />
