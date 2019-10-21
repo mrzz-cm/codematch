@@ -17,6 +17,7 @@ function routes (fastify, opts, done) {
                 }
             }
         },
+        preValidation: [ fastify.authenticate ],
         handler: function(request, reply) {
             const qm = questionsModule({ mongo: fastify.mongo });
             const um = userModule({ mongo: fastify.mongo });

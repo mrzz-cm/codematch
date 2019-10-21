@@ -1,3 +1,5 @@
+const authentication = require("../../../authentication");
+
 var req = require('request');
 
 function routes (fastify, opts, done) {
@@ -11,16 +13,7 @@ function routes (fastify, opts, done) {
                     reply.send(err);
                     return
                 }
-
-                req({
-                    url: 'https://openidconnect.googleapis.com/v1/userinfo',
-                    method: 'GET',
-                    qs: { scope: "openid email"},
-                    headers: {
-                        Authorization: 'Bearer ' + result.access_token
-                    },
-                    json: true
-                }, function (err, res, data) {
+                authentication.requestEmail(result.access_token, function (err, res, data) {
                     if (err) {
                         reply.send(err);
                         return
@@ -35,7 +28,9 @@ function routes (fastify, opts, done) {
         method: 'POST',
         url: '/token',
         schema: {
-            querystring: {
+            body: {
+                type: 'object',
+                required: ['access_token'],
                 properties: {
                     access_token: {type: 'string'}
                 }
@@ -50,18 +45,11 @@ function routes (fastify, opts, done) {
             }
         },
         handler: (request, reply) => {
-            req({
-                url: 'https://openidconnect.googleapis.com/v1/userinfo',
-                method: 'GET',
-                qs: { scope: "openid email"},
-                headers: {
-                    Authorization: 'Bearer ' + request.body.access_token
-                },
-                json: true
-            }, function (err, res, data) {
+            console.log(request.body.access_token)
+            authentication.requestEmail(request.body.access_token, function (err, res, data) {
                 if (err || res.statusCode !== 200) {
                     // reply.send(err);
-                    console.log(res);
+                    // console.log(res);
                     reply.send();
                     return
                 }
