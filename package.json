@@ -5,7 +5,8 @@
   "scripts": {
     "start": "node ./bin/www",
     "doc-gen": "documentation",
-    "test": "tap"
+    "test": "tap",
+    "lint": "eslint '**/*.js' 'bin/*'"
   },
   "dependencies": {
     "debug": "^4.1.1",
@@ -21,6 +22,8 @@
   },
   "devDependencies": {
     "documentation": "^12.1.2",
+    "eslint": "^6.5.1",
+    "jslint": "^0.12.1",
     "shot": "^4.0.7",
     "tap": "^14.6.9"
   }
