@@ -80,13 +80,13 @@ class Question {
      * Serializes the object into JSON so it can be stored into MongoDB
      * @returns {Object} the JSON blob representing the question
      */
-    static toJson() {
+    toJson() {
         return {
             uuid: this.uuid,
             title: this.title,
             courseCode: this.courseCode,
             questionText: this.questionText,
-            seeker: this.seeker.userId,
+            seeker: this.seeker,
             creationTimestamp: this.creationTimestamp,
             optimalHelper: this.optimalHelper,
             helperNotifiedTimestamp: this.helperNotifiedTimestamp,
@@ -129,11 +129,11 @@ class Question {
 /**
  * Handles the request to post a question.
  */
- function createQuestion(questionData) {
+ function createQuestion(questionData, callback) {
     // make a new question
     const new_question = Question.newQuestion(questionData.userId, questionData.title,
         questionData.courseCode, questionData.questionText);
-    callback(err, data);
+    callback(null, 200, new_question);
  }
 
 
