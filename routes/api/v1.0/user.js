@@ -13,11 +13,10 @@ function routes (fastify, opts, done) {
                 }
             }
         },
+        preValidation: [ fastify.authenticate ],
         handler: function(request, reply) {
             const um = userModule({ mongo: fastify.mongo });
             console.log(request.body);
-
-
 
             um.createUser(request.body.google_token, async function (err, res, data) {
                 if (err || (res.statusCode !== 200) || !data.email) {
