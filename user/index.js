@@ -71,10 +71,11 @@ class User {
      * @param {string[]}    questionsHelped
      * @param {number}      lastOnline
      * @param {string}      currentQuestion
+     * @param {string}      token
      */
     constructor(userId, points, courses,
         questionsPosted, questionsHelped,
-        lastOnline, currentQuestion) {
+        lastOnline, currentQuestion, token) {
         this._userId = userId;
         this._points = points;
         this._courses = courses;
@@ -84,6 +85,7 @@ class User {
 
         this._lastOnline = lastOnline;
         this._currentQuestion = currentQuestion;
+        this._token = token;
     }
 
     /**
@@ -100,7 +102,7 @@ class User {
      */
     static newUser(email) {
         return new User(email, 0, [],
-            [], [], Date.now(), null);
+            [], [], Date.now(), null, null);
     }
 
     /**
@@ -111,7 +113,8 @@ class User {
         return new User(
             json_obj.userId, json_obj.points, json_obj.courses,
             json_obj.questionsPosted, json_obj.questionsHelped,
-            json_obj.lastOnline, json_obj.currentQuestion
+            json_obj.lastOnline, json_obj.currentQuestion,
+            json_obj.token
         );
     }
 
@@ -214,6 +217,14 @@ class User {
         this._currentQuestion = questionId;
     }
 
+    get token() {
+        return this._token;
+    }
+
+    set token(token) {
+        this._token = token;
+    }
+
     /**
      * Serializes the object into JSON so it can be stored into MongoDB
      * @returns {Object} the JSON blob representing the user
@@ -226,7 +237,8 @@ class User {
             questionsPosted: this.questionsPosted,
             questionsHelped: this.questionsHelped,
             lastOnline: this.lastOnline,
-            currentQuestion: this.currentQuestion
+            currentQuestion: this.currentQuestion,
+            token: this.token
         }
     }
 
