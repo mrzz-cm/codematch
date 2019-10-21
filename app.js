@@ -23,6 +23,10 @@ const routes = [
         options: authentication.options
     },
     {
+       plugin: authentication.oauthPlugin,
+       options: authentication.oauthOptions
+    },
+    {
         plugin: require('./routes/api/v1.0/index'),
         options: {}
     },

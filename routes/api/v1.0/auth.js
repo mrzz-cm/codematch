@@ -25,12 +25,10 @@ function routes (fastify, opts, done) {
 
     /* GET AUTH token. */
     fastify.route({
-        method: 'POST',
+        method: 'GET',
         url: '/token',
         schema: {
-            body: {
-                type: 'object',
-                required: ['access_token'],
+            querystring: {
                 properties: {
                     access_token: {type: 'string'}
                 }
@@ -45,12 +43,11 @@ function routes (fastify, opts, done) {
             }
         },
         handler: (request, reply) => {
-            console.log(request.body.access_token)
-            authentication.requestEmail(request.body.access_token, function (err, res, data) {
+            console.log(request.query.access_token);
+            authentication.requestEmail(request.query.access_token, function (err, res, data) {
                 if (err || res.statusCode !== 200) {
-                    // reply.send(err);
-                    // console.log(res);
-                    reply.send();
+                    reply.status(res.statusCode);
+                    reply.send(err);
                     return
                 }
                 const token = fastify.jwt.sign(data.email);
