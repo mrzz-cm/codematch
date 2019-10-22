@@ -1,7 +1,6 @@
-const authentication = require("../authentication");
+const geolib = require("geolib");
 
 const userCollection = "users";
-
 let mongo;
 
 /**
@@ -72,10 +71,10 @@ class User {
      * @param {number}      lastOnline
      * @param {string}      currentQuestion
      * @param {string}      token
+     * @param {Location}    location
      */
-    constructor(userId, points, courses,
-        questionsPosted, questionsHelped,
-        lastOnline, currentQuestion, token) {
+    constructor(userId, points, courses, questionsPosted, questionsHelped,
+        lastOnline, currentQuestion, token, location) {
         this._userId = userId;
         this._points = points;
         this._courses = courses;
@@ -86,6 +85,8 @@ class User {
         this._lastOnline = lastOnline;
         this._currentQuestion = currentQuestion;
         this._token = token;
+
+        this._location = location;
     }
 
     /**
@@ -102,20 +103,38 @@ class User {
      */
     static newUser(email) {
         return new User(email, 0, [],
-            [], [], Date.now(), null, null);
+            [], [], Date.now(),
+            null, null, null);
     }
 
     /**
      * Creates a new User from a JSON object from the database
-     * @param {object} json_obj 
+     * @param {object} jsonUser
      */
-    static fromJson(json_obj) {
+    static fromJson(jsonUser) {
         return new User(
-            json_obj.userId, json_obj.points, json_obj.courses,
-            json_obj.questionsPosted, json_obj.questionsHelped,
-            json_obj.lastOnline, json_obj.currentQuestion,
-            json_obj.token
+            jsonUser.userId, jsonUser.points, jsonUser.courses,
+            jsonUser.questionsPosted, jsonUser.questionsHelped,
+            jsonUser.lastOnline, jsonUser.currentQuestion,
+            jsonUser.token,
+            Location.fromJson(jsonUser.location)
         );
+    }
+
+    /**
+     * Get the location
+     * @returns {Location} location
+     */
+    get location() {
+        return this._userId;
+    }
+
+    /**
+     * Set the location
+     * @param {Location} location
+     */
+    set location(location) {
+        this._location = location;
     }
 
     /**
@@ -231,17 +250,24 @@ class User {
      */
     toJson() {
         return {
-            userId: this.userId,
-            points: this.points,
-            courses: this.courses,
-            questionsPosted: this.questionsPosted,
-            questionsHelped: this.questionsHelped,
-            lastOnline: this.lastOnline,
-            currentQuestion: this.currentQuestion,
-            token: this.token
+            userId: this._userId,
+            points: this._points,
+            courses: this._courses,
+            questionsPosted: this._questionsPosted,
+            questionsHelped: this._questionsHelped,
+            lastOnline: this._lastOnline,
+            currentQuestion: this._currentQuestion,
+            token: this._token,
+            location: this._location.toJson()
         };
     }
 
+    /**
+     * Check if a user exists
+     *
+     * @param userId
+     * @returns {Promise<boolean>}
+     */
     static async exists(userId) {
         const count = await mongo.db.collection(userCollection)
             .find({ "userId": { $exists: true, $eq: userId } })
@@ -261,9 +287,11 @@ class User {
         collection.ensureIndex({ userId: 1 }, { unique: true }, () => {
             collection.insertOne(jsonData, function (err, result) {
                 if (err !== null) {
-                    console.log(`Failed to insert ${jsonData.userId} into the collection`);
+                    console.log(
+                        `Failed to insert ${jsonData.userId} into users`);
                 } else {
-                    console.log(`Inserted user  ${jsonData.userId} into the collection`);
+                    console.log(
+                        `Inserted user ${jsonData.userId} into users`);
                 }
                 callback(err);
             });
@@ -279,7 +307,7 @@ class User {
         const collection = mongo.db.collection(userCollection);
 
         collection.findOneAndUpdate(
-            { userId: this.userId },
+            { userId: this._userId },
             update,
             callback
         );
@@ -305,16 +333,48 @@ class User {
 
     /**
      * Retrieve all users from database.
-     * @returns {User[]} all users
+     * @returns {Promise<User[]>} all users
      */
     static async getAllUsers() {
         const r = await mongo.db.collection(userCollection)
             .find({})
             .toArray();
-        // .map();
-        return r.map((q, index, array) => (q));
+        return r.map((q) => (this.fromJson(q)));
     }
 
+}
+
+/**
+ * Create a Location
+ */
+class Location {
+    /**
+     * @param {number} latitude
+     * @param {number} longitude
+     * @param {number} timestamp
+     */
+    constructor(latitude, longitude, timestamp) {
+        this._latitude = latitude;
+        this._longitude = longitude;
+        // this._timestamp = timestamp;
+    }
+
+    toJson() {
+        return { latitude: this._latitude, longitude: this._longitude }
+    }
+
+    static fromJson(jsonLocation) {
+        return new Location(jsonLocation.latitude, jsonLocation.longitude, 0);
+    }
+
+    /**
+     * calculates the distance between two locations in kilometers
+     *
+     * @param {Location} location
+     */
+    distance(location) {
+        return geolib.getDistance(this.toJson(), location.toJson());
+    }
 }
 
 module.exports = function (options) {
