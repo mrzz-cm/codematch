@@ -33,13 +33,14 @@ function registerUserForNotifications(userId, fcmToken, callback) {
     });
 }
 
-function sendUserNotification(userId, title, body, callback) {
+function sendUserNotification(userId, title, body, data, callback) {
     
     // create message
     var message = new gcm.Message({
         notification: {
             title: title,
-            body: body
+            body: body,
+            data: data
         }
     });
 
