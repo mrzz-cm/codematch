@@ -156,4 +156,10 @@ public class ProfileView extends AppCompatActivity implements CoursesListAdapter
             default: return super.onOptionsItemSelected(item);
         }
     }
+
+    public void deleteProfile() {
+        /* This method is to enable the user to delete their profile from codematch and all associated data
+
+         */
+    }
 }
