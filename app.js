@@ -42,6 +42,10 @@ const routes = [
     {
         plugin: require("./routes/api/v1.0/user"),
         options: { prefix: "/user" }
+    },
+    {
+        plugin: require("./routes/api/v1.0/notifications"),
+        options: { prefix: "/notifications" }
     }
 ];
 routes.forEach((p) => fastify.register(p.plugin, p.options));

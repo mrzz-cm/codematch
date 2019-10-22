@@ -72,9 +72,10 @@ class User {
      * @param {string}      currentQuestion
      * @param {string}      token
      * @param {Location}    location
+     * @param {string}      fcmToken
      */
     constructor(userId, points, courses, questionsPosted, questionsHelped,
-        lastOnline, currentQuestion, token, location) {
+        lastOnline, currentQuestion, token, location, fcmToken) {
         this._userId = userId;
         this._points = points;
         this._courses = courses;
@@ -87,14 +88,7 @@ class User {
         this._token = token;
 
         this._location = location;
-    }
-
-    /**
-     * Create an Empty User
-     * @returns {User} Empty User
-     */
-    static emptyUser() {
-        return new User("", 0);
+        this._fcmToken = fcmToken;
     }
 
     /**
@@ -104,7 +98,7 @@ class User {
     static newUser(email) {
         return new User(email, 0, [],
             [], [], Date.now(),
-            null, null, null);
+            null, null, new Location(0, 0), null);
     }
 
     /**
@@ -117,7 +111,8 @@ class User {
             jsonUser.questionsPosted, jsonUser.questionsHelped,
             jsonUser.lastOnline, jsonUser.currentQuestion,
             jsonUser.token,
-            Location.fromJson(jsonUser.location)
+            Location.fromJson(jsonUser.location),
+            jsonUser.fcmToken
         );
     }
 
@@ -244,6 +239,14 @@ class User {
         this._token = token;
     }
 
+    get fcmToken() {
+        return this._fcmToken;
+    }
+
+    set fcmToken(fcmToken) {
+        this._fcmToken = fcmToken
+    }
+
     /**
      * Serializes the object into JSON so it can be stored into MongoDB
      * @returns {Object} the JSON blob representing the user
@@ -258,7 +261,8 @@ class User {
             lastOnline: this._lastOnline,
             currentQuestion: this._currentQuestion,
             token: this._token,
-            location: this._location.toJson()
+            location: this._location.toJson(),
+            fcmToken: this._fcmToken
         };
     }
 
@@ -384,8 +388,9 @@ function getUser(userId, callback) {
             return;
         }
 
-        // remove the token field before sending data back to client
+        // remove the token fields before sending data back to client
         data.token = null;
+        data.fcmToken = null;
         callback(err, data);
     });
 }
