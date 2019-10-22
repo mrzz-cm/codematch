@@ -377,12 +377,26 @@ class Location {
     }
 }
 
+function getUser(userId, callback) {
+    User.retrieve(userId, function(err, data) {
+        if (err || !data) {
+            callback(err, data);
+            return;
+        }
+
+        // remove the token field before sending data back to client
+        data.token = null;
+        callback(err, data);
+    });
+}
+
 module.exports = function (options) {
     mongo = options.mongo;
 
     const module = {};
 
     module.User = User;
+    module.getUser = getUser;
 
     return module;
 };

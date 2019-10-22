@@ -176,6 +176,10 @@ function createQuestion(questionData, callback) {
     callback(null, 200, new_question);
 }
 
+function getQuestion(questionId, callback) {
+    Question.retrieve(questionId, callback);
+}
+
 
 module.exports = function (options) {
     mongo = options.mongo;
@@ -183,6 +187,7 @@ module.exports = function (options) {
     const module = {};
 
     module.createQuestion = createQuestion;
+    module.getQuestion = getQuestion;
 
     return module;
 };

@@ -22,23 +22,6 @@ function routes (fastify, opts, done) {
             const qm = questionsModule({ mongo: fastify.mongo });
             const um = userModule({ mongo: fastify.mongo });
 
-
-
-            // qm.createQuestion(request.body, function(err, status, q) {
-            //     if (err || (status !== 200) || !q) {
-            //         console.log(q);
-            //         reply.status(status);
-            //         reply.send(err);
-            //         return
-            //     }
-
-            //     // add it to the database
-            //     console.log(q.toJson());
-
-            //     // done
-            //     reply.status(200);
-            //     reply.send('Question posted.');
-            // });
             let user;
 
             function updateUserCallback(err, newUserJson) {
@@ -120,6 +103,31 @@ function routes (fastify, opts, done) {
                     reply.status(400);
                     reply.send(err);
                 });
+        }
+    });
+
+    fastify.route({
+        method: "GET",
+        url: "/question",
+        schema: {
+            querystring: {
+                questionId: { type: 'string' }
+            }
+        },
+        //preValidation: [ fastify.authenticate ],
+        handler: function(request, reply) {
+            const qm = questionsModule({ mongo: fastify.mongo });
+
+            qm.getQuestion(request.query.questionId, function(err, data) {
+                if (err || !data) {
+                    reply.status(400);
+                    reply.send(err);
+                    return;
+                }
+
+                reply.status(200);
+                reply.send(data);
+            });
         }
     });
 
