@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.FormBody;
+import okhttp3.MediaType;
 import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -76,7 +77,7 @@ public class LoginView extends AppCompatActivity {
                         String token = task.getResult().getToken();
 
                         // Log and toast
-                        System.out.println(token);
+                        System.out.println("instance ID token: " + token);
                     }
                 });
     }
@@ -133,11 +134,11 @@ public class LoginView extends AppCompatActivity {
         final GoogleSignInAccount faccount = account;
 
         String authcode = account.getServerAuthCode();
-        final OkHttpClient client = new OkHttpClient();
+        final OkHttpClient client = Global.HTTP_CLIENT;
         RequestBody requestBody = new FormBody.Builder()
                 .add("grant_type", "authorization_code")
                 .add("client_id", getString(R.string.default_web_client_id))
-                .add("client_secret", "ADD_CLIENT_SECRET")
+                .add("client_secret", "CLIENT_SECRET")
                 .add("redirect_uri","")
                 .add("code", authcode)
                 .build();
@@ -164,13 +165,44 @@ public class LoginView extends AppCompatActivity {
                     Call call = client.newCall(getServerTokenRequest);
                     response = call.execute();
 
-                    System.out.println(response.body().string());
+                    Global.API_KEY = response.body().string();
+
+                    System.out.println("Api key updated to " + Global.API_KEY + "\n");
+                    notify_create_account( jsonObject.get("access_token").toString());
                     updateUI(faccount);
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
             }
         });
+    }
+
+    private void notify_create_account( String google_access_token) {
+        JSONObject jsonObject = new JSONObject();
+        try {
+            jsonObject.put("googleToken", google_access_token);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        MediaType JSON = MediaType.parse("application/json; charset=utf-8");
+        RequestBody body = RequestBody.create(jsonObject.toString(), JSON);
+
+        Request notify_create_account_request = new Request.Builder()
+                .url(Global.BASE_URL + "/user/register")
+                .addHeader("Authorization", "Bearer " + Global.API_KEY)
+                .post(body)
+                .build();
+
+        Response response = null;
+        try {
+            response = Global.HTTP_CLIENT.newCall(notify_create_account_request).execute();
+            int statuscode = response.code();
+            System.out.println("Create account return " + statuscode + "\n");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
     }
 
     @Override
