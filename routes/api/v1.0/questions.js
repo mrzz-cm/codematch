@@ -51,11 +51,7 @@ function routes (fastify, opts, done) {
                 }
 
                 reply.status(200);
-<<<<<<< HEAD
-                reply.send('Question posted.');
-=======
-                reply.send("yes");
->>>>>>> 6f1966cc5cee6086d6068e90947b4ae163b2b693
+                reply.send("Question posted.");
             }
 
             function createQuestionCallback(err, status, new_question) {
