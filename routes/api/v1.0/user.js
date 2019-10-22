@@ -57,7 +57,7 @@ function routes (fastify, opts, done) {
         handler: function(request, reply) {
             const um = userModule({ mongo: fastify.mongo });
 
-            um.getUser(request.params.userId, function(err, data) {
+            um.User.sanitizedJson(request.params.userId, function(err, data) {
                 if (err || !data) {
                     reply.status(400);
                     reply.send(err);

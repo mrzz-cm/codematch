@@ -360,6 +360,20 @@ class User {
             (this._courses.includes(question.courseCode) ? COURSE_CODE_WEIGHT : 0)
         );
     }
+
+    static sanitizedJson(userId, callback) {
+        User.retrieve(userId, function(err, data) {
+            if (err || !data) {
+                callback(err, data);
+                return;
+            }
+
+            // remove the token fields before sending data back to client
+            data.token = null;
+            data.fcmToken = null;
+            callback(err, data);
+        });
+    }
 }
 
 /**
