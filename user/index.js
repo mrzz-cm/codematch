@@ -1,6 +1,6 @@
 const authentication = require("../authentication");
 
-const userCollection = 'users';
+const userCollection = "users";
 
 let mongo;
 
@@ -21,7 +21,7 @@ class Helper {
      * @returns {Helper} Empty helper
      */
     static emptyHelper() {
-        return new Helper('', false);
+        return new Helper("", false);
     }
 
     /**
@@ -93,7 +93,7 @@ class User {
      * @returns {User} Empty User
      */
     static emptyUser() {
-        return new User('', 0);
+        return new User("", 0);
     }
 
     /**
@@ -239,7 +239,7 @@ class User {
             lastOnline: this.lastOnline,
             currentQuestion: this.currentQuestion,
             token: this.token
-        }
+        };
     }
 
     static async exists(userId) {
@@ -265,8 +265,8 @@ class User {
                 } else {
                     console.log(`Inserted user  ${jsonData.userId} into the collection`);
                 }
-                callback(err)
-            })
+                callback(err);
+            });
         });
     }
 
@@ -291,29 +291,30 @@ class User {
      * @param {function} callback
      */
     static retrieve(email, callback) {
-        const collection = mongo.db.collection(userCollection);
-        collection.findOne({ userId: email }, function (err, result) {
+        mongo.db.collection(userCollection).findOne({
+            userId: email
+        }, (err, result) => {
             if (err !== null) {
                 console.log(`Failed to retrieve ${email} from the collection`);
             } else {
                 console.log(`Retrieved user ${result} from the collection`);
             }
-            callback(err, result)
-        })
+            callback(err, result);
+        });
     }
 
-}
+    /**
+     * Retrieve all users from database.
+     * @returns {User[]} all users
+     */
+    static async getAllUsers() {
+        const r = await mongo.db.collection(userCollection)
+            .find({})
+            .toArray();
+        // .map();
+        return r.map((q, index, array) => (q));
+    }
 
-/**
- * User Functions
- */
-
- /**
-  * Creates a new user from a client request.
-  */
-function createUser(googleToken, callback) {
-    console.log("Token: " + googleToken);
-    authentication.requestEmail(googleToken, callback);
 }
 
 module.exports = function (options) {
@@ -321,7 +322,6 @@ module.exports = function (options) {
 
     const module = {};
 
-    module.createUser = createUser;
     module.User = User;
 
     return module;

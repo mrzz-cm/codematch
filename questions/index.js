@@ -1,5 +1,5 @@
 const userModule = require("../user");
-const uuidv1 = require('uuid/v1');
+const uuidv1 = require("uuid/v1");
 
 const questionCollection = 'questions';
 
@@ -29,10 +29,10 @@ class Question {
      * @param {number}      finalScore
      */
     constructor(uuid, title, courseCode, questionText,
-            seeker, creationTimestamp,
-            optimalHelper, helperNotifiedTimestamp, helperAccepted,
-            prevCheckedHelpers, finalHelper,
-            questionState, finalScore) {
+        seeker, creationTimestamp,
+        optimalHelper, helperNotifiedTimestamp, helperAccepted,
+        prevCheckedHelpers, finalHelper,
+        questionState, finalScore) {
         
         this.uuid = uuid;
         this.title = title;
@@ -59,7 +59,7 @@ class Question {
      */
     static newQuestion(user, title, courseCode, questionText) {
         return new Question(uuidv1(), title, courseCode, questionText, 
-            user, Date.now(), null, null, null, [], null, 'Unmatched', null);
+            user, Date.now(), null, null, null, [], null, "Unmatched", null);
     }
 
     /**
@@ -97,7 +97,7 @@ class Question {
             finalHelper: this.finalHelper,
             questionState: this.questionState,
             finalScore: this.finalScore
-        }
+        };
     }
 
     static async exists(uuid) {
@@ -169,12 +169,12 @@ class Question {
 /**
  * Handles the request to post a question.
  */
- function createQuestion(questionData, callback) {
+function createQuestion(questionData, callback) {
     // make a new question
     const new_question = Question.newQuestion(questionData.userId, questionData.title,
         questionData.courseCode, questionData.questionText);
     callback(null, 200, new_question);
- }
+}
 
 
 module.exports = function (options) {
@@ -185,4 +185,4 @@ module.exports = function (options) {
     module.createQuestion = createQuestion;
 
     return module;
-}
+};

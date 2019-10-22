@@ -1,19 +1,19 @@
-const questionsModule = require('../../../questions');
-const userModule = require('../../../user');
+const questionsModule = require("../../../questions");
+const userModule = require("../../../user");
 
 function routes (fastify, opts, done) {
     fastify.route({
-        method: 'POST',
-        url: '/create',
+        method: "POST",
+        url: "/create",
         schema: {
             body: {
-                type: 'object',
-                required: ['userId', 'title', 'courseCode', 'questionText'],
+                type: "object",
+                required: ["userId", "title", "courseCode", "questionText"],
                 properties: {
-                    userId: { type: 'string' },
-                    title: { type: 'string' },
-                    courseCode: { type: 'string' },
-                    questionText:  { type: 'string' }
+                    userId: { type: "string" },
+                    title: { type: "string" },
+                    courseCode: { type: "string" },
+                    questionText:  { type: "string" }
                 }
             }
         },
@@ -22,7 +22,24 @@ function routes (fastify, opts, done) {
             const qm = questionsModule({ mongo: fastify.mongo });
             const um = userModule({ mongo: fastify.mongo });
 
-            var user;
+
+
+            // qm.createQuestion(request.body, function(err, status, q) {
+            //     if (err || (status !== 200) || !q) {
+            //         console.log(q);
+            //         reply.status(status);
+            //         reply.send(err);
+            //         return
+            //     }
+
+            //     // add it to the database
+            //     console.log(q.toJson());
+
+            //     // done
+            //     reply.status(200);
+            //     reply.send('Question posted.');
+            // });
+            let user;
 
             function updateUserCallback(err, newUserJson) {
                 user = um.User.fromJson(newUserJson);
@@ -34,7 +51,11 @@ function routes (fastify, opts, done) {
                 }
 
                 reply.status(200);
+<<<<<<< HEAD
                 reply.send('Question posted.');
+=======
+                reply.send("yes");
+>>>>>>> 6f1966cc5cee6086d6068e90947b4ae163b2b693
             }
 
             function createQuestionCallback(err, status, new_question) {
@@ -78,8 +99,8 @@ function routes (fastify, opts, done) {
 
                 if (user.currentQuestion) {
                     reply.status(401);
-                    reply.send('Cannot post a question when you are already ' +
-                            'registered to another question!');
+                    reply.send("Cannot post a question when you are already " +
+                               "registered to another question!");
                     return;
                 }
 
@@ -93,7 +114,7 @@ function routes (fastify, opts, done) {
                     um.User.retrieve(request.body.userId, getUserCallback);
                 } else {
                     reply.status(400);
-                    reply.send('Provided user doesn\'t exist.');
+                    reply.send("Provided user doesn't exist.");
                 }
             }
 

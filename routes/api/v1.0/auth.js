@@ -1,43 +1,41 @@
 const authentication = require("../../../authentication");
 
-var req = require('request');
-
 function routes (fastify, opts, done) {
     /* GET testing token. */
     fastify.route({
-        method: 'GET',
-        url: '/google/callback',
+        method: "GET",
+        url: "/google/callback",
         handler: function(request, reply) {
             this.getAccessTokenFromAuthorizationCodeFlow(request, (err, result) => {
                 if (err) {
                     reply.send(err);
-                    return
+                    return;
                 }
                 authentication.requestEmail(result.access_token, function (err, res, data) {
                     if (err) {
                         reply.send(err);
-                        return
+                        return;
                     }
-                    reply.send(result)
-                })
-            })
+                    reply.send(result);
+                });
+            });
         }});
 
     /* GET AUTH token. */
     fastify.route({
-        method: 'GET',
-        url: '/token',
+        method: "GET",
+        url: "/token",
         schema: {
             querystring: {
                 properties: {
-                    access_token: {type: 'string'}
+                    access_token: {type: "string"}
                 }
             },
             response: {
                 200: {
-                    type: 'object',
+                    type: "object",
                     properties: {
-                        jwt: {type: 'string'}
+                        jwt: {type: "string"}
                     }
                 }
             }
@@ -48,7 +46,7 @@ function routes (fastify, opts, done) {
                 if (err || res.statusCode !== 200) {
                     reply.status(res.statusCode);
                     reply.send(err);
-                    return
+                    return;
                 }
                 const token = fastify.jwt.sign(data.email);
                 reply.send(token);
