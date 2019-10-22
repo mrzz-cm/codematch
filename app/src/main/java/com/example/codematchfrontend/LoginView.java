@@ -1,5 +1,6 @@
 package com.example.codematchfrontend;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
@@ -11,7 +12,10 @@ import android.widget.Toast;
 import com.google.android.gms.auth.api.signin.*;
 import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.ApiException;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.iid.FirebaseInstanceId;
+import com.google.firebase.iid.InstanceIdResult;
 
 
 public class LoginView extends AppCompatActivity {
@@ -42,6 +46,23 @@ public class LoginView extends AppCompatActivity {
 
         GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(this);
         updateUI(account);
+
+        FirebaseInstanceId.getInstance().getInstanceId()
+                .addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<InstanceIdResult> task) {
+                        if (!task.isSuccessful()) {
+                            Log.w("notifications", "getInstanceId failed", task.getException());
+                            return;
+                        }
+
+                        // Get new Instance ID token
+                        String token = task.getResult().getToken();
+
+                        // Log and toast
+                        System.out.println(token);
+                    }
+                });
     }
 
     private void signIn(){
@@ -86,7 +107,7 @@ public class LoginView extends AppCompatActivity {
 
             toast.show();
         } else {
-            System.out.println(account.getId());
+            System.out.println("account id = " + account.getId());
             Intent intent = new Intent(this, NotifyView.class);
             startActivity(intent);
         }
