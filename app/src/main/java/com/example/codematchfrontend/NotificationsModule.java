@@ -15,7 +15,6 @@ public class NotificationsModule extends FirebaseMessagingService {
         Log.d("notifications", "From: " + remoteMessage.getFrom());
         Log.d("notifications", "Notification Message Body: " + remoteMessage.getNotification().getBody());
 
-
     }
 
     @Override
