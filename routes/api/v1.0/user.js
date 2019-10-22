@@ -51,17 +51,12 @@ function routes (fastify, opts, done) {
 
     fastify.route({
         method: "GET",
-        url: "/user",
-        schema: {
-            querystring: {
-                userId: { type: 'string' }
-            }
-        },
-        //preValidation: [ fastify.authenticate ],
+        url: "/:userId",
+        preValidation: [ fastify.authenticate ],
         handler: function(request, reply) {
             const um = userModule({ mongo: fastify.mongo });
 
-            um.getUser(request.query.userId, function(err, data) {
+            um.getUser(request.params.userId, function(err, data) {
                 if (err || !data) {
                     reply.status(400);
                     reply.send(err);

@@ -108,17 +108,12 @@ function routes (fastify, opts, done) {
 
     fastify.route({
         method: "GET",
-        url: "/question",
-        schema: {
-            querystring: {
-                questionId: { type: 'string' }
-            }
-        },
-        //preValidation: [ fastify.authenticate ],
+        url: "/:questionId",
+        preValidation: [ fastify.authenticate ],
         handler: function(request, reply) {
             const qm = questionsModule({ mongo: fastify.mongo });
 
-            qm.getQuestion(request.query.questionId, function(err, data) {
+            qm.getQuestion(request.params.questionId, function(err, data) {
                 if (err || !data) {
                     reply.status(400);
                     reply.send(err);
