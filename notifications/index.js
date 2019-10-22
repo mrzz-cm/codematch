@@ -1,15 +1,19 @@
 const userModule = require("../user");
+const config = require("../config");
 
 var gcm = require('node-gcm');
-const SERVER_KEY = "SERVER_KEY_HERE";
+const SERVER_KEY = config.FCM_KEY;
 var sender = new gcm.Sender(SERVER_KEY);
 
 var message = new gcm.Message({
-    data: { key1: 'msg1' }
+    notification: {
+        title: "Hello, World",
+        body: "This is a notification that will be displayed if your app is in the background."
+    }
 });
 
 // Specify which registration IDs to deliver the message to
-var regTokens = ['1'];
+var regTokens = [''];
  
 // Actually send the message
 sender.send(message, { registrationTokens: regTokens }, function (err, response) {
