@@ -1,3 +1,4 @@
+const authentication = require("../../../authentication");
 const userModule = require("../../../user");
 const authentication = require("../../../authentication");
 
@@ -8,9 +9,9 @@ function routes (fastify, opts, done) {
         schema: {
             body: {
                 type: "object",
-                required: ["googleToken"],
+                required: ["access_token"],
                 properties: {
-                    google_token: { type: "string" }
+                    access_token: { type: "string" }
                 }
             }
         },
@@ -19,7 +20,7 @@ function routes (fastify, opts, done) {
             const um = userModule({ mongo: fastify.mongo });
             console.log(request.body);
 
-            authentication.requestEmail(request.body.googleToken, async function (err, res, data) {
+            authentication.requestEmail(request.body.access_token, async function (err, res, data) {
                 if (err || (res.statusCode !== 200) || !data.email) {
                     console.log(data);
                     reply.status(res.statusCode);

@@ -57,6 +57,12 @@ class Helper {
 
 }
 
+/* TODO: Decide on weights */
+const LOCATION_WEIGHT = 1;
+const LAST_ACTIVE_WEIGHT = 1;
+const COURSE_CODE_WEIGHT = 1;
+const USER_RATING_WEIGHT = 1;
+
 /**
  * Class representing a User
  */
@@ -346,6 +352,14 @@ class User {
         return r.map((q) => (this.fromJson(q)));
     }
 
+    static rating(question) {
+        return (
+            (this.location.distance(location) * LOCATION_WEIGHT) +
+            (this.lastOnline * LAST_ACTIVE_WEIGHT) +
+            (this.points * USER_RATING_WEIGHT) +
+            (this._courses.includes(question.courseCode) ? COURSE_CODE_WEIGHT : 0)
+        );
+    }
 }
 
 /**
