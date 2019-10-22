@@ -15,6 +15,7 @@
     "fastify-mongodb": "^2.0.0",
     "fastify-oauth2": "^2.3.0",
     "fastify-plugin": "latest",
+    "geolib": "^3.0.4",
     "minimist": "^1.2.0",
     "request": "^2.88.0",
     "saslprep": "^1.0.3",
