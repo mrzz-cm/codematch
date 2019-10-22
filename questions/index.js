@@ -1,6 +1,8 @@
 const userModule = require("../user");
 const uuidv1 = require('uuid/v1');
 
+const questionCollection = 'questions';
+
 let mongo;
 
 /**
@@ -98,26 +100,64 @@ class Question {
         }
     }
 
-    /**
-     * Posts a new question to the questions database.
-     * @throws Error if question couldn't be posted.
-     */
-    post() {
-        // TODO
-        if (null) {
-            throw new Error("...");
-        }
+    static async exists(uuid) {
+        const count = await mongo.db.collection(questionCollection)
+            .find({ "uuid": { $exists: true, $eq: uuid } })
+            .count();
+
+        return count !== 0;
     }
 
     /**
-     * Deletes the question.
-     * @throws Error if question couldn't be deleted.
+     * Adds a question to our database.
+     * @param {function} callback
      */
-    delete() {
-        // TODO
-        if (null) {
-            throw new Error("...");
-        }
+    create(callback) {
+        const collection = mongo.db.collection(questionCollection);
+
+        const jsonData = this.toJson();
+        collection.ensureIndex({ uuid: 1 }, { unique: true }, () => {
+            collection.insertOne(jsonData, function (err, result) {
+                if (err !== null) {
+                    console.log(`Failed to insert ${jsonData.uuid} into the collection`);
+                } else {
+                    console.log(`Inserted question ${jsonData.uuid} into the collection`);
+                }
+                callback(err);
+            })
+        });
+    }
+
+    /**
+     * Updates the question in the database.
+     * @param {object}      update
+     * @param {function}    callback
+     */
+    update(update, callback) {
+        const collection = mongo.db.collection(questionCollection);
+
+        collection.findOneAndUpdate(
+            { uuid: this.uuid },
+            update,
+            callback
+        );
+    }
+
+    /**
+     * Retrieve a question from database.
+     * @param {string}   uuid
+     * @param {function} callback
+     */
+    static retrieve(uuid, callback) {
+        const collection = mongo.db.collection(questionCollection);
+        collection.findOne({ uuid: uuid }, function (err, result) {
+            if (err !== null) {
+                console.log(`Failed to retrieve ${uuid} from the collection`);
+            } else {
+                console.log(`Retrieved question ${result} from the collection`);
+            }
+            callback(err, result);
+        })
     }
 }
 

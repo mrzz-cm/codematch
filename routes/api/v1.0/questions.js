@@ -22,23 +22,6 @@ function routes (fastify, opts, done) {
             const qm = questionsModule({ mongo: fastify.mongo });
             const um = userModule({ mongo: fastify.mongo });
 
-
-
-            // qm.createQuestion(request.body, function(err, status, q) {
-            //     if (err || (status !== 200) || !q) {
-            //         console.log(q);
-            //         reply.status(status);
-            //         reply.send(err);
-            //         return
-            //     }
-
-            //     // add it to the database
-            //     console.log(q.toJson());
-
-            //     // done
-            //     reply.status(200);
-            //     reply.send('Question posted.');
-            // });
             var user;
 
             function updateUserCallback(err, newUserJson) {
@@ -51,7 +34,7 @@ function routes (fastify, opts, done) {
                 }
 
                 reply.status(200);
-                reply.send('yes');
+                reply.send('Question posted.');
             }
 
             function createQuestionCallback(err, status, new_question) {
@@ -61,17 +44,26 @@ function routes (fastify, opts, done) {
                     return;
                 }
 
-                // set the user's current question
-                user.currentQuestion = new_question.uuid;
-                user.questionsPosted.push(new_question.uuid);
-
-                // update the user
-                user.update({$set: 
-                    {
-                        currentQuestion: new_question.uuid,
-                        questionsPosted: user.questionsPosted
+                // put the question into the database
+                new_question.create(function(err) {
+                    if (err) {
+                        reply.status(500);
+                        reply.send(err);
+                        return;
                     }
-                }, updateUserCallback);
+
+                    // set the user's current question
+                    user.currentQuestion = new_question.uuid;
+                    user.questionsPosted.push(new_question.uuid);
+
+                    // update the user
+                    user.update({$set: 
+                        {
+                            currentQuestion: new_question.uuid,
+                            questionsPosted: user.questionsPosted
+                        }
+                    }, updateUserCallback);
+                });
             }
 
             function getUserCallback(err, result) {
