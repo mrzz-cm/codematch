@@ -41,6 +41,7 @@ public class PostingView extends AppCompatActivity {
                 postQuestion();
                 ((EditText) findViewById(R.id.questionText)).getText().clear();
                 ((EditText) findViewById(R.id.coursesInput)).getText().clear();
+                ((EditText) findViewById(R.id.questionTitleText)).getText().clear();
             }
         });
 
@@ -87,6 +88,7 @@ public class PostingView extends AppCompatActivity {
         // get the question data
         String question = ((EditText) findViewById(R.id.questionText)).getText().toString();
         String courseIDs = ((EditText) findViewById(R.id.coursesInput)).getText().toString();
+        String questionTitle = ((EditText) findViewById(R.id.questionTitleText)).getText().toString();
 
     }
     @Override

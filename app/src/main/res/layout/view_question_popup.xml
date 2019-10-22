@@ -12,6 +12,15 @@
         android:gravity="left"
         android:textSize="17sp"
         android:textStyle="bold" />
+    <TextView
+        android:id="@+id/question_title"
+        android:layout_height="0dp"
+        android:layout_width="match_parent"
+        android:layout_weight="0.1"
+        android:layout_marginTop="10dp"
+        android:gravity="center_horizontal"
+        android:text = "sample title"
+        android:textSize="20sp" />
 
     <TextView
         android:id="@+id/question_text"

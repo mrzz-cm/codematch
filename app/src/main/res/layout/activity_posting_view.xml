@@ -35,7 +35,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textView"
-        app:layout_constraintVertical_bias="0.12" />
+        app:layout_constraintVertical_bias="0.222" />
 
     <Button
         android:id="@+id/attachImageButton"
@@ -68,7 +68,20 @@
         android:inputType="textPersonName"
         app:layout_constraintBottom_toTopOf="@+id/postQuestionButton"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.505"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/questionText"
-        app:layout_constraintVertical_bias="0.582" />
+        app:layout_constraintVertical_bias="0.31" />
+
+    <EditText
+        android:id="@+id/questionTitleText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:hint="Question Title"
+        android:inputType="textPersonName"
+        app:layout_constraintBottom_toTopOf="@+id/questionText"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textView" />
 </androidx.constraintlayout.widget.ConstraintLayout>
