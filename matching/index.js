@@ -65,7 +65,7 @@ module.exports = function (options) {
 
     const module = {};
 
-    module.Matching = Matching;
+    module.Match = Match;
 
     return module;
 };
