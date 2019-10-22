@@ -1,6 +1,5 @@
 const authentication = require("../../../authentication");
 const userModule = require("../../../user");
-const authentication = require("../../../authentication");
 
 function routes (fastify, opts, done) {
     fastify.route({

@@ -1,5 +1,22 @@
 const userModule = require("../user");
 
+var gcm = require('node-gcm');
+const SERVER_KEY = "SERVER_KEY_HERE";
+var sender = new gcm.Sender(SERVER_KEY);
+
+var message = new gcm.Message({
+    data: { key1: 'msg1' }
+});
+
+// Specify which registration IDs to deliver the message to
+var regTokens = ['1'];
+ 
+// Actually send the message
+sender.send(message, { registrationTokens: regTokens }, function (err, response) {
+    if (err) console.error(err, response);
+    else console.log(response);
+});
+
 let mongo;
 
 function registerUserForNotifications(userId, fcmToken, callback) {
