@@ -34,6 +34,13 @@ function routes (fastify, opts, done) {
                 if (userExists) {
                     reply.status(500);
                     reply.send("User exists");
+
+                    nm.sendUserNotification(
+                        data.email,
+                        "Exists",
+                        `Your account exists`,
+                        {}, (err) => {});
+
                     return;
                 }
 
@@ -47,13 +54,7 @@ function routes (fastify, opts, done) {
                     // done
                     reply.status(200);
                     reply.send();
-
-                    nm.sendUserNotification(
-                        data.email,
-                        "Authenticated",
-                        `You were mauthenticated`,
-                        {}, (err) => {})
-                })
+                });
             });
         }
     });
