@@ -128,7 +128,7 @@ class User {
      * @returns {Location} location
      */
     get location() {
-        return this._userId;
+        return this._location;
     }
 
     /**
@@ -353,9 +353,9 @@ class User {
         return r.map((q) => (this.fromJson(q)));
     }
 
-    static rating(question) {
+    rating(question, user) {
         return (
-            (this.location.distance(location) * LOCATION_WEIGHT) +
+            (this.location.distance(user.location) * LOCATION_WEIGHT) +
             (this.lastOnline * LAST_ACTIVE_WEIGHT) +
             (this.points * USER_RATING_WEIGHT) +
             (this._courses.includes(question.courseCode) ? COURSE_CODE_WEIGHT : 0)
