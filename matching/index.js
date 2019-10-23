@@ -37,7 +37,7 @@ class Match {
                     (u.currentQuestion == null)) {
                     continue;
                 }
-                const rating = u.rating(this._question, questionUser);
+                const rating = u.rating(this._question, um.User.fromJson(questionUser));
                 if (highest.rating === null || highest.rating < rating) {
                     highest.user = u;
                     highest.rating = rating;
