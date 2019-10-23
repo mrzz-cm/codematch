@@ -51,6 +51,69 @@ function routes (fastify, opts, done) {
     });
 
     fastify.route({
+        method: "POST",
+        url: "/add-course",
+        schema: {
+            body: {
+                type: "object",
+                required: ["userId", "courseId"],
+                properties: {
+                    userId: { type: "string" },
+                    courseId: { type: "string" }
+                }
+            }
+        },
+        preValidation: [ fastify.authenticate ],
+        handler: function(request, reply) {
+            const um = userModule({ mongo: fastify.mongo });
+
+            function getUserCallback(err, result) {
+                if (err || !result) {
+                    reply.status(500);
+                    reply.send(err);
+                    return;
+                }
+                
+                user = um.User.fromJson(result);
+                user.courses.push(request.body.courseId);
+
+                // update database
+                user.update({$set: 
+                    {
+                        courses: user.courses
+                    }
+                }, err => {
+                    if (err) {
+                        reply.status(400);
+                        reply.send(err);
+                        return;
+                    }
+
+                    reply.status(200);
+                    reply.send("course added");
+                });
+            }
+
+            function userExistsCallback(userExists) {
+                if (userExists) {
+                    // get the user
+                    um.User.retrieve(request.body.userId, getUserCallback);
+                } else {
+                    reply.status(400);
+                    reply.send("Provided user doesn't exist.");
+                }
+            }
+
+            um.User.exists(userId)
+                .then()
+                .catch(err => {
+                    reply.status(400);
+                    reply.send(err);
+                });
+        }
+    });
+
+    fastify.route({
         method: "GET",
         url: "/:userId",
         preValidation: [ fastify.authenticate ],
