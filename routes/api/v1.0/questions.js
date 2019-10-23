@@ -263,6 +263,11 @@ function routes (fastify, opts, done) {
                     return;
                 }
 
+                if (!data) {
+                    console.log(err);
+                    return;
+                }
+
                 // update helper
                 const user = um.User.fromJson(data);
                 user.questionsHelped.push(request.body.questionId);
@@ -307,7 +312,7 @@ function routes (fastify, opts, done) {
                     }
                     
                     nm.sendUserNotification(q.seeker, `Helper for ${q.title} accepted: 
-                    ${q.helper}`,
+                    ${q.optimalHelper}`,
                     `basic`, {}, (err, result) => {
                         if (err) {
                             reply.status(400);
@@ -320,7 +325,7 @@ function routes (fastify, opts, done) {
                     });
 
                     // update the helper
-                    um.User.retrieve(q.helper, getHelperCallback);
+                    um.User.retrieve(q.optimalHelper, getHelperCallback);
                 });
             });
         }
