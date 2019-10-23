@@ -34,6 +34,18 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.966" />
 
+    <Button
+        android:id="@+id/button5"
+        style="@style/profileViewButton"
+        android:onClick="switchTabToRatingView"
+        android:text="@string/ratingviewbutton"
+        app:layout_constraintBottom_toTopOf="@+id/button4"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.817" />
+
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/postQuestionFAB"
         android:layout_width="71dp"
