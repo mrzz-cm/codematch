@@ -40,6 +40,14 @@ function routes (fastify, opts, done) {
                 qm.Question.retrieve(user.currentQuestion, async (err, result) => {
                     const question = qm.Question.fromJson(result);
                     const match = await mm.Match(question).optimalHelper();
+
+                    if (match === null) {
+                        console.log(err);
+                        reply.status(500);
+                        reply.send(err);
+                        return;
+                    }
+
                     nm.sendUserNotification(
                         match.user.userId,
                         "You were matched",
