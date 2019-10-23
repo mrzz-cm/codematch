@@ -6,6 +6,12 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.MediaType;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 import android.app.Dialog;
 import android.content.Intent;
@@ -23,6 +29,11 @@ import android.widget.Toast;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
+import org.jetbrains.annotations.NotNull;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
 import java.util.LinkedList;
 
 public class ProfileView extends AppCompatActivity implements CoursesListAdapter.CoursesListClickListener{
@@ -129,6 +140,37 @@ public class ProfileView extends AppCompatActivity implements CoursesListAdapter
     }
 
     private void addcourse(String course) {
+        courses.add(course);
+
+        // send course information to the backend
+        JSONObject jsonObject = new JSONObject();
+        try {
+            jsonObject.put("userId", Global.EMAIL);
+            jsonObject.put("courseId", course);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        MediaType JSON = MediaType.parse("application/json; charset=utf-8");
+        RequestBody body = RequestBody.create(jsonObject.toString(), JSON);
+
+        Request post_course_request = new Request.Builder()
+                .url(Global.BASE_URL + "/user/add-course")
+                .addHeader("Authorization", "Bearer " + Global.API_KEY)
+                .post(body)
+                .build();
+
+        Global.HTTP_CLIENT.newCall(post_course_request).enqueue(new Callback() {
+            @Override
+            public void onFailure(@NotNull Call call, @NotNull IOException e) {
+                System.out.println("Error: "+ e.toString());
+            }
+
+            @Override
+            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+                System.out.println("Post course request returned code " + response.code());
+            }
+        });
 
     }
     @Override
