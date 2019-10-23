@@ -118,6 +118,31 @@ function routes (fastify, opts, done) {
                                 }
                             }
                         );
+
+                        // update helper fields
+                        um.User.retrieve(match.userId, (err, data) => {
+                            if (err) {
+                                 console.log(err);
+                                 console.log(`Warning: Failed to retrieve helper
+                                 for question!`);
+                                 return;
+                            }
+
+                            const optimalHelper = um.User.fromJson(data);
+                            optimalHelper.currentQuestion = question.uuid;
+                            // update database
+                            optimalHelper.update({$set: 
+                                {
+                                    currentQuestion: optimalHelper.currentQuestion
+                                }
+                            }, (err) => {
+                                if (err) {
+                                    console.log(err);
+                                    console.log(`Warning: Failed to set helper's fields
+                                    when they were selected for a question`);
+                                }
+                            });
+                        });
                     });
                 });
             }
