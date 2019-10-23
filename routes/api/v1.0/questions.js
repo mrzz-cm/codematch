@@ -39,29 +39,30 @@ function routes (fastify, opts, done) {
 
                 qm.Question.retrieve(user.currentQuestion, async (err, result) => {
                     const question = qm.Question.fromJson(result);
-                    const match = await new mm.Match(question).optimalHelper();
+                    new mm.Match(question).optimalHelper((err, match) => {
 
-                    if (match === null) {
-                        console.log(err);
-                        reply.status(500);
-                        reply.send(err);
-                        return;
-                    }
+                        if (match === null) {
+                            console.log(err);
+                            reply.status(500);
+                            reply.send(err);
+                            return;
+                        }
 
-                    nm.sendUserNotification(
-                        match.user.userId,
-                        "You were matched",
-                        `You were matched with '${question.seeker}`,
-                        result, (err) => {
-                            if (err) {
-                                console.log(err);
-                                reply.status(500);
-                                reply.send(err);
-                                return;
-                            }
-                            reply.status(200);
-                            reply.send("Question posted.");
-                        })
+                        nm.sendUserNotification(
+                            match.user.userId,
+                            "You were matched",
+                            `You were matched with '${question.seeker}`,
+                            result, (err) => {
+                                if (err) {
+                                    console.log(err);
+                                    reply.status(500);
+                                    reply.send(err);
+                                    return;
+                                }
+                                reply.status(200);
+                                reply.send("Question posted.");
+                            })
+                    })
                 });
             }
 

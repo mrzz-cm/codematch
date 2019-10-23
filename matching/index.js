@@ -23,19 +23,21 @@ class Match {
      *
      * @return {Promise<Helper>} Optimal helper
     */
-    async optimalHelper() {
+    async optimalHelper(callback) {
         const um = user({ mongo: mongo });
         const allMatches = await um.User.getAllUsers(); //TODO: Error?
         console.log(allMatches); // TODO: Remove
 
         let highest = {"user": null, "rating": null};
         um.User.retrieve(this._question.seeker, (err, questionUser) => {
-            for (const u in allMatches) {
+            for (let i = 0; i < allMatches.length; i++) {
+                const u = allMatches[i];
+                console.log(u);
                 if ((u.userId === this._question.seeker) ||
-                    (u.currentQuestion === null)) {
+                    (u.currentQuestion == null)) {
                     continue;
                 }
-                const rating = u.rating(this._question, questionUser);
+                const rating = u.rating(this._question, um.User.fromJson(questionUser));
                 if (highest.rating === null || highest.rating < rating) {
                     highest.user = u;
                     highest.rating = rating;
@@ -52,7 +54,11 @@ class Match {
             //     matchSimilarScore = false;
             // }
 
-            return highest.user;
+            if (highest.user === null) {
+                callback("No match", highest.user);
+            }
+
+            callback(err, highest.user);
         });
     }
 
