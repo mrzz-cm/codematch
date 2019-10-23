@@ -416,8 +416,10 @@ function routes (fastify, opts, done) {
 }
 
 function errCheck(reply, err) {
-    reply.status(400);
-    reply.send(err);
+    if (err) {
+        reply.status(400);
+        reply.send(err);
+    }
     return err;
 }
 
