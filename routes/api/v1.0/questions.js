@@ -365,34 +365,49 @@ function routes (fastify, opts, done) {
                     return;
                 }
 
-                qm.Question.retrieve(seeker.currentQuestion, (err, qJson) => {
+                // clear the seeker's question
+                seeker.update(
+                    {$set: {
+                        currentQuestion: null
+                    }},
+                    (err) => {
+                        if (err) {
+                            reply.status(400);
+                            reply.send(err);
+                            return;
+                        }
 
-                    if ((rating < 1) || (rating > 10)) {
-                        reply.status(400);
-                        reply.send(`Points '${rating} is not withing range 1-10`);
-                        return;
-                    }
+                        qm.Question.retrieve(seeker.currentQuestion, (err, qJson) => {
 
-                    if (errCheck(reply, err)) return;
-
-                    um.User.retrieve(qJson.finalHelper, (err, hJson) => {
-                        if (errCheck(reply, err)) return;
-
-                        const helper = um.User.fromJson(hJson);
-
-                        helper.update(
-                            {
-                                $set: {
-                                    points: (helper.points + rating)
-                                }
-                            }, (err) => {
+                            if ((rating < 1) || (rating > 10)) {
+                                reply.status(400);
+                                reply.send(`Points '${rating} is not withing range 1-10`);
+                                return;
+                            }
+        
+                            if (errCheck(reply, err)) return;
+        
+                            um.User.retrieve(qJson.finalHelper, (err, hJson) => {
                                 if (errCheck(reply, err)) return;
-
-                                reply.status(200);
-                                reply.send(`Rated user ${helper.userId}`);
+        
+                                const helper = um.User.fromJson(hJson);
+        
+                                helper.update(
+                                    {
+                                        $set: {
+                                            points: (helper.points + rating),
+                                            currentQuestion: null
+                                        }
+                                    }, (err) => {
+                                        if (errCheck(reply, err)) return;
+        
+                                        reply.status(200);
+                                        reply.send(`Rated user ${helper.userId}`);
+                                    });
                             });
-                    });
-                });
+                        });
+                    }
+                );
             });
         }
     });
