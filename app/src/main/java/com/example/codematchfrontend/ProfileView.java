@@ -210,12 +210,4 @@ public class ProfileView extends AppCompatActivity implements CoursesListAdapter
          */
     }
 
-
-
-    public void pushNotificationTest (View view) {
-        NotificationsModule nModule = new NotificationsModule();
-
-        nModule.newNotification("Test", "Wow, this is a test of the fact That it's a long ass 'string!!!");
-    }
-
-    }
+}
