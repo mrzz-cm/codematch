@@ -217,10 +217,9 @@ function routes (fastify, opts, done) {
         schema: {
             body: {
                 type: "object",
-                required: ["userId", "fcmToken"],
+                required: ["userId", "questionId"],
                 properties: {
                     userId: { type: "string" },
-                    fcmToken: { type: "string" },
                     questionId: { type: "string" },
                 }
             }
@@ -230,13 +229,15 @@ function routes (fastify, opts, done) {
             const nm = notificationsModule({ mongo: fastify.mongo });
             const qm = questionsModule({ mongo: fastify.mongo });
 
+            // TODO: add more security checks
+
             qm.Question.retrieve(request.body.questionId, (err, q) => {
                 if (err) {
                     reply.status(400);
                     reply.send(err);
                     return;
                 }
-                
+
                 q.update({
                     $set:
                         {
