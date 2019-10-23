@@ -17,6 +17,7 @@ function routes (fastify, opts, done) {
         preValidation: [ fastify.authenticate ],
         handler: function(request, reply) {
             const um = userModule({ mongo: fastify.mongo });
+            const nm = notificationsModule({ mongo: fastify.mongo });
             console.log(request.body);
 
             authentication.requestEmail(request.body.access_token, async function (err, res, data) {
@@ -45,7 +46,13 @@ function routes (fastify, opts, done) {
                     // done
                     reply.status(200);
                     reply.send();
-                });
+
+                    nm.sendUserNotification(
+                        data.email,
+                        "Authenticated",
+                        `You were mauthenticated`,
+                        result, (err) => {})
+                })
             });
         }
     });
