@@ -363,8 +363,8 @@ function routes (fastify, opts, done) {
                                 reply.send(`Points '${rating} is not withing range 1-10`);
                                 return;
                             }
-        
-                            if (errCheck(reply, err)) return;
+
+                            if (ru.errCheck(reply, 400, err)) return;
         
                             um.User.retrieve(qJson.finalHelper, (err, hJson) => {
                                 if (ru.errCheck(reply, 400, err)) return;
