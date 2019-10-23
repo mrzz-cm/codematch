@@ -26,13 +26,13 @@ class Match {
     async optimalHelper(callback) {
         const um = user({ mongo: mongo });
         const allMatches = await um.User.getAllUsers(); //TODO: Error?
-        console.log(allMatches); // TODO: Remove
+        console.log("All matches: ", allMatches); // TODO: Remove
 
         let highest = {"user": null, "rating": null};
         um.User.retrieve(this._question.seeker, (err, questionUser) => {
             for (let i = 0; i < allMatches.length; i++) {
                 const u = allMatches[i];
-                console.log(u);
+                console.log("checking user:", u.userId);
                 if ((u.userId === this._question.seeker) ||
                     (u.currentQuestion == null)) {
                     continue;
@@ -55,9 +55,11 @@ class Match {
             // }
 
             if (highest.user === null) {
+                console.log("no match was found for user, returning ", highest.user);
                 callback("No match", highest.user);
             }
 
+            console.log("match found for user, returning ", highest.user.userId);
             callback(err, highest.user);
         });
     }
