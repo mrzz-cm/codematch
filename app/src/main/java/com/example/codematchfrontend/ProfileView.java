@@ -3,6 +3,8 @@ package com.example.codematchfrontend;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -14,6 +16,7 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 
 import android.app.Dialog;
+import android.app.PendingIntent;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.method.ScrollingMovementMethod;
@@ -35,6 +38,8 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.LinkedList;
+
+import static com.example.codematchfrontend.Global.createID;
 
 public class ProfileView extends AppCompatActivity implements CoursesListAdapter.CoursesListClickListener{
 
@@ -204,8 +209,12 @@ public class ProfileView extends AppCompatActivity implements CoursesListAdapter
 
          */
     }
+
+
+
     public void pushNotificationTest (View view) {
-         NotificationsModule nModule = new NotificationsModule();
+        NotificationsModule nModule = new NotificationsModule();
+
         nModule.newNotification("Test", "Wow, this is a test of the fact That it's a long ass 'string!!!");
     }
 
