@@ -12,7 +12,10 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 
 import android.accounts.AccountManager;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.StrictMode;
@@ -41,6 +44,7 @@ public class LoginView extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        createNotificationChannel();
 
         setContentView(R.layout.activity_login_view);
 
@@ -143,10 +147,10 @@ public class LoginView extends AppCompatActivity {
         RequestBody requestBody = new FormBody.Builder()
                 .add("grant_type", "authorization_code")
                 .add("client_id", getString(R.string.default_web_client_id))
-                .add("client_secret", "CLIENT_SECRET" )
+                .add("client_secret", "mU5TklW6DA6gHyu0FOsehXnL")
                 .add("redirect_uri","")
                 .add("code", authcode)
-                .build();/*dont commit*/
+                .build();
 
         final Request request = new Request.Builder()
                 .url("https://www.googleapis.com/oauth2/v4/token")
@@ -237,6 +241,23 @@ public class LoginView extends AppCompatActivity {
             System.out.println("Send firebase key return " + statuscode + "\n");
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+    String CHANNEL_ID = "1";
+    //Move to notificationsModule
+    public void createNotificationChannel() {
+        // Create the NotificationChannel, but only on API 26+ because
+        // the NotificationChannel class is new and not in the support library
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            CharSequence name = "test_channel_name_uwu";
+            String description = "test_description_uwu";
+            int importance = NotificationManager.IMPORTANCE_DEFAULT;
+            NotificationChannel channel = new NotificationChannel(CHANNEL_ID, name, importance);
+            channel.setDescription(description);
+            // Register the channel with the system; you can't change the importance
+            // or other notification behaviors after this
+            NotificationManager notificationManager = getSystemService(NotificationManager.class);
+            notificationManager.createNotificationChannel(channel);
         }
     }
 
