@@ -64,7 +64,7 @@ function routes (fastify, opts, done) {
                         nm.sendUserNotification(
                             user.userId,
                             "You were matched to a helper!",
-                            `You were matched with '${match.user.userId}`,
+                            `You were matched with '${match.userId}`,
                             {
                                 notificationType: "basic"
                             },
@@ -81,7 +81,7 @@ function routes (fastify, opts, done) {
 
                         // send notification to helper
                         nm.sendUserNotification(
-                            match.user.userId,
+                            match.userId,
                             "You have a new question!",
                             `You have a new question from ${user.userId}`,
                             {
@@ -99,8 +99,8 @@ function routes (fastify, opts, done) {
 
                         // update question fields
                         question.helperNotifiedTimestamp = Date.now();
-                        question.optimalHelper = match.user.userId;
-                        question.prevCheckedHelpers.push(match.user.userId);
+                        question.optimalHelper = match.userId;
+                        question.prevCheckedHelpers.push(match.userId);
                         question.questionState = "Waiting";
 
                         question.update(
