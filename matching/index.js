@@ -24,7 +24,7 @@ class Match {
      * @return {Promise<Helper>} Optimal helper
     */
     async optimalHelper() {
-        const um = user(mongo);
+        const um = user({ mongo: mongo });
         const allMatches = await um.User.getAllUsers(); //TODO: Error?
 
         let highest = {"user": null, "rating": null};
