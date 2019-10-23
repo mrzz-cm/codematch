@@ -1,7 +1,7 @@
 const userModule = require("../user");
 const uuidv1 = require("uuid/v1");
 
-const questionCollection = 'questions';
+const questionCollection = "questions";
 
 let mongo;
 
@@ -123,7 +123,7 @@ class Question {
                     console.log(`Inserted question ${jsonData.uuid} into the collection`);
                 }
                 callback(err);
-            })
+            });
         });
     }
 
@@ -156,7 +156,7 @@ class Question {
                 console.log(`Retrieved question ${result} from the collection`);
             }
             callback(err, result);
-        })
+        });
     }
 }
 

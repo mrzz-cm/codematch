@@ -112,7 +112,7 @@ class User {
      * @param {object} jsonUser
      */
     static fromJson(jsonUser) {
-        console.log(jsonUser)
+        console.log(jsonUser);
         return new User(
             jsonUser.userId, jsonUser.points, jsonUser.courses,
             jsonUser.questionsPosted, jsonUser.questionsHelped,
@@ -251,7 +251,7 @@ class User {
     }
 
     set fcmToken(fcmToken) {
-        this._fcmToken = fcmToken
+        this._fcmToken = fcmToken;
     }
 
     /**
@@ -393,7 +393,7 @@ class Location {
     }
 
     toJson() {
-        return { latitude: this._latitude, longitude: this._longitude }
+        return { latitude: this._latitude, longitude: this._longitude };
     }
 
     static fromJson(jsonLocation) {

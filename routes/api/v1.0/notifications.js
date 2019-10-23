@@ -25,8 +25,8 @@ function routes(fastify, opts, done) {
                     if (ru.errCheck(reply, 400, err)) return;
 
                     reply.status(200);
-                    reply.send('New FCM token registered.');
-            });
+                    reply.send("New FCM token registered.");
+                });
         }
     });
 

@@ -1,7 +1,7 @@
 const userModule = require("../user");
 const config = require("../config");
 
-var gcm = require('node-gcm');
+var gcm = require("node-gcm");
 const SERVER_KEY = config.FCM_KEY;
 var sender = new gcm.Sender(SERVER_KEY);
 

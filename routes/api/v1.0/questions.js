@@ -51,7 +51,7 @@ function routes (fastify, opts, done) {
                             nm.sendUserNotification(
                                 user.userId,
                                 "No match was found for your problem.",
-                                `basic`,
+                                "basic",
                                 {
                                     notificationType: "basic"
                                 },
@@ -78,7 +78,7 @@ function routes (fastify, opts, done) {
                                 }
                                 reply.status(200);
                                 reply.send("Question posted.");
-                        });
+                            });
 
                         // send notification to helper
                         nm.sendUserNotification(
@@ -123,10 +123,10 @@ function routes (fastify, opts, done) {
                         // update helper fields
                         um.User.retrieve(match.userId, (err, data) => {
                             if (err) {
-                                 console.log(err);
-                                 console.log(`Warning: Failed to retrieve helper
+                                console.log(err);
+                                console.log(`Warning: Failed to retrieve helper
                                  for question!`);
-                                 return;
+                                return;
                             }
 
                             const optimalHelper = um.User.fromJson(data);
@@ -306,7 +306,7 @@ function routes (fastify, opts, done) {
                     
                     nm.sendUserNotification(q.seeker, `Helper for ${q.title} accepted: 
                     ${q.optimalHelper}`,
-                    `basic`, {}, (err, result) => {
+                    "basic", {}, (err, result) => {
                         if (ru.errCheck(reply, 400, err)) return;
 
                         reply.status(200);

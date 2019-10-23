@@ -108,15 +108,14 @@ db.createUser(
 
 Create a new project [Codematch](https://console.developers.google.com/apis/library).
 
-Setup callback URI: https://cm.johnramsden.ca/auth/google/callback
+Setup callback URI: <https://cm.johnramsden.ca/auth/google/callback>
 
 [Setup project](https://developers.google.com/identity/sign-in/web/sign-in)
 
 Get Client ID and Client Secret. Place JSON in config.js
 
-
 ## References
 
-* <https://proandroiddev.com/developing-secure-android-apps-8edad978d8ba>
-* <https://jwt.io/introduction/>
-* <http://www.passportjs.org/docs/google/>
+*   <https://proandroiddev.com/developing-secure-android-apps-8edad978d8ba>
+*   <https://jwt.io/introduction/>
+*   <http://www.passportjs.org/docs/google/>
