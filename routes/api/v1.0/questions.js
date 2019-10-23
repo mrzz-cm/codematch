@@ -211,6 +211,62 @@ function routes (fastify, opts, done) {
         }
     });
 
+    fastify.route({
+        method: "POST",
+        url: "/accept",
+        schema: {
+            body: {
+                type: "object",
+                required: ["userId", "fcmToken"],
+                properties: {
+                    userId: { type: "string" },
+                    fcmToken: { type: "string" },
+                    questionId: { type: "string" },
+                }
+            }
+        },
+        preValidation: [ fastify.authenticate ],
+        handler: function(request, reply) {
+            const nm = notificationsModule({ mongo: fastify.mongo });
+            const qm = questionsModule({ mongo: fastify.mongo });
+
+            if (err) {
+                reply.status(400);
+                reply.send(err);
+                return;
+            }
+
+            qm.Question.retrieve(request.body.questionId, (err, q) => {
+                q.update({
+                    $set:
+                        {
+                            helperAccepted: true,
+                            finalHelper: request.body.userId,
+                            questionState: "Match"
+                        }
+                }, (err) => {
+                    if (err) {
+                        reply.status(400);
+                        reply.send(err);
+                        return;
+                    }
+                    
+                    nm.sendUserNotification(q.seeker, "Found match",                     nm.sendUserNotification(q.seeker, "Found match", )
+                    `Found for ${q.title}`, {}, (err, result) => {
+                        if (err) {
+                            reply.status(400);
+                            reply.send(err);
+                            return;
+                        }
+
+                        reply.status(200);
+                        reply.send("Found match");
+                    });
+                });
+            });
+        }
+    });
+
     done();
 }
 
