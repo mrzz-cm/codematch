@@ -143,10 +143,10 @@ public class LoginView extends AppCompatActivity {
         RequestBody requestBody = new FormBody.Builder()
                 .add("grant_type", "authorization_code")
                 .add("client_id", getString(R.string.default_web_client_id))
-                .add("client_secret", "CLIENT_SECRET")
+                .add("client_secret", "CLIENT_SECRET" )
                 .add("redirect_uri","")
                 .add("code", authcode)
-                .build();
+                .build();/*dont commit*/
 
         final Request request = new Request.Builder()
                 .url("https://www.googleapis.com/oauth2/v4/token")
