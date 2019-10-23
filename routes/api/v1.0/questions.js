@@ -347,34 +347,31 @@ function routes (fastify, opts, done) {
 
             // TODO: If seeker matches
 
-            if ((rating < 1) || (rating > 10)) {
-                reply.status(400);
-                reply.send(`Points '${rating} is not withing range 1-10`);
-                return;
-            }
-
             um.User.retrieve(seekerId, (err, u) => {
-                if (err) {
-                    reply.status(400);
-                    reply.send(err);
-                    return;
-                }
+                if (errCheck(reply, err)) return;
 
                 const seeker = um.User.fromJson(u);
 
+                if (seeker.currentQuestion == null) {
+                    reply.status(400);
+                    reply.send(
+                        `Seeker '${seeker.userId} doesn't` +
+                        " have an open question.");
+                    return;
+                }
+
                 qm.Question.retrieve(seeker.currentQuestion, (err, qJson) => {
-                    if (err) {
+
+                    if ((rating < 1) || (rating > 10)) {
                         reply.status(400);
-                        reply.send(err);
+                        reply.send(`Points '${rating} is not withing range 1-10`);
                         return;
                     }
 
+                    if (errCheck(reply, err)) return;
+
                     um.User.retrieve(qJson.finalHelper, (err, hJson) => {
-                        if (err) {
-                            reply.status(400);
-                            reply.send(err);
-                            return;
-                        }
+                        if (errCheck(reply, err)) return;
 
                         const helper = um.User.fromJson(hJson);
 
@@ -384,11 +381,8 @@ function routes (fastify, opts, done) {
                                     points: (helper.points + rating)
                                 }
                             }, (err) => {
-                                if (err) {
-                                    reply.status(400);
-                                    reply.send(err);
-                                    return;
-                                }
+                                if (errCheck(reply, err)) return;
+
                                 reply.status(200);
                                 reply.send(`Rated user ${helper.userId}`);
                             });
@@ -399,6 +393,12 @@ function routes (fastify, opts, done) {
     });
 
     done();
+}
+
+function errCheck(reply, err) {
+    reply.status(400);
+    reply.send(err);
+    return err;
 }
 
 module.exports = routes;
