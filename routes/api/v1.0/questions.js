@@ -228,14 +228,43 @@ function routes (fastify, opts, done) {
         handler: function(request, reply) {
             const nm = notificationsModule({ mongo: fastify.mongo });
             const qm = questionsModule({ mongo: fastify.mongo });
+            const um = userModule({ mongo: fastify.mongo });
 
             // TODO: add more security checks
+
+            function getHelperCallback(err, data) {
+                if (err) {
+                    console.log(err);
+                    return;
+                }
+
+                // update helper
+                const user = um.User.fromJson(data);
+                user.questionsHelped.push(request.body.questionId);
+
+                user.update(
+                    {$set: {
+                        currentQuestion: request.body.questionId,
+                        questionsHelped: user.questionsHelped
+                    }},
+                    (err) => {
+                        if (err) {
+                            console.log(err);
+                        }
+                    }
+                );
+            }
 
             qm.Question.retrieve(request.body.questionId, (err, q) => {
                 if (err) {
                     reply.status(400);
                     reply.send(err);
                     return;
+                }
+
+                if (q.seeker == request.body.userId) {
+                    reply.status(400);
+                    reply.send("Cannot accept your own question.");
                 }
 
                 qm.Question.fromJson(q).update({
@@ -252,7 +281,8 @@ function routes (fastify, opts, done) {
                         return;
                     }
                     
-                    nm.sendUserNotification(q.seeker, `Found for ${q.title}`,
+                    nm.sendUserNotification(q.seeker, `Helper for ${q.title} accepted: 
+                    ${q.helper}`,
                     `basic`, {}, (err, result) => {
                         if (err) {
                             reply.status(400);
@@ -263,6 +293,9 @@ function routes (fastify, opts, done) {
                         reply.status(200);
                         reply.send("Found match");
                     });
+
+                    // update the helper
+                    um.User.retrieve(q.helper, getHelperCallback);
                 });
             });
         }
