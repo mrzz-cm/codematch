@@ -45,6 +45,15 @@ function routes (fastify, opts, done) {
                             console.log(err);
                             reply.status(500);
                             reply.send(err);
+
+                            // notify that there was no match
+                            nm.sendUserNotification(
+                                match.user.userId,
+                                "No match found!",
+                                `No match was found for your problem.`,
+                                (err) => {}
+                            );
+
                             return;
                         }
 
