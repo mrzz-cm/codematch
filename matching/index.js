@@ -57,6 +57,7 @@ class Match {
             if (highest.user === null) {
                 console.log("no match was found for user, returning ", highest.user);
                 callback("No match", highest.user);
+                return;
             }
 
             console.log("match found for user, returning ", highest.user.userId);
