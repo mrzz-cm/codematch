@@ -353,7 +353,7 @@ class User {
         return r.map((q) => (this.fromJson(q)));
     }
 
-    static rating(question, user) {
+    rating(question, user) {
         return (
             (this.location.distance(user.location) * LOCATION_WEIGHT) +
             (this.lastOnline * LAST_ACTIVE_WEIGHT) +
