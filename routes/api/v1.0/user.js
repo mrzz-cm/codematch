@@ -74,7 +74,7 @@ function routes (fastify, opts, done) {
                     return;
                 }
                 
-                user = um.User.fromJson(result);
+                const user = um.User.fromJson(result);
                 user.courses.push(request.body.courseId);
 
                 // update database
