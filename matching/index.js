@@ -26,6 +26,7 @@ class Match {
     async optimalHelper() {
         const um = user({ mongo: mongo });
         const allMatches = await um.User.getAllUsers(); //TODO: Error?
+        console.log(allMatches); // TODO: Remove
 
         let highest = {"user": null, "rating": null};
         um.User.retrieve(this._question.seeker, (err, questionUser) => {
