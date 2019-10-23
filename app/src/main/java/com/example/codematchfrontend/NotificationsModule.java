@@ -63,6 +63,8 @@ public class NotificationsModule extends FirebaseMessagingService {
             newNotification(getApplicationContext(), titleString, "");
         } else if (notificationType.equals("helperMatch")) {
             newHelperMatchNotification(getApplicationContext(), titleString, "", bodyString);
+        } else if (notificationType.equals("")){
+            newRatingNotification(getApplicationContext(), titleString, "", "");
         }
     }
 
@@ -119,6 +121,26 @@ public class NotificationsModule extends FirebaseMessagingService {
 
     public void newHelperMatchNotification(Context ctx, String textTitle, String textContent, String data) {
         Intent intent = new Intent(ctx, NotifyView.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        PendingIntent pendingIntent = PendingIntent.getActivity(ctx, 0, intent, 0);
+
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
+                .setSmallIcon(R.drawable.ic_notification_icon)
+                .setContentTitle(textTitle)
+                .setContentText(textContent)
+                .setStyle(new NotificationCompat.BigTextStyle()
+                        .bigText(textContent))
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                .setContentIntent(pendingIntent)
+                .setAutoCancel(true);
+        int notificationId = createID();
+
+        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(ctx);
+        notificationManager.notify(notificationId, builder.build());
+    }
+
+    public void newRatingNotification(Context ctx, String textTitle, String textContent, String data) {
+        Intent intent = new Intent(ctx, RatingView.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         PendingIntent pendingIntent = PendingIntent.getActivity(ctx, 0, intent, 0);
 

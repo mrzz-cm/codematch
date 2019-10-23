@@ -100,8 +100,13 @@ public class NotifyView extends AppCompatActivity implements NotifyViewAdapter.N
                     JSONObject jsonObject = new JSONObject(response.body().string());
                     if (jsonObject.has("currentQuestion")){
                         if (!jsonObject.isNull("currentQuestion")){
-                            String question_id = jsonObject.get("currentQuestion").toString();
-                            addNotification(question_id);
+                            final String question_id = jsonObject.get("currentQuestion").toString();
+                            new Handler(Looper.getMainLooper()).post(new Runnable(){
+                                @Override
+                                public void run() {
+                                    addNotification(question_id);
+                                }
+                            });
                         }
                     }
                 } catch (JSONException e) {

@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
@@ -23,14 +24,23 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 
 public class RatingView extends AppCompatActivity {
+    private TextInputLayout textInputRating;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_rating_view);
         textInputRating = findViewById(R.id.rating_input);
+
+        Button confirmRating = findViewById(R.id.confirm_rating);
+
+        confirmRating.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                submitRating();
+            }
+        });
     }
-    private TextInputLayout textInputRating;
 
 
     private boolean validateRating() {
@@ -49,7 +59,6 @@ public class RatingView extends AppCompatActivity {
             return false;
         }*/
             else {
-
                 textInputRating.setError(null);
                 return true;
             }
@@ -63,7 +72,6 @@ public class RatingView extends AppCompatActivity {
         String input = "Thank you for rating : " +textInputRating.getEditText().getText().toString();
         Toast.makeText(this,input,Toast.LENGTH_SHORT).show();
 
-
     }
     private void submitRating() {
         // get the question data
@@ -71,7 +79,6 @@ public class RatingView extends AppCompatActivity {
 
         JSONObject jsonObject = new JSONObject();
         try {
-            jsonObject.put("userId", Global.EMAIL);
             jsonObject.put("rating", ratingInput);
         } catch (JSONException e) {
             e.printStackTrace();
@@ -80,13 +87,13 @@ public class RatingView extends AppCompatActivity {
         MediaType JSON = MediaType.parse("application/json; charset=utf-8");
         RequestBody body = RequestBody.create(jsonObject.toString(), JSON);
 
-        Request notify_questions_create_request = new Request.Builder()
-                .url(Global.BASE_URL + "/questions/create")
+        Request send_rating_request = new Request.Builder()
+                .url(Global.BASE_URL + "/questions/close/" + Global.EMAIL)
                 .addHeader("Authorization", "Bearer " + Global.API_KEY)
                 .post(body)
                 .build();
 
-        Global.HTTP_CLIENT.newCall(notify_questions_create_request).enqueue(new Callback() {
+        Global.HTTP_CLIENT.newCall(send_rating_request).enqueue(new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
                 System.out.println("Error: "+ e.toString());

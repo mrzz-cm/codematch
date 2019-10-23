@@ -33,11 +33,13 @@ import android.widget.Toast;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import org.jetbrains.annotations.NotNull;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.LinkedList;
+import java.util.List;
 
 import static com.example.codematchfrontend.Global.createID;
 
@@ -123,9 +125,11 @@ public class ProfileView extends AppCompatActivity implements CoursesListAdapter
                 try {
                     JSONObject jsonObject = new JSONObject(response.body().string());
                     if (jsonObject.has("courses")){
-
-                        String question_id = jsonObject.get("currentQuestion").toString();
-                        addCourseUpdate(question_id);
+                        JSONArray array = jsonObject.getJSONArray("courses");
+                        for (int i = 0; i < array.length(); i++) {
+                            String course_id = array.getString(i);
+                            addCourseUpdate(course_id);
+                        }
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -172,43 +176,46 @@ public class ProfileView extends AppCompatActivity implements CoursesListAdapter
     }
 
     private void addcourse(String course) {
-        courses.add(course);
+        if (!courses.contains(course)){
+            courses.add(course);
 
-        // send course information to the backend
-        JSONObject jsonObject = new JSONObject();
-        try {
-            jsonObject.put("userId", Global.EMAIL);
-            jsonObject.put("courseId", course);
-        } catch (JSONException e) {
-            e.printStackTrace();
+            // send course information to the backend
+            JSONObject jsonObject = new JSONObject();
+            try {
+                jsonObject.put("userId", Global.EMAIL);
+                jsonObject.put("courseId", course);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+            MediaType JSON = MediaType.parse("application/json; charset=utf-8");
+            RequestBody body = RequestBody.create(jsonObject.toString(), JSON);
+
+            Request post_course_request = new Request.Builder()
+                    .url(Global.BASE_URL + "/user/add-course")
+                    .addHeader("Authorization", "Bearer " + Global.API_KEY)
+                    .post(body)
+                    .build();
+
+            Global.HTTP_CLIENT.newCall(post_course_request).enqueue(new Callback() {
+                @Override
+                public void onFailure(@NotNull Call call, @NotNull IOException e) {
+                    System.out.println("Error: "+ e.toString());
+                }
+
+                @Override
+                public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+                    System.out.println("Post course request returned code " + response.code());
+                }
+            });
         }
-
-        MediaType JSON = MediaType.parse("application/json; charset=utf-8");
-        RequestBody body = RequestBody.create(jsonObject.toString(), JSON);
-
-        Request post_course_request = new Request.Builder()
-                .url(Global.BASE_URL + "/user/add-course")
-                .addHeader("Authorization", "Bearer " + Global.API_KEY)
-                .post(body)
-                .build();
-
-        Global.HTTP_CLIENT.newCall(post_course_request).enqueue(new Callback() {
-            @Override
-            public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                System.out.println("Error: "+ e.toString());
-            }
-
-            @Override
-            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
-                System.out.println("Post course request returned code " + response.code());
-            }
-        });
-
     }
 
     private void addCourseUpdate(String course) {
-        this.courses.add(course);
-        adapter.notifyItemInserted(courses.size() - 1);
+        if (!courses.contains(course)) {
+            this.courses.add(course);
+            adapter.notifyItemInserted(courses.size() - 1);
+        }
     }
 
     @Override
