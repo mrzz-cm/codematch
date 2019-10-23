@@ -30,9 +30,11 @@ class Match {
 
         let highest = {"user": null, "rating": null};
         um.User.retrieve(this._question.seeker, (err, questionUser) => {
-            for (const u in allMatches) {
+            for (let i = 0; i < allMatches.length; i++) {
+                const u = allMatches[i];
+                console.log(u);
                 if ((u.userId === this._question.seeker) ||
-                    (u.currentQuestion === null)) {
+                    (u.currentQuestion == null)) {
                     continue;
                 }
                 const rating = u.rating(this._question, questionUser);
