@@ -104,7 +104,7 @@ function routes (fastify, opts, done) {
                 }
             }
 
-            um.User.exists(userId)
+            um.User.exists(request.body.userId)
                 .then(userExistsCallback)
                 .catch(err => {
                     reply.status(400);
