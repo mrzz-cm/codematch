@@ -267,6 +267,52 @@ function routes (fastify, opts, done) {
         }
     });
 
+    fastify.route({
+        method: "POST",
+        url: "/rate/:userId",
+        schema: {
+            body: {
+                type: "object",
+                required: ["seekerId", "rating"],
+                properties: {
+                    seekerId: { type: "string" },
+                    rating: { type: "number" },
+                }
+            }
+        },
+        preValidation: [ fastify.authenticate ],
+        handler: function(request, reply) {
+            const um = userModule({ mongo: fastify.mongo });
+            const points = request.body.rating;
+
+            // TODO: If seeker matches
+
+            if ((points < 1) || (points > 10)) {
+                reply.status(400);
+                reply.send(`Points '${points} is not withing range 1-10`);
+                return;
+            }
+
+            um.User.retrieve(request.query.userId, (err, u) => {
+                if (err) {
+                    reply.status(400);
+                    reply.send(err);
+                    return;
+                }
+
+                u.update({ $set: { points: (u.points + points) } }, (err) => {
+                    if (err) {
+                        reply.status(400);
+                        reply.send(err);
+                        return;
+                    }
+                    reply.status(200);
+                    reply.send(`Rated user ${request.query.userId}`);
+                });
+            });
+        }
+    });
+
     done();
 }
 
