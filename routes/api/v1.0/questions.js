@@ -49,8 +49,8 @@ function routes (fastify, opts, done) {
                             // notify that there was no match
                             nm.sendUserNotification(
                                 user.userId,
-                                "No match found!",
-                                `No match was found for your problem.`,
+                                "No match was found for your problem.",
+                                `basic`,
                                 {
                                     notificationType: "basic"
                                 },
@@ -63,8 +63,8 @@ function routes (fastify, opts, done) {
                         // send notification to seeker
                         nm.sendUserNotification(
                             user.userId,
-                            "You were matched to a helper!",
                             `You were matched with '${match.userId}`,
+                            "basic",
                             {
                                 notificationType: "basic"
                             },
@@ -82,8 +82,8 @@ function routes (fastify, opts, done) {
                         // send notification to helper
                         nm.sendUserNotification(
                             match.userId,
-                            "You have a new question!",
                             `You have a new question from ${user.userId}`,
+                            `helperMatch ${question.uuid}`,
                             {
                                 notificationType: "helperMatch",
                                 questionId: question.uuid
@@ -230,19 +230,19 @@ function routes (fastify, opts, done) {
             const nm = notificationsModule({ mongo: fastify.mongo });
             const qm = questionsModule({ mongo: fastify.mongo });
 
-            if (err) {
-                reply.status(400);
-                reply.send(err);
-                return;
-            }
-
             qm.Question.retrieve(request.body.questionId, (err, q) => {
+                if (err) {
+                    reply.status(400);
+                    reply.send(err);
+                    return;
+                }
+                
                 q.update({
                     $set:
                         {
                             helperAccepted: true,
                             finalHelper: request.body.userId,
-                            questionState: "Match"
+                            questionState: "Matched"
                         }
                 }, (err) => {
                     if (err) {
@@ -251,8 +251,8 @@ function routes (fastify, opts, done) {
                         return;
                     }
                     
-                    nm.sendUserNotification(q.seeker, "Found match",                     nm.sendUserNotification(q.seeker, "Found match", )
-                    `Found for ${q.title}`, {}, (err, result) => {
+                    nm.sendUserNotification(q.seeker, `Found for ${q.title}`,
+                    `basic`, {}, (err, result) => {
                         if (err) {
                             reply.status(400);
                             reply.send(err);
