@@ -70,7 +70,10 @@ function sendUserNotification(userId, title, body, data, callback) {
         var regTokens = [fcmToken];
         
         // Actually send the message
-        sender.send(message, { registrationTokens: regTokens }, callback);
+        sender.send(message, { registrationTokens: regTokens }, function(err, result) {
+            console.log(err, result);
+            callback(err, result);
+        });
     });
 }
 
