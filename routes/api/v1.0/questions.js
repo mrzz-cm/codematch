@@ -339,7 +339,7 @@ function routes (fastify, opts, done) {
                 type: "object",
                 required: ["rating"],
                 properties: {
-                    rating: { type: "string" },
+                    rating: { type: "number" },
                 }
             }
         },
