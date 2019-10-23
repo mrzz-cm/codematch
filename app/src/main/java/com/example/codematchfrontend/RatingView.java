@@ -39,10 +39,20 @@ public class RatingView extends AppCompatActivity {
             textInputRating.setError("Field Can't be Empty!");
             return false;
 
-        } else {
-            textInputRating.setError(null);
-            return true;
+
+        } else if (ratingInput.length()>1) {
+            textInputRating.setError("Too Many characters!");
+            return false;
         }
+       /* else if (ratingInput.charAt(1) < 1 || ratingInput.charAt(1) > 5) {
+            textInputRating.setError("Rating outside specified range!");
+            return false;
+        }*/
+            else {
+
+                textInputRating.setError(null);
+                return true;
+            }
 
     }
 
@@ -50,7 +60,7 @@ public class RatingView extends AppCompatActivity {
         if(!validateRating()) {
             return;
         }
-        String input = "rating:" +textInputRating.getEditText().getText().toString();
+        String input = "Thank you for rating : " +textInputRating.getEditText().getText().toString();
         Toast.makeText(this,input,Toast.LENGTH_SHORT).show();
 
 
