@@ -270,6 +270,10 @@ public class NotifyView extends AppCompatActivity implements NotifyViewAdapter.N
         Intent intent = new Intent (this, ProfileView.class);
         startActivity(intent);
     }
+    public void switchTabToRatingView(View view) {
+        Intent intent = new Intent (this, RatingView.class);
+        startActivity(intent);
+    }
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch(item.getItemId()) {
