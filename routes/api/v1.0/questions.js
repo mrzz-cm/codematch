@@ -2,6 +2,7 @@ const notificationsModule = require("../../../notifications");
 const questionsModule = require("../../../questions");
 const matchingModule = require("../../../matching");
 const userModule = require("../../../user");
+const ru = require("../../../utils/router");
 
 function routes (fastify, opts, done) {
     fastify.route({
@@ -286,11 +287,7 @@ function routes (fastify, opts, done) {
             }
 
             qm.Question.retrieve(request.body.questionId, (err, q) => {
-                if (err) {
-                    reply.status(400);
-                    reply.send(err);
-                    return;
-                }
+                if (ru.errCheck(reply, 400, err)) return;
 
                 if (q.seeker === request.body.userId) {
                     reply.status(400);
@@ -305,20 +302,12 @@ function routes (fastify, opts, done) {
                             questionState: "Matched"
                         }
                 }, (err) => {
-                    if (err) {
-                        reply.status(400);
-                        reply.send(err);
-                        return;
-                    }
+                    if (ru.errCheck(reply, 400, err)) return;
                     
                     nm.sendUserNotification(q.seeker, `Helper for ${q.title} accepted: 
                     ${q.optimalHelper}`,
                     `basic`, {}, (err, result) => {
-                        if (err) {
-                            reply.status(400);
-                            reply.send(err);
-                            return;
-                        }
+                        if (ru.errCheck(reply, 400, err)) return;
 
                         reply.status(200);
                         reply.send("Found match");
@@ -353,7 +342,7 @@ function routes (fastify, opts, done) {
             // TODO: If seeker matches
 
             um.User.retrieve(seekerId, (err, u) => {
-                if (errCheck(reply, err)) return;
+                if (ru.errCheck(reply, 400, err)) return;
 
                 const seeker = um.User.fromJson(u);
 
@@ -371,11 +360,7 @@ function routes (fastify, opts, done) {
                         currentQuestion: null
                     }},
                     (err) => {
-                        if (err) {
-                            reply.status(400);
-                            reply.send(err);
-                            return;
-                        }
+                        if (ru.errCheck(reply, 400, err)) return;
 
                         qm.Question.retrieve(seeker.currentQuestion, (err, qJson) => {
 
@@ -388,7 +373,7 @@ function routes (fastify, opts, done) {
                             if (errCheck(reply, err)) return;
         
                             um.User.retrieve(qJson.finalHelper, (err, hJson) => {
-                                if (errCheck(reply, err)) return;
+                                if (ru.errCheck(reply, 400, err)) return;
         
                                 const helper = um.User.fromJson(hJson);
         
@@ -399,7 +384,7 @@ function routes (fastify, opts, done) {
                                             currentQuestion: null
                                         }
                                     }, (err) => {
-                                        if (errCheck(reply, err)) return;
+                                        if (ru.errCheck(reply, 400, err)) return;
         
                                         reply.status(200);
                                         reply.send(`Rated user ${helper.userId}`);
@@ -413,14 +398,6 @@ function routes (fastify, opts, done) {
     });
 
     done();
-}
-
-function errCheck(reply, err) {
-    if (err) {
-        reply.status(400);
-        reply.send(err);
-    }
-    return err;
 }
 
 module.exports = routes;

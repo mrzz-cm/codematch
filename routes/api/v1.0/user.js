@@ -2,6 +2,8 @@ const authentication = require("../../../authentication");
 const notificationsModule = require("../../../notifications");
 const userModule = require("../../../user");
 
+const ru = require("../../../utils/router");
+
 function routes (fastify, opts, done) {
     fastify.route({
         method: "POST",
@@ -31,20 +33,11 @@ function routes (fastify, opts, done) {
 
                 const userExists = await um.User.exists(data.email);
 
-                if (userExists) {
-                    reply.status(500);
-                    reply.send("User exists");
-
-                    return;
-                }
+                if (userExists && ru.errCheck(reply, 500, "User exists")) return;
 
                 // store to database
                 um.User.newUser(data.email).create((err) => {
-                    if (err) {
-                        reply.status(500);
-                        reply.send(err);
-                        return;
-                    }
+                    if (ru.errCheck(reply, 500, err)) return;
                     // done
                     reply.status(200);
                     reply.send();
@@ -76,6 +69,8 @@ function routes (fastify, opts, done) {
                     reply.send(err);
                     return;
                 }
+
+                if (ru.errCheck(reply, 400, err)) return;
                 
                 const user = um.User.fromJson(result);
                 user.courses.push(request.body.courseId);
@@ -86,11 +81,7 @@ function routes (fastify, opts, done) {
                         courses: user.courses
                     }
                 }, err => {
-                    if (err) {
-                        reply.status(400);
-                        reply.send(err);
-                        return;
-                    }
+                    if (ru.errCheck(reply, 400, err)) return;
 
                     reply.status(200);
                     reply.send("course added");

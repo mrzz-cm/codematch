@@ -1,4 +1,5 @@
 const authentication = require("../../../authentication");
+const ru = require("../../../utils/router");
 
 function routes (fastify, opts, done) {
     /* GET testing token. */
@@ -7,15 +8,9 @@ function routes (fastify, opts, done) {
         url: "/google/callback",
         handler: function(request, reply) {
             this.getAccessTokenFromAuthorizationCodeFlow(request, (err, result) => {
-                if (err) {
-                    reply.send(err);
-                    return;
-                }
+                if (ru.errCheck(reply, 400, err)) return;
                 authentication.requestEmail(result.access_token, function (err, res, data) {
-                    if (err) {
-                        reply.send(err);
-                        return;
-                    }
+                    if (ru.errCheck(reply, 400, err)) return;
                     reply.send(result);
                 });
             });
@@ -48,6 +43,7 @@ function routes (fastify, opts, done) {
                     reply.send(err);
                     return;
                 }
+
                 const token = fastify.jwt.sign(data.email);
                 reply.send(token);
                 console.log(token);
