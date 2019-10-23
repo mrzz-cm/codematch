@@ -303,51 +303,72 @@ function routes (fastify, opts, done) {
 
     fastify.route({
         method: "POST",
-        url: "/rate/:userId",
+        url: "/close/:seekerId",
         schema: {
             body: {
                 type: "object",
-                required: ["seekerId", "rating"],
+                required: ["rating"],
                 properties: {
-                    seekerId: { type: "string" },
-                    rating: { type: "number" },
+                    rating: { type: "string" },
                 }
             }
         },
         preValidation: [ fastify.authenticate ],
         handler: function(request, reply) {
             const um = userModule({ mongo: fastify.mongo });
-            const points = request.body.rating;
+            const qm = questionsModule({ mongo: fastify.mongo });
+            const rating = request.body.rating;
+            const seekerId = request.params.seekerId;
 
             // TODO: If seeker matches
 
-            if ((points < 1) || (points > 10)) {
+            if ((rating < 1) || (rating > 10)) {
                 reply.status(400);
-                reply.send(`Points '${points} is not withing range 1-10`);
+                reply.send(`Points '${rating} is not withing range 1-10`);
                 return;
             }
 
-            um.User.retrieve(request.params.userId, (err, u) => {
+            um.User.retrieve(seekerId, (err, u) => {
                 if (err) {
                     reply.status(400);
                     reply.send(err);
                     return;
                 }
 
-                um.User.fromJson(u).update(
-                    {
-                        $set: {
-                            points: (u.points + points)
-                        }
-                    }, (err) => {
+                const seeker = um.User.fromJson(u);
+
+                qm.Question.retrieve(seeker.currentQuestion, (err, qJson) => {
+                    if (err) {
+                        reply.status(400);
+                        reply.send(err);
+                        return;
+                    }
+
+                    um.User.retrieve(qJson.finalHelper, (err, hJson) => {
                         if (err) {
                             reply.status(400);
                             reply.send(err);
                             return;
                         }
-                        reply.status(200);
-                        reply.send(`Rated user ${request.query.userId}`);
+
+                        const helper = um.User.fromJson(hJson);
+
+                        helper.update(
+                            {
+                                $set: {
+                                    points: (helper.points + rating)
+                                }
+                            }, (err) => {
+                                if (err) {
+                                    reply.status(400);
+                                    reply.send(err);
+                                    return;
+                                }
+                                reply.status(200);
+                                reply.send(`Rated user ${helper.userId}`);
+                            });
                     });
+                });
             });
         }
     });
