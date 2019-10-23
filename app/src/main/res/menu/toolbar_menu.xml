@@ -9,7 +9,7 @@
         app:showAsAction="ifRoom" />
     <item
         android:id="@+id/notifyViewButton"
-        android:icon="@drawable/ic_notificationicon"
+        android:icon="@drawable/ic_notification_icon"
         android:title="Notification View"
         app:showAsAction="ifRoom" />
     <item
