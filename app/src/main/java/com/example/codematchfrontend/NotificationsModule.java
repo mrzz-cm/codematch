@@ -1,5 +1,6 @@
 package com.example.codematchfrontend;
 
+import android.app.Activity;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -59,6 +60,7 @@ public class NotificationsModule extends FirebaseMessagingService {
     }
 
     public void newNotification (String textTitle, String textContent) {
+        //Activity FLAG_ACTIVITY_NEW_TASK = NotifyView;
         Intent intent = new Intent(this, AlertDialog.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, 0);
