@@ -48,7 +48,7 @@ function routes (fastify, opts, done) {
 
                             // notify that there was no match
                             nm.sendUserNotification(
-                                match.user.userId,
+                                user.userId,
                                 "No match found!",
                                 `No match was found for your problem.`,
                                 (err) => {}
@@ -57,10 +57,11 @@ function routes (fastify, opts, done) {
                             return;
                         }
 
+                        // send notification to seeker
                         nm.sendUserNotification(
-                            match.user.userId,
-                            "You were matched",
-                            `You were matched with '${question.seeker}`,
+                            user.userId,
+                            "You were matched to a helper!",
+                            `You were matched with '${match.user.userId}`,
                             result, (err) => {
                                 if (err) {
                                     console.log(err);
@@ -70,8 +71,11 @@ function routes (fastify, opts, done) {
                                 }
                                 reply.status(200);
                                 reply.send("Question posted.");
-                            })
-                    })
+                        });
+
+                        // TODO: send notification to helper, update
+                        // question data
+                    });
                 });
             }
 
