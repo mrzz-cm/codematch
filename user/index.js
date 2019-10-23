@@ -112,6 +112,7 @@ class User {
      * @param {object} jsonUser
      */
     static fromJson(jsonUser) {
+        console.log(jsonUser)
         return new User(
             jsonUser.userId, jsonUser.points, jsonUser.courses,
             jsonUser.questionsPosted, jsonUser.questionsHelped,

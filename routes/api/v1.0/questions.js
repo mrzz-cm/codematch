@@ -28,8 +28,8 @@ function routes (fastify, opts, done) {
 
             let user;
 
-            function updateUserCallback(err, newUserJson) {
-                user = um.User.fromJson(newUserJson);
+            function updateUserCallback(err) {
+                console.log((user.toJson()));
                 if (err) {
                     console.log(err);
                     reply.status(500);
