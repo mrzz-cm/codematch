@@ -51,7 +51,9 @@ function routes (fastify, opts, done) {
                                 user.userId,
                                 "No match found!",
                                 `No match was found for your problem.`,
-                                {},
+                                {
+                                    notificationType: "basic"
+                                },
                                 (err) => {}
                             );
 
@@ -63,7 +65,10 @@ function routes (fastify, opts, done) {
                             user.userId,
                             "You were matched to a helper!",
                             `You were matched with '${match.user.userId}`,
-                            result, (err) => {
+                            {
+                                notificationType: "basic"
+                            },
+                            (err) => {
                                 if (err) {
                                     console.log(err);
                                     reply.status(500);
@@ -74,8 +79,45 @@ function routes (fastify, opts, done) {
                                 reply.send("Question posted.");
                         });
 
-                        // TODO: send notification to helper, update
-                        // question data
+                        // send notification to helper
+                        nm.sendUserNotification(
+                            match.user.userId,
+                            "You have a new question!",
+                            `You have a new question from ${user.userId}`,
+                            {
+                                notificationType: "helperMatch",
+                                questionId: question.uuid
+                            },
+                            (err) => {
+                                if (err) {
+                                    console.log(`Warning: notifying helper about
+                                    a new question failed!`);
+                                    return;
+                                }
+                            }
+                        );
+
+                        // update question fields
+                        question.helperNotifiedTimestamp = Date.now();
+                        question.optimalHelper = match.user.userId;
+                        question.prevCheckedHelpers.push(match.user.userId);
+                        question.questionState = "Waiting";
+
+                        question.update(
+                            {$set: {
+                                helperNotifiedTimestamp: question.helperNotifiedTimestamp,
+                                optimalHelper: question.optimalHelper,
+                                prevCheckedHelpers: question.prevCheckedHelpers,
+                                questionState: question.questionState
+                            }},
+                            function(err) {
+                                if (err) {
+                                    console.log(err);
+                                    console.log(`Warning: Failed to update question
+                                    state in database after match was found!`);
+                                }
+                            }
+                        );
                     });
                 });
             }

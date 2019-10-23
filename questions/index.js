@@ -10,7 +10,7 @@ let mongo;
  */
 class Question {
     /**
-     * questionState: 'Unmatched', 'Matched', 'Resolved'
+     * questionState: 'Unmatched', 'Waiting', 'Matched', 'Resolved'
      */
 
     /**

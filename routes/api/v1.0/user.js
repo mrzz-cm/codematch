@@ -35,12 +35,6 @@ function routes (fastify, opts, done) {
                     reply.status(500);
                     reply.send("User exists");
 
-                    nm.sendUserNotification(
-                        data.email,
-                        "Exists",
-                        `Your account exists`,
-                        {}, (err) => {});
-
                     return;
                 }
 
