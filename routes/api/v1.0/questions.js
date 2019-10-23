@@ -292,7 +292,7 @@ function routes (fastify, opts, done) {
                     return;
                 }
 
-                if (q.seeker == request.body.userId) {
+                if (q.seeker === request.body.userId) {
                     reply.status(400);
                     reply.send("Cannot accept your own question.");
                 }
