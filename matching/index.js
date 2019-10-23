@@ -11,13 +11,9 @@ class Match {
      * Create a Match
      *
      * @param {Question} question
-     * @param {Location} location
      */
-    constructor(question, location) {
+    constructor(question) {
         this._question = question;
-        this._location = location;
-
-
     }
 
     /**
@@ -25,19 +21,19 @@ class Match {
      * (such as the course of origin), the location of nearby users, how active and
      * how many points a user has, and other factors.
      *
-     * @param {Question} question
      * @return {Promise<Helper>} Optimal helper
     */
-    async optimalHelper(question) {
+    async optimalHelper() {
         const um = user(mongo);
-        const allMatches = await um.User.getAllUsers();
+        const allMatches = await um.User.getAllUsers(); //TODO: Error?
 
         let highest = {"user": null, "rating": null};
         for (const u in allMatches) {
-            if (u.userId === this._question.seeker) {
+            if ((u.userId === this._question.seeker) ||
+                (u.currentQuestion === null)) {
                 continue;
             }
-            const rating = um.User.rating(question);
+            const rating = um.User.rating(this._question);
             if (highest.rating === null || highest.rating < rating) {
                 highest.user = u;
                 highest.rating = rating;

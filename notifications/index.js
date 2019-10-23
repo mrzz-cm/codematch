@@ -36,7 +36,7 @@ function registerUserForNotifications(userId, fcmToken, callback) {
 function sendUserNotification(userId, title, body, data, callback) {
     
     // create message
-    var message = new gcm.Message({
+    const message = new gcm.Message({
         notification: {
             title: title,
             body: body,

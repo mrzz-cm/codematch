@@ -67,7 +67,6 @@ class Question {
      * @param {object} jsonObj 
      */
     static fromJson(jsonObj) {
-
         return new Question(
             jsonObj.uuid, jsonObj.title, jsonObj.courseCode, jsonObj.questionText,
             jsonObj.seeker, jsonObj.creationTimestamp,
@@ -188,6 +187,7 @@ module.exports = function (options) {
 
     module.createQuestion = createQuestion;
     module.getQuestion = getQuestion;
+    module.Question = Question;
 
     return module;
 };

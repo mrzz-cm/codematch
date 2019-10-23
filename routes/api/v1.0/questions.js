@@ -1,4 +1,6 @@
+const notificationsModule = require("../../../notifications");
 const questionsModule = require("../../../questions");
+const matchingModule = require("../../../matching");
 const userModule = require("../../../user");
 
 function routes (fastify, opts, done) {
@@ -21,6 +23,8 @@ function routes (fastify, opts, done) {
         handler: function(request, reply) {
             const qm = questionsModule({ mongo: fastify.mongo });
             const um = userModule({ mongo: fastify.mongo });
+            const mm = matchingModule({ mongo: fastify.mongo });
+            const nm = notificationsModule({ mongo: fastify.mongo });
 
             let user;
 
@@ -33,8 +37,24 @@ function routes (fastify, opts, done) {
                     return;
                 }
 
-                reply.status(200);
-                reply.send("Question posted.");
+                qm.Question.retrieve(user.currentQuestion, async (err, result) => {
+                    const question = qm.Question.fromJson(result);
+                    const match = await mm.Match(question).optimalHelper();
+                    nm.sendUserNotification(
+                        match.user.userId,
+                        "You were matched",
+                        `You were matched with '${question.seeker}`,
+                        result, (err) => {
+                            if (err) {
+                                console.log(err);
+                                reply.status(500);
+                                reply.send(err);
+                                return;
+                            }
+                            reply.status(200);
+                            reply.send("Question posted.");
+                        })
+                });
             }
 
             function createQuestionCallback(err, status, new_question) {
