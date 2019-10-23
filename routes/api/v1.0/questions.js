@@ -294,7 +294,7 @@ function routes (fastify, opts, done) {
                 return;
             }
 
-            um.User.retrieve(request.query.userId, (err, u) => {
+            um.User.retrieve(request.params.userId, (err, u) => {
                 if (err) {
                     reply.status(400);
                     reply.send(err);
