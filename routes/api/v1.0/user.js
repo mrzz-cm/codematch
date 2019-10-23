@@ -1,4 +1,5 @@
 const authentication = require("../../../authentication");
+const notificationsModule = require("../../../notifications");
 const userModule = require("../../../user");
 
 function routes (fastify, opts, done) {
