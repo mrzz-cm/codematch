@@ -6,7 +6,10 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.app.Dialog;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.text.method.ScrollingMovementMethod;
 import android.view.LayoutInflater;
@@ -32,6 +35,8 @@ public class NotifyView extends AppCompatActivity implements NotifyViewAdapter.N
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
+        createNotificationChannel();
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_notify_view);
 
@@ -176,6 +181,22 @@ public class NotifyView extends AppCompatActivity implements NotifyViewAdapter.N
                 Toast.makeText(this, "Profile View selected!!", Toast.LENGTH_SHORT).show();
                 switchTabToProfileView();
             default: return super.onOptionsItemSelected(item);
+        }
+    }
+    String CHANNEL_ID = "1";
+    private void createNotificationChannel() {
+        // Create the NotificationChannel, but only on API 26+ because
+        // the NotificationChannel class is new and not in the support library
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            CharSequence name = "test_channel_name_uwu";
+            String description = "test_description_uwu";
+            int importance = NotificationManager.IMPORTANCE_DEFAULT;
+            NotificationChannel channel = new NotificationChannel(CHANNEL_ID, name, importance);
+            channel.setDescription(description);
+            // Register the channel with the system; you can't change the importance
+            // or other notification behaviors after this
+            NotificationManager notificationManager = getSystemService(NotificationManager.class);
+            notificationManager.createNotificationChannel(channel);
         }
     }
 }
