@@ -238,7 +238,7 @@ function routes (fastify, opts, done) {
                     return;
                 }
 
-                q.update({
+                qm.Question.fromJson(q).update({
                     $set:
                         {
                             helperAccepted: true,
@@ -301,15 +301,20 @@ function routes (fastify, opts, done) {
                     return;
                 }
 
-                u.update({ $set: { points: (u.points + points) } }, (err) => {
-                    if (err) {
-                        reply.status(400);
-                        reply.send(err);
-                        return;
-                    }
-                    reply.status(200);
-                    reply.send(`Rated user ${request.query.userId}`);
-                });
+                um.User.fromJson(u).update(
+                    {
+                        $set: {
+                            points: (u.points + points)
+                        }
+                    }, (err) => {
+                        if (err) {
+                            reply.status(400);
+                            reply.send(err);
+                            return;
+                        }
+                        reply.status(200);
+                        reply.send(`Rated user ${request.query.userId}`);
+                    });
             });
         }
     });
