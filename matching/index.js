@@ -23,7 +23,7 @@ class Match {
      *
      * @return {Promise<Helper>} Optimal helper
     */
-    async optimalHelper() {
+    async optimalHelper(callback) {
         const um = user({ mongo: mongo });
         const allMatches = await um.User.getAllUsers(); //TODO: Error?
         console.log(allMatches); // TODO: Remove
@@ -52,7 +52,11 @@ class Match {
             //     matchSimilarScore = false;
             // }
 
-            return highest.user;
+            if (highest.user === null) {
+                callback("No match", highest.user);
+            }
+
+            callback(err, highest.user);
         });
     }
 
