@@ -1,159 +1,193 @@
 const userModule = require("../user");
+const uuidv1 = require("uuid/v1");
+
+const questionCollection = "questions";
+
+let mongo;
 
 /**
  * Class representing a Question
  */
 class Question {
+    /**
+     * questionState: 'Unmatched', 'Waiting', 'Matched', 'Resolved'
+     */
 
     /**
-     * @param {User} user
-     * @param {string} title
-     * @param {string} imageId
-     * @param {string} courseCode
-     * @param {boolean} resolved
+     * @param {string}      uuid
+     * @param {string}      title
+     * @param {string}      courseCode  
+     * @param {string}      questionText 
+     * @param {string}      seeker
+     * @param {number}      creationTimestamp
+     * @param {string}      optimalHelper
+     * @param {number}      helperNotifiedTimestamp
+     * @param {boolean}     helperAccepted
+     * @param {string[]}    prevCheckedHelpers
+     * @param {string}      finalHelper
+     * @param {string}      questionState
+     * @param {number}      finalScore
      */
-    constructor(user, title, imageId, courseCode, resolved) {
-        this._user = user;
-        this._title = title;
-        this._imageId = imageId;
-        this._courseCode = courseCode;
-        this._uuid = "GENERATE GUID HERE"; // TODO
-        this._helper = Helper.emptyHelper();
-        this._resolved = resolved;
+    constructor(uuid, title, courseCode, questionText,
+        seeker, creationTimestamp,
+        optimalHelper, helperNotifiedTimestamp, helperAccepted,
+        prevCheckedHelpers, finalHelper,
+        questionState, finalScore) {
+        
+        this.uuid = uuid;
+        this.title = title;
+        this.courseCode = courseCode;
+        this.questionText = questionText;
+        this.seeker = seeker;
+        this.creationTimestamp = creationTimestamp;
+        this.optimalHelper = optimalHelper;
+        this.helperNotifiedTimestamp = helperNotifiedTimestamp;
+        this.helperAccepted = helperAccepted;
+        this.prevCheckedHelpers = prevCheckedHelpers;
+        this.finalHelper = finalHelper;
+        this.questionState = questionState;
+        this.finalScore = finalScore;
     }
 
     /**
-     * Get the userId
-     * @return {string} The userId.
+     * Create a new Question with no previous history.
+     * 
+     * @param {string} user 
+     * @param {string} title 
+     * @param {string} courseCode 
+     * @param {string} questionText
      */
-    get user() {
-        return this._user;
+    static newQuestion(user, title, courseCode, questionText) {
+        return new Question(uuidv1(), title, courseCode, questionText, 
+            user, Date.now(), null, null, null, [], null, "Unmatched", null);
     }
 
     /**
-     * Set the userId
-     * @param {string} user
+     * Creates a new Question from a JSON object from the database
+     * @param {object} jsonObj 
      */
-    set user(user) {
-        this._user = user;
+    static fromJson(jsonObj) {
+        return new Question(
+            jsonObj.uuid, jsonObj.title, jsonObj.courseCode, jsonObj.questionText,
+            jsonObj.seeker, jsonObj.creationTimestamp,
+            jsonObj.optimalHelper, jsonObj.helperNotifiedTimestamp,
+            jsonObj.helperAccepted, jsonObj.prevCheckedHelpers,
+            jsonObj.finalHelper, jsonObj.questionState,
+            jsonObj.finalScore
+        );
     }
 
     /**
-     * Get the uuid
-     * @return {string} The userId.
+     * Serializes the object into JSON so it can be stored into MongoDB
+     * @returns {Object} the JSON blob representing the question
      */
-    get uuid() {
-        return this._uuid;
+    toJson() {
+        return {
+            uuid: this.uuid,
+            title: this.title,
+            courseCode: this.courseCode,
+            questionText: this.questionText,
+            seeker: this.seeker,
+            creationTimestamp: this.creationTimestamp,
+            optimalHelper: this.optimalHelper,
+            helperNotifiedTimestamp: this.helperNotifiedTimestamp,
+            helperAccepted: this.helperAccepted,
+            prevCheckedHelpers: this.prevCheckedHelpers,
+            finalHelper: this.finalHelper,
+            questionState: this.questionState,
+            finalScore: this.finalScore
+        };
+    }
+
+    static async exists(uuid) {
+        const count = await mongo.db.collection(questionCollection)
+            .find({ "uuid": { $exists: true, $eq: uuid } })
+            .count();
+
+        return count !== 0;
     }
 
     /**
-     * Set the uuid
-     * @param {string} uuid
+     * Adds a question to our database.
+     * @param {function} callback
      */
-    set uuid(uuid) {
-        this._uuid = uuid;
+    create(callback) {
+        const collection = mongo.db.collection(questionCollection);
+
+        const jsonData = this.toJson();
+        collection.ensureIndex({ uuid: 1 }, { unique: true }, () => {
+            collection.insertOne(jsonData, function (err, result) {
+                if (err !== null) {
+                    console.log(`Failed to insert ${jsonData.uuid} into the collection`);
+                } else {
+                    console.log(`Inserted question ${jsonData.uuid} into the collection`);
+                }
+                callback(err);
+            });
+        });
     }
 
     /**
-     * Get the title
-     * @return {string} The title.
+     * Updates the question in the database.
+     * @param {object}      update
+     * @param {function}    callback
      */
-    get title() {
-        return this._title;
+    update(update, callback) {
+        const collection = mongo.db.collection(questionCollection);
+
+        collection.findOneAndUpdate(
+            { uuid: this.uuid },
+            update,
+            callback
+        );
     }
 
     /**
-     * Set the title
-     * @param {string} title
+     * Retrieve a question from database.
+     * @param {string}   uuid
+     * @param {function} callback
      */
-    set title(title) {
-        this._title = title;
-    }
-
-    /**
-     * Get the courseCode
-     * @return {string} The courseCode.
-     */
-    get courseCode() {
-        return this._courseCode;
-    }
-
-    /**
-     * Set the courseCode
-     * @param {string} courseCode
-     */
-    set courseCode(courseCode) {
-        this._courseCode = courseCode;
-    }
-
-    /**
-     * Get the imageId
-     * @return {string} The imageId.
-     */
-    get imageId() {
-        return this._imageId;
-    }
-
-    /**
-     * Set the imageId
-     * @param {string} imageId
-     */
-    set imageId(imageId) {
-        this._imageId = imageId;
-    }
-
-
-    /**
-     * Get the helper
-     * @return {Helper} The helper.
-     */
-    get helper() {
-        return this._helper;
-    }
-
-    /**
-     * Sets the current helper for a question
-     * @param {Helper} helper
-     */
-    set helper(helper) {
-        this._helper = helper;
-    }
-
-    /**
-     * Get resolved
-     * @return {boolean} resolved
-     */
-    get resolved() {
-        return this._resolved;
-    }
-
-    /**
-     * Set resolved
-     * @param {boolean} resolved
-     */
-    set resolved(resolved) {
-        this._resolved = resolved;
-    }
-
-    /**
-     * Posts a new question to the questions database.
-     * @throws Error if question couldn't be posted.
-     */
-    post() {
-        // TODO
-        if (null) {
-            throw new Error("...");
-        }
-    }
-
-    /**
-     * Deletes the question.
-     * @throws Error if question couldn't be deleted.
-     */
-    delete() {
-        // TODO
-        if (null) {
-            throw new Error("...");
-        }
+    static retrieve(uuid, callback) {
+        const collection = mongo.db.collection(questionCollection);
+        collection.findOne({ uuid: uuid }, function (err, result) {
+            if (err !== null) {
+                console.log(`Failed to retrieve ${uuid} from the collection`);
+            } else {
+                console.log(`Retrieved question ${result} from the collection`);
+            }
+            callback(err, result);
+        });
     }
 }
+
+
+/**
+ * Module Functions
+ */
+
+/**
+ * Handles the request to post a question.
+ */
+function createQuestion(questionData, callback) {
+    // make a new question
+    const new_question = Question.newQuestion(questionData.userId, questionData.title,
+        questionData.courseCode, questionData.questionText);
+    callback(null, 200, new_question);
+}
+
+function getQuestion(questionId, callback) {
+    Question.retrieve(questionId, callback);
+}
+
+
+module.exports = function (options) {
+    mongo = options.mongo;
+
+    const module = {};
+
+    module.createQuestion = createQuestion;
+    module.getQuestion = getQuestion;
+    module.Question = Question;
+
+    return module;
+};

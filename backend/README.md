@@ -51,15 +51,10 @@ mongo codematch -u codematch -p
 
 ```javascript
 var collections = db.getCollectionNames();
-for(var i = 0; i< collections.length; i++){
+for(var i = 0; i< collections.length; i++) {
     print('Collection: ' + collections[i]);
     db.getCollection(collections[i]).find().forEach(printjson);
-};
-```
-
-```
-Collection: documents
-{ "_id" : ObjectId("5d86c2d97cac5b3356528887"), "test" : "JSON Data" }
+}
 ```
 
 ## MongoDB
@@ -113,15 +108,14 @@ db.createUser(
 
 Create a new project [Codematch](https://console.developers.google.com/apis/library).
 
-Setup callback URI: https://cm.johnramsden.ca/auth/google/callback
+Setup callback URI: <https://cm.johnramsden.ca/auth/google/callback>
 
 [Setup project](https://developers.google.com/identity/sign-in/web/sign-in)
 
 Get Client ID and Client Secret. Place JSON in config.js
 
-
 ## References
 
-* https://proandroiddev.com/developing-secure-android-apps-8edad978d8ba
-* https://jwt.io/introduction/
-* http://www.passportjs.org/docs/google/
+*   <https://proandroiddev.com/developing-secure-android-apps-8edad978d8ba>
+*   <https://jwt.io/introduction/>
+*   <http://www.passportjs.org/docs/google/>

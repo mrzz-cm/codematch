@@ -20,10 +20,16 @@ const googleAuth = {
     }
 };
 
+const FCM_KEY = "FCM key here";
+
 const domain = 'cm.johnramsden.ca';
+
+const jwtSecret = "SECRET_HERE";
 
 module.exports = {
     mongoDBConnection: mongoDBConnection,
     googleAuth: googleAuth,
-    domain: domain
+    FCM_KEY: FCM_KEY,
+    domain: domain,
+    jwtSecret: jwtSecret
 };
