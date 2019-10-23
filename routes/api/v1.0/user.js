@@ -25,7 +25,7 @@ function routes (fastify, opts, done) {
 
             authentication.requestEmail(request.body.access_token, async function (err, res, data) {
                 if (err || (res.statusCode !== 200) || !data.email) {
-                    console.log(data);
+                    request.log.info(data);
                     reply.status(res.statusCode);
                     reply.send(err);
                     return;

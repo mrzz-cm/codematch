@@ -71,7 +71,7 @@ function routes (fastify, opts, done) {
                             },
                             (err) => {
                                 if (err) {
-                                    console.log(err);
+                                    request.log.info(err);
                                     reply.status(500);
                                     reply.send(err);
                                     return;
@@ -91,9 +91,8 @@ function routes (fastify, opts, done) {
                             },
                             (err) => {
                                 if (err) {
-                                    console.log(`Warning: notifying helper about
-                                    a new question failed!`);
-                                    return;
+                                    request.log.info("Warning: notifying helper " +
+                                        "about a new question failed!");
                                 }
                             }
                         );
@@ -113,9 +112,9 @@ function routes (fastify, opts, done) {
                             }},
                             function(err) {
                                 if (err) {
-                                    console.log(err);
-                                    console.log(`Warning: Failed to update question
-                                    state in database after match was found!`);
+                                    request.log.info(err);
+                                    request.log.info("Warning: Failed to update question " +
+                                    "state in database after match was found!");
                                 }
                             }
                         );
@@ -123,9 +122,9 @@ function routes (fastify, opts, done) {
                         // update helper fields
                         um.User.retrieve(match.userId, (err, data) => {
                             if (err) {
-                                console.log(err);
-                                console.log(`Warning: Failed to retrieve helper
-                                 for question!`);
+                                request.log.info(err);
+                                request.log.info("Warning: Failed to retrieve helper " +
+                                 "for question!");
                                 return;
                             }
 
@@ -138,9 +137,9 @@ function routes (fastify, opts, done) {
                                 }
                             }, (err) => {
                                 if (err) {
-                                    console.log(err);
-                                    console.log(`Warning: Failed to set helper's fields
-                                    when they were selected for a question`);
+                                    request.log.info(err);
+                                    request.log.info("Warning: Failed to set helper's fields " +
+                                        "when they were selected for a question");
                                 }
                             });
                         });
@@ -259,13 +258,8 @@ function routes (fastify, opts, done) {
             // TODO: add more security checks
 
             function getHelperCallback(err, data) {
-                if (err) {
-                    console.log(err);
-                    return;
-                }
-
-                if (!data) {
-                    console.log(err);
+                if (err || !data) {
+                    request.log.info(err);
                     return;
                 }
 
@@ -280,7 +274,7 @@ function routes (fastify, opts, done) {
                     }},
                     (err) => {
                         if (err) {
-                            console.log(err);
+                            request.log.info(err);
                         }
                     }
                 );
