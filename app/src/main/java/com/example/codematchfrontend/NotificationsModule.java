@@ -42,35 +42,7 @@ public class NotificationsModule extends FirebaseMessagingService {
     }
 
     //static String channel_name = "default_channel";
-    String CHANNEL_ID = "1";
 
-
-
-
-    public void newNotification (String textTitle, String textContent) {
-        //Activity FLAG_ACTIVITY_NEW_TASK = NotifyView;
-        Intent intent = new Intent(this, ProfileView.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, 0);
-
-
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_notification_icon)
-                .setContentTitle(textTitle)
-                .setContentText(textContent)
-                .setStyle(new NotificationCompat.BigTextStyle()
-                        .bigText(textContent))
-                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-                .setContentIntent(pendingIntent)
-                .setAutoCancel(true);
-        int notificationId = createID();
-
-        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
-        notificationManager.notify(notificationId, builder.build());
-
-
-
-    }
 
 
 

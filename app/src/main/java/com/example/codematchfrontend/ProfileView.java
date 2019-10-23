@@ -3,11 +3,14 @@ package com.example.codematchfrontend;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.app.Dialog;
+import android.app.PendingIntent;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.method.ScrollingMovementMethod;
@@ -24,6 +27,8 @@ import android.widget.Toast;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.LinkedList;
+
+import static com.example.codematchfrontend.Global.createID;
 
 public class ProfileView extends AppCompatActivity implements CoursesListAdapter.CoursesListClickListener{
 
@@ -162,9 +167,40 @@ public class ProfileView extends AppCompatActivity implements CoursesListAdapter
 
          */
     }
+
+
+    String CHANNEL_ID = "1";
+
+
+
+// move to NotificationsModule
+    public void newNotification (String textTitle, String textContent) {
+        //Activity FLAG_ACTIVITY_NEW_TASK = NotifyView;
+        Intent intent = new Intent(this.getApplicationContext(), NotifyView.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, 0);
+
+
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
+                .setSmallIcon(R.drawable.ic_notification_icon)
+                .setContentTitle(textTitle)
+                .setContentText(textContent)
+                .setStyle(new NotificationCompat.BigTextStyle()
+                        .bigText(textContent))
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                .setContentIntent(pendingIntent)
+                .setAutoCancel(true);
+        int notificationId = createID();
+        //startActivity(intent);
+
+        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
+        notificationManager.notify(notificationId, builder.build());
+
+
+
+    }
     public void pushNotificationTest (View view) {
-         NotificationsModule nModule = new NotificationsModule();
-        nModule.newNotification("Test", "Wow, this is a test of the fact That it's a long ass 'string!!!");
+        newNotification("Test", "Wow, this is a test of the fact That it's a long ass 'string!!!");
     }
 
     }
