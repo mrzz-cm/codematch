@@ -15,6 +15,7 @@ import android.accounts.AccountManager;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.StrictMode;
 import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
@@ -53,17 +54,7 @@ public class LoginView extends AppCompatActivity {
             }
         });
 
-        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestEmail()
-                .requestId()
-                .requestIdToken(getString(R.string.default_web_client_id))
-                .requestServerAuthCode(getString(R.string.default_web_client_id))
-                .build();
-        mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
-
-        GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(this);
-        updateUI(account);
-
+        // make sure we update the firebase token first
         FirebaseInstanceId.getInstance().getInstanceId()
                 .addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
                     @Override
@@ -75,11 +66,21 @@ public class LoginView extends AppCompatActivity {
 
                         // Get new Instance ID token
                         String token = task.getResult().getToken();
-
-                        // Log and toast
-                        System.out.println("instance ID token: " + token);
+                        System.out.println("Firebase token changed to " + token);
+                        Global.FIREBASE_TOKEN = token;
                     }
                 });
+
+        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestEmail()
+                .requestId()
+                .requestIdToken(getString(R.string.default_web_client_id))
+                .requestServerAuthCode(getString(R.string.default_web_client_id))
+                .build();
+        mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
+
+        GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(this);
+        updateUI(account);
     }
 
     private void signIn(){
@@ -103,10 +104,12 @@ public class LoginView extends AppCompatActivity {
     }
 
     private void handleSignInResult (Task<GoogleSignInAccount> task) {
+        System.out.println("called sign in button");
         try {
             GoogleSignInAccount account = task.getResult(ApiException.class);
 
             // signed in successfully, show the notification UI
+            Global.EMAIL = account.getEmail();
             sendAccessToken(account);
         } catch (ApiException e) {
             System.out.println("signInResult:failed code=" + e.getStatusCode());
@@ -169,6 +172,8 @@ public class LoginView extends AppCompatActivity {
 
                     System.out.println("Api key updated to " + Global.API_KEY + "\n");
                     notify_create_account( jsonObject.get("access_token").toString());
+                    notifyFirebaseToken();
+
                     updateUI(faccount);
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -180,7 +185,7 @@ public class LoginView extends AppCompatActivity {
     private void notify_create_account( String google_access_token) {
         JSONObject jsonObject = new JSONObject();
         try {
-            jsonObject.put("googleToken", google_access_token);
+            jsonObject.put("access_token", google_access_token);
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -203,6 +208,34 @@ public class LoginView extends AppCompatActivity {
             e.printStackTrace();
         }
 
+    }
+
+    private void notifyFirebaseToken() {
+        JSONObject jsonObject = new JSONObject();
+        try {
+            jsonObject.put("userId", Global.EMAIL);
+            jsonObject.put("fcmToken", Global.FIREBASE_TOKEN);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        MediaType JSON = MediaType.parse("application/json; charset=utf-8");
+        RequestBody body = RequestBody.create(jsonObject.toString(), JSON);
+
+        Request notify_send_firebase_key = new Request.Builder()
+                .url(Global.BASE_URL + "/notifications/register")
+                .addHeader("Authorization", "Bearer " + Global.API_KEY)
+                .post(body)
+                .build();
+
+        Response response = null;
+        try {
+            response = Global.HTTP_CLIENT.newCall(notify_send_firebase_key).execute();
+            int statuscode = response.code();
+            System.out.println("Send firebase key return " + statuscode + "\n");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override

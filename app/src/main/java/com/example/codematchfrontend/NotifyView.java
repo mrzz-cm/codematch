@@ -74,7 +74,9 @@ public class NotifyView extends AppCompatActivity implements NotifyViewAdapter.N
         });
     }
 
+    private void update_all_questions() {
 
+    }
 
 
     @Override
