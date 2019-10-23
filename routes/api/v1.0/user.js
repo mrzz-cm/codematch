@@ -52,7 +52,7 @@ function routes (fastify, opts, done) {
                         data.email,
                         "Authenticated",
                         `You were mauthenticated`,
-                        result, (err) => {})
+                        {}, (err) => {})
                 })
             });
         }
