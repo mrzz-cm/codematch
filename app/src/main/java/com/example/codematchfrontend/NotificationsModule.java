@@ -22,6 +22,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.util.Map;
 
 import okhttp3.MediaType;
 import okhttp3.Request;
@@ -45,9 +46,24 @@ public class NotificationsModule extends FirebaseMessagingService {
         // Also if you intend on generating your own notifications as a result of a received FCM
         // message, here is where that should be initiated.
         System.out.println("RECEIVED NOTIFICATION");
-        Log.d("notifications", "From: " + remoteMessage.getFrom());
-        Log.d("notifications", "Notification Message Body: " + remoteMessage.getNotification().getBody());
-        newNotification(getApplicationContext(),"new notification",remoteMessage.getNotification().getBody());
+        System.out.println("notifications" + "From: " + remoteMessage.getFrom());
+        System.out.println("notifications" + "Notification Message Body: " + remoteMessage.getNotification().getBody());
+
+        System.out.println("remote message: " + remoteMessage);
+
+        String titleString = remoteMessage.getNotification().getTitle();
+
+        String bodyString = remoteMessage.getNotification().getBody();
+
+        String notificationType = bodyString.split("\\s")[0];
+
+        System.out.println("notification type: " + notificationType);
+
+        if (notificationType.equals("basic")) {
+            newNotification(getApplicationContext(), titleString, "");
+        } else if (notificationType.equals("helperMatch")) {
+            newHelperMatchNotification(getApplicationContext(), titleString, "", bodyString);
+        }
     }
 
     @Override
@@ -85,6 +101,26 @@ public class NotificationsModule extends FirebaseMessagingService {
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         PendingIntent pendingIntent = PendingIntent.getActivity(ctx, 0, intent, 0);
 
+
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
+                .setSmallIcon(R.drawable.ic_notification_icon)
+                .setContentTitle(textTitle)
+                .setContentText(textContent)
+                .setStyle(new NotificationCompat.BigTextStyle()
+                        .bigText(textContent))
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                .setContentIntent(pendingIntent)
+                .setAutoCancel(true);
+        int notificationId = createID();
+
+        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(ctx);
+        notificationManager.notify(notificationId, builder.build());
+    }
+
+    public void newHelperMatchNotification(Context ctx, String textTitle, String textContent, String data) {
+        Intent intent = new Intent(ctx, NotifyView.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        PendingIntent pendingIntent = PendingIntent.getActivity(ctx, 0, intent, 0);
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_notification_icon)

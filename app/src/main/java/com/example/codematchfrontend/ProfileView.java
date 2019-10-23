@@ -87,12 +87,7 @@ public class ProfileView extends AppCompatActivity implements CoursesListAdapter
 
         // debug: initialize courses
         courses = new LinkedList<String>();
-        courses.add("test1");
-        courses.add("test2");
-        courses.add("test2");
-        courses.add("test2");
-        courses.add("test2");
-        courses.add("test2");
+        update_all_courses();
 
         adapter = new CoursesListAdapter(this, this.courses);
         coursesView.setAdapter(adapter);
@@ -104,6 +99,38 @@ public class ProfileView extends AppCompatActivity implements CoursesListAdapter
             public void onClick(View view) {
                 addcourse(course_input_text.getText().toString());
                 course_input_text.getText().clear();
+            }
+        });
+    }
+
+    private void update_all_courses() {
+        System.out.println("updating all courses");
+        System.out.println("id passted to get courses: " + Global.EMAIL);
+        Request get_all_courses_request = new Request.Builder()
+                .url(Global.BASE_URL + "/user/" + Global.EMAIL)
+                .addHeader("Authorization", "Bearer " + Global.API_KEY)
+                .build();
+
+        Global.HTTP_CLIENT.newCall(get_all_courses_request).enqueue(new Callback() {
+            @Override
+            public void onFailure(@NotNull Call call, @NotNull IOException e) {
+                System.out.println("Error: "+ e.toString());
+            }
+
+            @Override
+            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+                System.out.println("Get all courses returned code " + response.code());
+                try {
+                    JSONObject jsonObject = new JSONObject(response.body().string());
+                    if (jsonObject.has("courses")){
+
+                        String question_id = jsonObject.get("currentQuestion").toString();
+                        addCourseUpdate(question_id);
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
             }
         });
     }
@@ -178,6 +205,12 @@ public class ProfileView extends AppCompatActivity implements CoursesListAdapter
         });
 
     }
+
+    private void addCourseUpdate(String course) {
+        this.courses.add(course);
+        adapter.notifyItemInserted(courses.size() - 1);
+    }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();

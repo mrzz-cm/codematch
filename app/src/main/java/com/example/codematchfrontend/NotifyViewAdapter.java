@@ -1,15 +1,26 @@
 package com.example.codematchfrontend;
 
 import android.content.Context;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.TextView;
 
+import org.jetbrains.annotations.NotNull;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
 import java.util.LinkedList;
 
 import androidx.recyclerview.widget.RecyclerView;
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.Request;
+import okhttp3.Response;
 
 public class NotifyViewAdapter extends RecyclerView.Adapter<NotifyViewAdapter.NotifyViewHolder> {
 
@@ -47,7 +58,43 @@ public class NotifyViewAdapter extends RecyclerView.Adapter<NotifyViewAdapter.No
 
     @Override
     public void onBindViewHolder(NotifyViewHolder holder, int position) {
-        holder.itemView.setText(dataset.get(position));
+        final NotifyViewHolder finalHolder = holder;
+
+        String questionID = dataset.get(position);
+
+        Request get_question_title_request = new Request.Builder()
+                .url(Global.BASE_URL + "/questions/" + questionID)
+                .addHeader("Authorization", "Bearer " + Global.API_KEY)
+                .build();
+
+        Global.HTTP_CLIENT.newCall(get_question_title_request).enqueue(new Callback() {
+            @Override
+            public void onFailure(@NotNull Call call, @NotNull IOException e) {
+                System.out.println("Error: "+ e.toString());
+            }
+
+            @Override
+            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+                System.out.println("Get question (title) returned code " + response.code());
+                try {
+                    final JSONObject jsonObject = new JSONObject(response.body().string());
+                    if (jsonObject.has("title")){
+                        new Handler(Looper.getMainLooper()).post(new Runnable(){
+                            @Override
+                            public void run() {
+                                try {
+                                    finalHolder.itemView.setText(jsonObject.get("title").toString());
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        });
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
     }
 
     @Override
