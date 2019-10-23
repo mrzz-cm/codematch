@@ -40,28 +40,16 @@ public class NotificationsModule extends FirebaseMessagingService {
         // Instance ID token to your app server.
         System.out.println("firebase token " + token);
     }
-    static String CHANNEL_ID = "1";
-    static String channel_name = "default_channel";
 
-    public void createNotificationChannel() {
-        // Create the NotificationChannel, but only on API 26+ because
-        // the NotificationChannel class is new and not in the support library
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            CharSequence name = "test_channel_name_uwu";
-            String description = "test_description_uwu";
-            int importance = NotificationManager.IMPORTANCE_DEFAULT;
-            NotificationChannel channel = new NotificationChannel(CHANNEL_ID, name, importance);
-            channel.setDescription(description);
-            // Register the channel with the system; you can't change the importance
-            // or other notification behaviors after this
-            NotificationManager notificationManager = getSystemService(NotificationManager.class);
-            notificationManager.createNotificationChannel(channel);
-        }
-    }
+    //static String channel_name = "default_channel";
+    String CHANNEL_ID = "1";
+
+
+
 
     public void newNotification (String textTitle, String textContent) {
         //Activity FLAG_ACTIVITY_NEW_TASK = NotifyView;
-        Intent intent = new Intent(this, AlertDialog.class);
+        Intent intent = new Intent(this, ProfileView.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, 0);
 

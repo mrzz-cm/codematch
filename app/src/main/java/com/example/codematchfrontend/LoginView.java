@@ -40,8 +40,7 @@ public class LoginView extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        NotificationsModule notificationsModule = new NotificationsModule();
-        notificationsModule.createNotificationChannel();
+
         setContentView(R.layout.activity_login_view);
 
         SignInButton googleButton = findViewById(R.id.sign_in_button);
