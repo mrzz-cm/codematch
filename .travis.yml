@@ -25,3 +25,5 @@ before_install:
     )'
   - cp config.js.example config.js
 
+after_script:
+  - npm run lint
