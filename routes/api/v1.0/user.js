@@ -1,5 +1,4 @@
 const authentication = require("../../../authentication");
-const notificationsModule = require("../../../notifications");
 const userModule = require("../../../user");
 
 const ru = require("../../../utils/router");
@@ -20,8 +19,7 @@ function routes (fastify, opts, done) {
         preValidation: [ fastify.authenticate ],
         handler: function(request, reply) {
             const um = userModule({ mongo: fastify.mongo });
-            const nm = notificationsModule({ mongo: fastify.mongo });
-            console.log(request.body);
+            request.log.info(request.body);
 
             authentication.requestEmail(request.body.access_token, async function (err, res, data) {
                 if (err || (res.statusCode !== 200) || !data.email) {

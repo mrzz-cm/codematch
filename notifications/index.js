@@ -1,9 +1,9 @@
 const userModule = require("../user");
 const config = require("../config");
 
-var gcm = require("node-gcm");
+const gcm = require("node-gcm");
 const SERVER_KEY = config.FCM_KEY;
-var sender = new gcm.Sender(SERVER_KEY);
+const sender = new gcm.Sender(SERVER_KEY);
 
 let mongo;
 
@@ -21,7 +21,7 @@ function registerUserForNotifications(userId, fcmToken, callback) {
             return;
         }
 
-        var user = um.User.fromJson(result);
+        const user = um.User.fromJson(result);
 
         user.fcmToken = fcmToken;
 
@@ -67,7 +67,7 @@ function sendUserNotification(userId, title, body, data, callback) {
         const fcmToken = result.fcmToken;
 
         // Specify which registration IDs to deliver the message to
-        var regTokens = [fcmToken];
+        const regTokens = [fcmToken];
         
         // Actually send the message
         sender.send(message, { registrationTokens: regTokens }, function(err, result) {

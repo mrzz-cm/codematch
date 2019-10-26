@@ -1,61 +1,8 @@
 const geolib = require("geolib");
 
 const userCollection = "users";
+
 let mongo;
-
-/**
- * Class representing a Helper
- */
-class Helper {
-    /**
-     * @param {User} user
-     * @param {boolean} accepted
-     */
-    constructor(user, accepted) {
-        this._user = user;
-        this._accepted = accepted;
-    }
-
-    /**
-     * @returns {Helper} Empty helper
-     */
-    static emptyHelper() {
-        return new Helper("", false);
-    }
-
-    /**
-     * Get the user
-     * @returns {User} The user
-     */
-    get user() {
-        return this._user;
-    }
-
-    /**
-     * Set the user
-     * @param {User} user
-     */
-    set user(user) {
-        this._user = user;
-    }
-
-    /**
-     * Get accepted
-     * @returns {boolean} accepted
-     */
-    get accepted() {
-        return this._accepted;
-    }
-
-    /**
-     * Set accepted
-     * @param {boolean} accepted
-     */
-    set accepted(accepted) {
-        this._accepted = accepted;
-    }
-
-}
 
 /* TODO: Decide on weights */
 const LOCATION_WEIGHT = 1;
@@ -296,7 +243,7 @@ class User {
 
         const jsonData = this.toJson();
         collection.ensureIndex({ userId: 1 }, { unique: true }, () => {
-            collection.insertOne(jsonData, function (err, result) {
+            collection.insertOne(jsonData, function (err) {
                 if (err !== null) {
                     console.log(
                         `Failed to insert ${jsonData.userId} into users`);
@@ -389,7 +336,7 @@ class Location {
     constructor(latitude, longitude, timestamp) {
         this._latitude = latitude;
         this._longitude = longitude;
-        // this._timestamp = timestamp;
+        this._timestamp = timestamp;
     }
 
     toJson() {

@@ -55,7 +55,7 @@ function routes (fastify, opts, done) {
                                 {
                                     notificationType: "basic"
                                 },
-                                (err) => {}
+                                () => {}
                             );
 
                             return;
@@ -300,7 +300,7 @@ function routes (fastify, opts, done) {
                     
                     nm.sendUserNotification(q.seeker, `Helper for ${q.title} accepted: 
                     ${q.optimalHelper}`,
-                    "basic", {}, (err, result) => {
+                    "basic", {}, (err) => {
                         if (ru.errCheck(reply, 400, err)) return;
 
                         reply.status(200);

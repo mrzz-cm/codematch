@@ -21,7 +21,7 @@ function routes(fastify, opts, done) {
         handler: function(request, reply) {
             const nm = notificationsModule({ mongo: fastify.mongo });
             nm.registerUserForNotifications(request.body.userId, request.body.fcmToken,
-                function(err, data) {
+                function(err) {
                     if (ru.errCheck(reply, 400, err)) return;
 
                     reply.status(200);

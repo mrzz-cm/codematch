@@ -9,7 +9,7 @@ const config = require("../config");
 // https://github.com/fastify/fastify-jwt
 
 // Authentication preValidation plugin
-const jwtValdatorPlugin = fastifyPlugin(async function(fastify, opts) {
+const jwtValdatorPlugin = fastifyPlugin(async function(fastify) {
     fastify.register(jwtPlugin, {
         secret: config.jwtSecret
     });

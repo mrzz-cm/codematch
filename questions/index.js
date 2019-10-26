@@ -1,4 +1,3 @@
-const userModule = require("../user");
 const uuidv1 = require("uuid/v1");
 
 const questionCollection = "questions";
@@ -116,7 +115,7 @@ class Question {
 
         const jsonData = this.toJson();
         collection.ensureIndex({ uuid: 1 }, { unique: true }, () => {
-            collection.insertOne(jsonData, function (err, result) {
+            collection.insertOne(jsonData, function (err) {
                 if (err !== null) {
                     console.log(`Failed to insert ${jsonData.uuid} into the collection`);
                 } else {

@@ -9,7 +9,7 @@ function routes (fastify, opts, done) {
         handler: function(request, reply) {
             this.getAccessTokenFromAuthorizationCodeFlow(request, (err, result) => {
                 if (ru.errCheck(reply, 400, err)) return;
-                authentication.requestEmail(result.access_token, function (err, res, data) {
+                authentication.requestEmail(result.access_token, (err) => {
                     if (ru.errCheck(reply, 400, err)) return;
                     reply.send(result);
                 });
