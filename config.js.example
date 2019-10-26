@@ -22,7 +22,7 @@ const googleAuth = {
 
 const FCM_KEY = "FCM key here";
 
-const domain = 'cm.johnramsden.ca';
+const domain = "cm.johnramsden.ca";
 
 const jwtSecret = "SECRET_HERE";
 
