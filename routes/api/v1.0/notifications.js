@@ -22,7 +22,7 @@ function routes(fastify, opts, done) {
             try {
                 await um.User.registerForNotifications(
                     request.body.userId, request.body.fcmToken
-                )
+                );
             } catch (e) {
                 if (ru.errCheck(reply, 400, e)) return;
             }

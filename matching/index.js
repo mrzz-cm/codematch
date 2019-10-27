@@ -28,7 +28,7 @@ class Match {
         const um = user({ mongo: mongo });
         let allMatches;
         try {
-            allMatches = await um.User.getAllUsers()
+            allMatches = await um.User.getAllUsers();
         } catch (e) {
             throw new Error(e);
         }

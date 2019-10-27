@@ -93,7 +93,7 @@ function routes (fastify, opts, done) {
 
             if (!userExists) {
                 ru.errCheck(reply, 400, "Provided user doesn't exist.");
-                return
+                return;
             }
 
             let uJson;
@@ -106,7 +106,7 @@ function routes (fastify, opts, done) {
             if (!uJson) {
                 ru.errCheck(reply, 400,
                     "Provided user json was empty.");
-                return
+                return;
             }
 
             const user = um.User.fromJson(uJson);
@@ -138,12 +138,13 @@ function routes (fastify, opts, done) {
 
             let user;
             try {
-                user = await um.User.sanitizedJson(request.params.userId)
+                user = await um.User.sanitizedJson(request.params.userId);
             } catch (e) {
-
+                ru.errCheck(reply, 400, e);
+                return;
             }
             if (!user) {
-                ru.errCheck(reply, 400, "No user found")
+                ru.errCheck(reply, 400, "No user found");
                 return;
             }
 

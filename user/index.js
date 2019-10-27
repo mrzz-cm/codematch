@@ -405,10 +405,10 @@ class User {
         }
 
         if (!user.fcmToken) {
-            return new Error(`Cannot get user FCM token`);
+            return new Error("Cannot get user FCM token");
         }
 
-        const fcmToken = result.fcmToken;
+        const fcmToken = user.fcmToken;
 
         // Specify which registration IDs to deliver the message to
         const regTokens = [fcmToken];
@@ -418,9 +418,9 @@ class User {
                 // Actually send the message
                 sender.send(message, {
                     registrationTokens: regTokens
-                    }, (err, result) => {
-                        if (err) reject(err);
-                        resolve(result);
+                }, (err, result) => {
+                    if (err) reject(err);
+                    resolve(result);
                 });
             }
         );

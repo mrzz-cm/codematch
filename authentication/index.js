@@ -14,7 +14,7 @@ const jwtValdatorPlugin = fastifyPlugin(async function(fastify) {
         secret: config.jwtSecret
     });
 
-    fastify.decorate("authenticate", async function(request, reply) {
+    fastify.decorate("authenticate", async (request, reply) => {
         try {
             await request.jwtVerify();
         } catch (err) {
@@ -35,9 +35,9 @@ async function requestEmail(token) {
             json: true
         });
     } catch (e) {
-        return new Error(`Failed to get email from google ${e}`)
+        return new Error(`Failed to get email from google ${e}`);
     }
-};
+}
 
 // https://github.com/fastify/fastify-oauth2
 module.exports = {

@@ -108,7 +108,7 @@ function routes (fastify, opts, done) {
 
             let uQuestion;
             try {
-                uQuestion = await qm.Question.retrieve(user.currentQuestion)
+                uQuestion = await qm.Question.retrieve(user.currentQuestion);
             } catch (e) {
                 if (ru.errCheck(reply, 500, e)) return;
             }
@@ -135,12 +135,12 @@ function routes (fastify, opts, done) {
             // send notification to seeker
             try {
                 await um.User.sendNotification(
-                        user.userId,
-                        `You were matched with '${match.userId}`,
-                        "basic",
-                        {
-                            notificationType: "basic"
-                        });
+                    user.userId,
+                    `You were matched with '${match.userId}`,
+                    "basic",
+                    {
+                        notificationType: "basic"
+                    });
 
             } catch (e) {
                 request.log.info(e);
@@ -172,11 +172,11 @@ function routes (fastify, opts, done) {
             try {
                 await question.update(
                     {$set: {
-                            helperNotifiedTimestamp: question.helperNotifiedTimestamp,
-                            optimalHelper: question.optimalHelper,
-                            prevCheckedHelpers: question.prevCheckedHelpers,
-                            questionState: question.questionState
-                        }});
+                        helperNotifiedTimestamp: question.helperNotifiedTimestamp,
+                        optimalHelper: question.optimalHelper,
+                        prevCheckedHelpers: question.prevCheckedHelpers,
+                        questionState: question.questionState
+                    }});
             } catch(e) {
                 request.log.info(e);
                 request.log.info("Warning: Failed to update question " +
@@ -204,11 +204,11 @@ function routes (fastify, opts, done) {
                         currentQuestion: optimalHelper.currentQuestion
                     }
             }).catch((err) => {
-                    request.log.info(err);
-                    request.log.info(
-                        "Warning: Failed to set helper's fields " +
+                request.log.info(err);
+                request.log.info(
+                    "Warning: Failed to set helper's fields " +
                         "when they were selected for a question");
-                }
+            }
             );
 
             reply.status(200);
@@ -286,7 +286,7 @@ function routes (fastify, opts, done) {
                             finalHelper: request.body.userId,
                             questionState: "Matched"
                         }
-                })
+                });
             } catch (e) {
                 if (ru.errCheck(reply, 400, e)) return;
             }
@@ -308,7 +308,7 @@ function routes (fastify, opts, done) {
             // update the helper
             let helper;
             try {
-                helper = await um.User.retrieve(qJson.optimalHelper)
+                helper = await um.User.retrieve(qJson.optimalHelper);
             } catch (e) {
                 if (ru.errCheck(reply, 400, e)) return;
             }
@@ -328,7 +328,7 @@ function routes (fastify, opts, done) {
                     questionsHelped: user.questionsHelped
                 }
             })
-            .catch(request.log.info);
+                .catch(request.log.info);
         }
     });
 
@@ -380,7 +380,7 @@ function routes (fastify, opts, done) {
 
             let qJson;
             try {
-                qJson = await qm.Question.retrieve(seeker.currentQuestion)
+                qJson = await qm.Question.retrieve(seeker.currentQuestion);
             } catch (e) {
                 if (ru.errCheck(reply, 400, e)) return;
             }
@@ -402,14 +402,14 @@ function routes (fastify, opts, done) {
                             points: (helper.points + rating),
                             currentQuestion: null
                         }
-                    })
+                    });
             } catch (e) {
                 if (ru.errCheck(reply, 400, e)) return;
             }
 
             // clear the seeker's question
             try {
-                await seeker.update({ $set: { currentQuestion: null }})
+                await seeker.update({ $set: { currentQuestion: null }});
             } catch (e) {
                 if (ru.errCheck(reply, 400, e)) return;
             }

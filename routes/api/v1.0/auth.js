@@ -10,16 +10,16 @@ function routes (fastify, opts, done) {
             this.getAccessTokenFromAuthorizationCodeFlow(
                 request, async (err, result) => {
 
-                if (ru.errCheck(reply, 400, err)) return;
+                    if (ru.errCheck(reply, 400, err)) return;
 
-                let authData;
-                try {
-                    authData = await auth.requestEmail(result.access_token)
-                } catch (e) {
-                    if (ru.errCheck(reply, 400, e)) return;
-                }
-                reply.send(authData);
-            });
+                    let authData;
+                    try {
+                        authData = await auth.requestEmail(result.access_token);
+                    } catch (e) {
+                        if (ru.errCheck(reply, 400, e)) return;
+                    }
+                    reply.send(authData);
+                });
         }});
 
     /* GET AUTH token. */
@@ -50,7 +50,7 @@ function routes (fastify, opts, done) {
 
             let authData;
             try {
-                authData = await auth.requestEmail(request.query.access_token)
+                authData = await auth.requestEmail(request.query.access_token);
             } catch (e) {
                 if (ru.errCheck(reply, 400, e)) return;
             }
