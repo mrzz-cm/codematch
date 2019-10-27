@@ -1,4 +1,10 @@
 const geolib = require("geolib");
+const gcm = require("node-gcm");
+
+const config = require("../config");
+
+const SERVER_KEY = config.FCM_KEY;
+const sender = new gcm.Sender(SERVER_KEY);
 
 const userCollection = "users";
 
@@ -59,7 +65,6 @@ class User {
      * @param {object} jsonUser
      */
     static fromJson(jsonUser) {
-        console.log(jsonUser);
         return new User(
             jsonUser.userId, jsonUser.points, jsonUser.courses,
             jsonUser.questionsPosted, jsonUser.questionsHelped,
@@ -221,72 +226,77 @@ class User {
     }
 
     /**
-     * Check if a user exists
+     * Check if user exists
      *
      * @param userId
      * @returns {Promise<boolean>}
      */
     static async exists(userId) {
-        const count = await mongo.db.collection(userCollection)
-            .find({ "userId": { $exists: true, $eq: userId } })
-            .count();
-
-        return count !== 0;
+        try {
+            const count = await mongo.db.collection(userCollection)
+                .find({"userId": {$exists: true, $eq: userId}})
+                .count();
+            return count !== 0;
+        } catch (err) {
+            throw new Error(
+                `Failed to check for ${userId} in database ${err}`
+            );
+        }
     }
 
     /**
-     * Adds a user to our database.
-     * @param {function} callback
+     * Adds a user to the database.
+     *
+     * @returns {Promise<any>}
      */
-    create(callback) {
-        const collection = mongo.db.collection(userCollection);
-
+    async create() {
+        const collection = await mongo.db.collection(userCollection);
         const jsonData = this.toJson();
-        collection.ensureIndex({ userId: 1 }, { unique: true }, () => {
-            collection.insertOne(jsonData, function (err) {
-                if (err !== null) {
-                    console.log(
-                        `Failed to insert ${jsonData.userId} into users`);
-                } else {
-                    console.log(
-                        `Inserted user ${jsonData.userId} into users`);
-                }
-                callback(err);
-            });
-        });
+        try {
+            await collection.createIndexes(
+                [ { key: { userId: 1 } } ],
+                { unique: true }
+            );
+            return collection.insertOne(jsonData);
+        } catch (err) {
+            throw new Error(
+                `Failed to insert ${jsonData.userId} into the collection ${err}`
+            );
+        }
     }
 
     /**
      * Updates the user in the database.
-     * @param {object}      update
-     * @param {function}    callback
+     *
+     * @param {object} update
+     * @returns {Promise<any>}
      */
-    update(update, callback) {
-        const collection = mongo.db.collection(userCollection);
-
-        collection.findOneAndUpdate(
-            { userId: this._userId },
-            update,
-            callback
-        );
+    async update(update) {
+        const collection = await mongo.db.collection(userCollection);
+        try {
+            return collection.findOneAndUpdate({userId: this._userId}, update);
+        } catch (err) {
+            throw new Error(
+                `Failed to update user ${this._userId}`
+            );
+        }
     }
 
     /**
-     * Retrieve a user from database.
-     * @param {string} email
-     * @param {function} callback
+     * Retrieve a user from database
+     *
+     * @param {string} userId
+     * @returns {Promise<any>}
      */
-    static retrieve(email, callback) {
-        mongo.db.collection(userCollection).findOne({
-            userId: email
-        }, (err, result) => {
-            if (err !== null) {
-                console.log(`Failed to retrieve ${email} from the collection`);
-            } else {
-                console.log(`Retrieved user ${result} from the collection`);
-            }
-            callback(err, result);
-        });
+    static async retrieve(userId) {
+        const collection = await mongo.db.collection(userCollection);
+        try {
+            return collection.findOne({userId: userId});
+        } catch (err) {
+            throw new Error(
+                `Failed to retrieve user ${userId}`
+            );
+        }
     }
 
     /**
@@ -294,12 +304,24 @@ class User {
      * @returns {Promise<User[]>} all users
      */
     static async getAllUsers() {
-        const r = await mongo.db.collection(userCollection)
-            .find({})
-            .toArray();
-        return r.map((q) => (this.fromJson(q)));
+        let users;
+        try {
+            users = await mongo.db.collection(userCollection)
+                .find({})
+                .toArray();
+        } catch (err) {
+            throw new Error("Failed getting all users");
+        }
+        return await users.map((q) => (this.fromJson(q)));
     }
 
+    /**
+     * Get a users rating
+     *
+     * @param question
+     * @param user
+     * @returns {number}
+     */
     rating(question, user) {
         return (
             (this.location.distance(user.location) * LOCATION_WEIGHT) +
@@ -309,19 +331,101 @@ class User {
         );
     }
 
-    static sanitizedJson(userId, callback) {
-        User.retrieve(userId, function(err, data) {
-            if (err || !data) {
-                callback(err, data);
-                return;
-            }
+    /**
+     * Get 'sanitized' user in JSON format removing secret fields
+     *
+     * @param userId
+     * @returns {Promise<any>}
+     */
+    static async sanitizedJson(userId) {
+        let userJson;
+        try {
+            userJson = await User.retrieve(userId);
+        } catch (err) {
+            return new Error(err);
+        }
 
-            // remove the token fields before sending data back to client
-            data.token = null;
-            data.fcmToken = null;
-            callback(err, data);
-        });
+        if (!userJson) {
+            return new Error("No user found");
+        }
+
+        // remove the token fields before sending data back to client
+        userJson.token = null;
+        userJson.fcmToken = null;
+
+        return userJson;
     }
+
+    static async registerForNotifications(userId, fcmToken) {
+        let userJson;
+        try {
+            userJson = await User.retrieve(userId);
+        } catch (err) {
+            return new Error(err);
+        }
+
+        if (!userJson) {
+            return new Error(
+                `Cannot find user ${userId} to register for notifications`);
+        }
+
+        const user = User.fromJson(userJson);
+        user.fcmToken = fcmToken;
+
+        // update database
+        try {
+            return await user.update({$set: {fcmToken: fcmToken}});
+        } catch (err) {
+            return new Error(err);
+        }
+    }
+
+    static async sendNotification(userId, title, body, data) {
+
+        // create message
+        const message = new gcm.Message({
+            notification: {
+                title: title,
+                body: body,
+                data: data
+            }
+        });
+
+        // get user
+
+        let user;
+        try {
+            user = await User.retrieve(userId);
+        } catch (err) {
+            return new Error(err);
+        }
+
+        if (!user) {
+            return new Error(`Cannot find user ${userId}`);
+        }
+
+        if (!user.fcmToken) {
+            return new Error(`Cannot get user FCM token`);
+        }
+
+        const fcmToken = result.fcmToken;
+
+        // Specify which registration IDs to deliver the message to
+        const regTokens = [fcmToken];
+
+        return new Promise(
+            (resolve, reject) => {
+                // Actually send the message
+                sender.send(message, {
+                    registrationTokens: regTokens
+                    }, (err, result) => {
+                        if (err) reject(err);
+                        resolve(result);
+                });
+            }
+        );
+    }
+
 }
 
 /**
@@ -340,7 +444,7 @@ class Location {
     }
 
     toJson() {
-        return { latitude: this._latitude, longitude: this._longitude };
+        return {latitude: this._latitude, longitude: this._longitude};
     }
 
     static fromJson(jsonLocation) {
@@ -357,27 +461,12 @@ class Location {
     }
 }
 
-function getUser(userId, callback) {
-    User.retrieve(userId, function(err, data) {
-        if (err || !data) {
-            callback(err, data);
-            return;
-        }
-
-        // remove the token fields before sending data back to client
-        data.token = null;
-        data.fcmToken = null;
-        callback(err, data);
-    });
-}
-
 module.exports = function (options) {
     mongo = options.mongo;
 
     const module = {};
 
     module.User = User;
-    module.getUser = getUser;
 
     return module;
 };

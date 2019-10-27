@@ -1,4 +1,4 @@
-const authentication = require("../../../authentication");
+const auth = require("../../../authentication");
 const ru = require("../../../utils/router");
 
 function routes (fastify, opts, done) {
@@ -6,13 +6,19 @@ function routes (fastify, opts, done) {
     fastify.route({
         method: "GET",
         url: "/google/callback",
-        handler: function(request, reply) {
-            this.getAccessTokenFromAuthorizationCodeFlow(request, (err, result) => {
+        handler: async function(request, reply) {
+            this.getAccessTokenFromAuthorizationCodeFlow(
+                request, async (err, result) => {
+
                 if (ru.errCheck(reply, 400, err)) return;
-                authentication.requestEmail(result.access_token, (err) => {
-                    if (ru.errCheck(reply, 400, err)) return;
-                    reply.send(result);
-                });
+
+                let authData;
+                try {
+                    authData = await auth.requestEmail(result.access_token)
+                } catch (e) {
+                    if (ru.errCheck(reply, 400, e)) return;
+                }
+                reply.send(authData);
             });
         }});
 
@@ -35,19 +41,23 @@ function routes (fastify, opts, done) {
                 }
             }
         },
-        handler: (request, reply) => {
-            console.log(request.query.access_token);
-            authentication.requestEmail(request.query.access_token, function (err, res, data) {
-                if (err || res.statusCode !== 200) {
-                    reply.status(res.statusCode);
-                    reply.send(err);
-                    return;
-                }
+        handler: async (request, reply) => {
+            // Dont require real email during testing
+            if (process.env.MODE === "test") {
+                reply.send(fastify.jwt.sign(process.env.MODE));
+                return;
+            }
 
-                const token = fastify.jwt.sign(data.email);
-                reply.send(token);
-                console.log(token);
-            });
+            let authData;
+            try {
+                authData = await auth.requestEmail(request.query.access_token)
+            } catch (e) {
+                if (ru.errCheck(reply, 400, e)) return;
+            }
+
+            reply.send(fastify.jwt.sign(authData.email));
+
+
         }
     });
 

@@ -17,52 +17,66 @@ class Match {
     }
 
     /**
-     * Find the most optimal helper for a certain question based on question data
-     * (such as the course of origin), the location of nearby users, how active and
-     * how many points a user has, and other factors.
+     * Find the most optimal helper for a certain question based on question
+     * data
+     * (such as the course of origin), the location of nearby users, how active
+     * and how many points a user has, and other factors.
      *
-     * @return {Promise<Helper>} Optimal helper
+     * @return {Promise<any>} Optimal helper
     */
-    async optimalHelper(callback) {
+    async optimalHelper() {
         const um = user({ mongo: mongo });
-        const allMatches = await um.User.getAllUsers(); //TODO: Error?
-        console.log("All matches: ", allMatches); // TODO: Remove
+        let allMatches;
+        try {
+            allMatches = await um.User.getAllUsers()
+        } catch (e) {
+            throw new Error(e);
+        }
 
         let highest = {"user": null, "rating": null};
-        um.User.retrieve(this._question.seeker, (err, questionUser) => {
-            for (let i = 0; i < allMatches.length; i++) {
-                const u = allMatches[i];
-                console.log("checking user:", u.userId);
-                if ((u.userId === this._question.seeker) ||
-                    (u.currentQuestion == null)) {
-                    continue;
-                }
-                const rating = u.rating(this._question, um.User.fromJson(questionUser));
-                if (highest.rating === null || highest.rating < rating) {
-                    highest.user = u;
-                    highest.rating = rating;
-                }
+
+        let seekerJson;
+        try {
+            seekerJson = await um.User.retrieve(this._question.seeker);
+        } catch (e) {
+            throw new Error(e);
+        }
+
+        console.log("All users: \n", allMatches);
+
+        for (let i = 0; i < allMatches.length; i++) {
+            const u = allMatches[i];
+            console.log("checking user:", u.userId);
+            console.log("currentQuestion:", u.currentQuestion);
+            console.log("seeker:", this._question.seeker);
+
+            if ((u.userId === this._question.seeker) ||
+                (u.currentQuestion != null)) {
+                continue;
             }
-
-            // TODO: ??
-            /* The seeker’s rating will be taken into account as well, to
-             * incentivize users to act as helpers. If the seeker’s rating is too far
-             * below the best helper’s, the next best helper is chosen, and so on.
-             * This can be represented as follows:
-             */
-            // if ((highest.rating - question.uuid) < scoreDifferenceThreshold) {
-            //     matchSimilarScore = false;
-            // }
-
-            if (highest.user === null) {
-                console.log("no match was found for user, returning ", highest.user);
-                callback("No match", highest.user);
-                return;
+            const rating = u.rating(this._question, um.User.fromJson(seekerJson));
+            console.log("Rating: ", rating);
+            if (highest.rating === null || highest.rating < rating) {
+                highest.user = u;
+                highest.rating = rating;
             }
+        }
 
-            console.log("match found for user, returning ", highest.user.userId);
-            callback(err, highest.user);
-        });
+        // TODO: ??
+        /* The seeker’s rating will be taken into account as well, to
+         * incentivize users to act as helpers. If the seeker’s rating is too far
+         * below the best helper’s, the next best helper is chosen, and so on.
+         * This can be represented as follows:
+         */
+        // if ((highest.rating - question.uuid) < scoreDifferenceThreshold) {
+        //     matchSimilarScore = false;
+        // }
+
+        if (highest.user === null) {
+            throw new Error("no match was found for user");
+        }
+
+        return highest.user;
     }
 
 }

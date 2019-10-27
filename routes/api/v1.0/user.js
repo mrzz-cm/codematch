@@ -1,4 +1,4 @@
-const authentication = require("../../../authentication");
+const auth = require("../../../authentication");
 const userModule = require("../../../user");
 
 const ru = require("../../../utils/router");
@@ -12,35 +12,58 @@ function routes (fastify, opts, done) {
                 type: "object",
                 required: ["access_token"],
                 properties: {
-                    access_token: { type: "string" }
+                    access_token: { type: "string" },
+                    test_email:  { type: "string" }
                 }
             }
         },
         preValidation: [ fastify.authenticate ],
-        handler: function(request, reply) {
+        handler: async (request, reply) => {
             const um = userModule({ mongo: fastify.mongo });
             request.log.info(request.body);
 
-            authentication.requestEmail(request.body.access_token, async function (err, res, data) {
-                if (err || (res.statusCode !== 200) || !data.email) {
-                    request.log.info(data);
-                    reply.status(res.statusCode);
-                    reply.send(err);
-                    return;
+            let emailJson;
+            if (process.env.MODE === "test") {
+                emailJson = { email: request.body.test_email };
+            } else {
+                try {
+                    emailJson = await auth.requestEmail(
+                        request.body.access_token
+                    );
+                } catch (e) {
+                    if (ru.errCheck(reply, 500, e)) return;
                 }
+            }
 
-                const userExists = await um.User.exists(data.email);
+            if (!emailJson.email) {
+                request.log.info(emailJson);
+                ru.errCheck(reply, 500, "No email found");
+                return;
+            }
 
-                if (userExists && ru.errCheck(reply, 500, "User exists")) return;
+            let userExists;
+            try {
+                userExists = await um.User.exists(emailJson.email);
+            } catch (e) {
+                if (ru.errCheck(reply, 400, e)) return;
+            }
 
-                // store to database
-                um.User.newUser(data.email).create((err) => {
-                    if (ru.errCheck(reply, 500, err)) return;
-                    // done
-                    reply.status(200);
-                    reply.send();
-                });
-            });
+            if (userExists) {
+                ru.errCheck(reply, 500, "User exists");
+                return;
+            }
+
+            // store to database
+            try {
+                await um.User.newUser(emailJson.email).create();
+            } catch (e) {
+                if (ru.errCheck(reply, 500, e)) return;
+            }
+
+            // done
+            reply.status(200);
+            reply.send();
+
         }
     });
 
@@ -58,50 +81,51 @@ function routes (fastify, opts, done) {
             }
         },
         preValidation: [ fastify.authenticate ],
-        handler: function(request, reply) {
+        handler: async (request, reply) => {
             const um = userModule({ mongo: fastify.mongo });
 
-            function getUserCallback(err, result) {
-                if (err || !result) {
-                    reply.status(500);
-                    reply.send(err);
-                    return;
-                }
-
-                if (ru.errCheck(reply, 400, err)) return;
-                
-                const user = um.User.fromJson(result);
-                user.courses.push(request.body.courseId);
-
-                // update database
-                user.update({$set: 
-                    {
-                        courses: user.courses
-                    }
-                }, err => {
-                    if (ru.errCheck(reply, 400, err)) return;
-
-                    reply.status(200);
-                    reply.send("course added");
-                });
+            let userExists;
+            try {
+                userExists = await um.User.exists(request.body.userId);
+            } catch (e) {
+                if (ru.errCheck(reply, 400, e)) return;
             }
 
-            function userExistsCallback(userExists) {
-                if (userExists) {
-                    // get the user
-                    um.User.retrieve(request.body.userId, getUserCallback);
-                } else {
-                    reply.status(400);
-                    reply.send("Provided user doesn't exist.");
-                }
+            if (!userExists) {
+                ru.errCheck(reply, 400, "Provided user doesn't exist.");
+                return
             }
 
-            um.User.exists(request.body.userId)
-                .then(userExistsCallback)
-                .catch(err => {
-                    reply.status(400);
-                    reply.send(err);
+            let uJson;
+            try {
+                uJson = await um.User.retrieve(request.body.userId);
+            } catch (e) {
+                ru.errCheck(reply, 400, e);
+            }
+
+            if (!uJson) {
+                ru.errCheck(reply, 400,
+                    "Provided user json was empty.");
+                return
+            }
+
+            const user = um.User.fromJson(uJson);
+            user.courses.push(request.body.courseId);
+
+            // update database
+            try {
+                await user.update({$set:
+                        {
+                            courses: user.courses
+                        }
                 });
+            } catch (e) {
+                if (ru.errCheck(reply, 400, e)) return;
+            }
+
+            reply.status(200);
+            reply.send("course added");
+
         }
     });
 
@@ -109,19 +133,22 @@ function routes (fastify, opts, done) {
         method: "GET",
         url: "/:userId",
         preValidation: [ fastify.authenticate ],
-        handler: function(request, reply) {
+        handler: async (request, reply) => {
             const um = userModule({ mongo: fastify.mongo });
 
-            um.User.sanitizedJson(request.params.userId, function(err, data) {
-                if (err || !data) {
-                    reply.status(400);
-                    reply.send(err);
-                    return;
-                }
+            let user;
+            try {
+                user = await um.User.sanitizedJson(request.params.userId)
+            } catch (e) {
 
-                reply.status(200);
-                reply.send(data);
-            });
+            }
+            if (!user) {
+                ru.errCheck(reply, 400, "No user found")
+                return;
+            }
+
+            reply.status(200);
+            reply.send(user);
         }
     });
 
