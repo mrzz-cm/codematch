@@ -1,4 +1,5 @@
 const user = require("../user");
+const logger = require("../logger").logger;
 
 let mongo;
 
@@ -42,27 +43,29 @@ class Match {
             throw new Error(e);
         }
 
-        console.log("All users: \n", allMatches);
-
         for (let i = 0; i < allMatches.length; i++) {
             const u = allMatches[i];
-            console.log("checking user:", u.userId);
-            console.log("currentQuestion:", u.currentQuestion);
-            console.log("seeker:", this._question.seeker);
+            logger.log("debug","Checking match:", {
+                userId: u.userId,
+                currentQuestion: u.currentQuestion,
+                seeker: this._question.seeker,
+            });
 
             if ((u.userId === this._question.seeker) ||
                 (u.currentQuestion != null)) {
                 continue;
             }
             const rating = u.rating(this._question, um.User.fromJson(seekerJson));
-            console.log("Rating: ", rating);
+            logger.log("debug","Rating:", {
+                userId: u.userId,
+                rating: rating,
+            });
             if (highest.rating === null || highest.rating < rating) {
                 highest.user = u;
                 highest.rating = rating;
             }
         }
 
-        // TODO: ??
         /* The seeker’s rating will be taken into account as well, to
          * incentivize users to act as helpers. If the seeker’s rating is too far
          * below the best helper’s, the next best helper is chosen, and so on.

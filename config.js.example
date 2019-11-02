@@ -26,10 +26,13 @@ const domain = "cm.johnramsden.ca";
 
 const jwtSecret = "SECRET_HERE";
 
+const logLevel = process.env.LOG_LEVEL || "debug";
+
 module.exports = {
     mongoDBConnection: mongoDBConnection,
     googleAuth: googleAuth,
-    FCM_KEY: FCM_KEY,
     domain: domain,
-    jwtSecret: jwtSecret
+    FCM_KEY: FCM_KEY,
+    jwtSecret: jwtSecret,
+    logLevel: logLevel
 };

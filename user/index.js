@@ -342,11 +342,11 @@ class User {
         try {
             userJson = await User.retrieve(userId);
         } catch (err) {
-            return new Error(err);
+            throw new Error(err);
         }
 
         if (!userJson) {
-            return new Error("No user found");
+            throw new Error("No user found");
         }
 
         // remove the token fields before sending data back to client
