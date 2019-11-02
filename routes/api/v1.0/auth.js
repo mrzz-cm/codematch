@@ -2,7 +2,12 @@ const auth = require("../../../authentication");
 const ru = require("../../../utils/router");
 
 function routes (fastify, opts, done) {
-    /* GET testing token. */
+
+    /* GET Requests */
+
+    /**
+     * GET a google access token for testing.
+     */
     fastify.route({
         method: "GET",
         url: "/google/callback",
@@ -22,7 +27,9 @@ function routes (fastify, opts, done) {
                 });
         }});
 
-    /* GET AUTH token. */
+    /**
+     * GET a JSON Web token.
+     */
     fastify.route({
         method: "GET",
         url: "/token",

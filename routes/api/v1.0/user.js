@@ -4,6 +4,11 @@ const userModule = require("../../../user");
 const ru = require("../../../utils/router");
 
 function routes (fastify, opts, done) {
+    /* POST Requests */
+
+    /**
+     * POST - Register a new user
+     */
     fastify.route({
         method: "POST",
         url: "/register",
@@ -67,6 +72,9 @@ function routes (fastify, opts, done) {
         }
     });
 
+    /**
+     * POST - Add a new cource by ID
+     */
     fastify.route({
         method: "POST",
         url: "/add-course",
@@ -129,6 +137,11 @@ function routes (fastify, opts, done) {
         }
     });
 
+    /* GET Requests */
+
+    /**
+     * GET user data
+     */
     fastify.route({
         method: "GET",
         url: "/:userId",

@@ -2,6 +2,12 @@ const userModule = require("../../../user");
 const ru = require("../../../utils/router");
 
 function routes(fastify, opts, done) {
+
+    /* POST Requests */
+
+    /**
+     * POST - Register a new user for push notifications
+     */
     fastify.route({
         method: "POST",
         url: "/register",

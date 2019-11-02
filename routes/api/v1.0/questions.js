@@ -4,6 +4,12 @@ const userModule = require("../../../user");
 const ru = require("../../../utils/router");
 
 function routes (fastify, opts, done) {
+
+    /* POST Requests */
+
+    /**
+     * POST - Create a new question
+     */
     fastify.route({
         method: "POST",
         url: "/create",
@@ -19,7 +25,7 @@ function routes (fastify, opts, done) {
                 }
             }
         },
-        // preValidation: [ fastify.authenticate ],
+        preValidation: [ fastify.authenticate ],
         handler: async (request, reply) => {
             const qm = questionsModule({ mongo: fastify.mongo });
             const um = userModule({ mongo: fastify.mongo });
@@ -216,33 +222,9 @@ function routes (fastify, opts, done) {
         }
     });
 
-    fastify.route({
-        method: "GET",
-        url: "/:questionId",
-        preValidation: [ fastify.authenticate ],
-        handler: async (request, reply) => {
-            const qm = questionsModule({ mongo: fastify.mongo });
-
-            let q;
-            try {
-                q = await qm.Question.retrieve(request.params.questionId);
-            } catch (e) {
-                if (ru.errCheck(reply, 400, e)) return;
-            }
-
-            fastify.log.info(q);
-
-            if (!q) {
-                reply.status(400);
-                reply.send("No question found");
-                return;
-            }
-
-            reply.status(200);
-            reply.send(q);
-        }
-    });
-
+    /**
+     * POST - Accept a question as a helper
+     */
     fastify.route({
         method: "POST",
         url: "/accept",
@@ -332,6 +314,9 @@ function routes (fastify, opts, done) {
         }
     });
 
+    /**
+     * POST - Close a question as a seeker
+     */
     fastify.route({
         method: "POST",
         url: "/close/:seekerId",
@@ -417,6 +402,38 @@ function routes (fastify, opts, done) {
             reply.status(200);
             reply.send(`Rated user ${helper.userId}`);
 
+        }
+    });
+
+    /* GET Requests */
+
+    /**
+     * GET question data by UUID
+     */
+    fastify.route({
+        method: "GET",
+        url: "/:questionId",
+        preValidation: [ fastify.authenticate ],
+        handler: async (request, reply) => {
+            const qm = questionsModule({ mongo: fastify.mongo });
+
+            let q;
+            try {
+                q = await qm.Question.retrieve(request.params.questionId);
+            } catch (e) {
+                if (ru.errCheck(reply, 400, e)) return;
+            }
+
+            fastify.log.info(q);
+
+            if (!q) {
+                reply.status(400);
+                reply.send("No question found");
+                return;
+            }
+
+            reply.status(200);
+            reply.send(q);
         }
     });
 
