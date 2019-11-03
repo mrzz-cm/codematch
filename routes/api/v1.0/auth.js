@@ -1,6 +1,8 @@
 const auth = require("../../../authentication");
 const ru = require("../../../utils/router");
 
+const rc = ru.responseCodes;
+
 function routes (fastify, opts, done) {
 
     /* GET Requests */
@@ -15,13 +17,13 @@ function routes (fastify, opts, done) {
             this.getAccessTokenFromAuthorizationCodeFlow(
                 request, async (err, result) => {
 
-                    if (ru.errCheck(reply, 400, err)) return;
+                    if (ru.errCheck(reply, rc.BAD_REQUEST, err)) return;
 
                     let authData;
                     try {
                         authData = await auth.requestEmail(result.access_token);
                     } catch (e) {
-                        if (ru.errCheck(reply, 400, e)) return;
+                        if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
                     }
                     reply.send(authData);
                 });
@@ -59,7 +61,7 @@ function routes (fastify, opts, done) {
             try {
                 authData = await auth.requestEmail(request.query.access_token);
             } catch (e) {
-                if (ru.errCheck(reply, 400, e)) return;
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
             }
 
             reply.send(fastify.jwt.sign(authData.email));

@@ -1,5 +1,6 @@
 const userModule = require("../../../user");
 const ru = require("../../../utils/router");
+const rc = ru.responseCodes;
 
 function routes(fastify, opts, done) {
 
@@ -30,10 +31,10 @@ function routes(fastify, opts, done) {
                     request.body.userId, request.body.fcmToken
                 );
             } catch (e) {
-                if (ru.errCheck(reply, 400, e)) return;
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
             }
 
-            reply.status(200);
+            reply.status(rc.OK);
             reply.send("New FCM token registered.");
         }
     });

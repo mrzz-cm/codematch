@@ -2,6 +2,7 @@ const auth = require("../../../authentication");
 const userModule = require("../../../user");
 
 const ru = require("../../../utils/router");
+const rc = ru.responseCodes;
 
 function routes (fastify, opts, done) {
     /* POST Requests */
@@ -36,13 +37,13 @@ function routes (fastify, opts, done) {
                         request.body.access_token
                     );
                 } catch (e) {
-                    if (ru.errCheck(reply, 500, e)) return;
+                    if (ru.errCheck(reply, rc.INTERNAL_SERVER_ERROR, e)) return;
                 }
             }
 
             if (!emailJson.email) {
                 request.log.info(emailJson);
-                ru.errCheck(reply, 500, "No email found");
+                ru.errCheck(reply, rc.INTERNAL_SERVER_ERROR, "No email found");
                 return;
             }
 
@@ -50,11 +51,11 @@ function routes (fastify, opts, done) {
             try {
                 userExists = await um.User.exists(emailJson.email);
             } catch (e) {
-                if (ru.errCheck(reply, 400, e)) return;
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
             }
 
             if (userExists) {
-                ru.errCheck(reply, 500, "User exists");
+                ru.errCheck(reply, rc.INTERNAL_SERVER_ERROR, "User exists");
                 return;
             }
 
@@ -62,11 +63,11 @@ function routes (fastify, opts, done) {
             try {
                 await um.User.newUser(emailJson.email).create();
             } catch (e) {
-                if (ru.errCheck(reply, 500, e)) return;
+                if (ru.errCheck(reply, rc.INTERNAL_SERVER_ERROR, e)) return;
             }
 
             // done
-            reply.status(200);
+            reply.status(rc.OK);
             reply.send();
 
         }
@@ -96,11 +97,11 @@ function routes (fastify, opts, done) {
             try {
                 userExists = await um.User.exists(request.body.userId);
             } catch (e) {
-                if (ru.errCheck(reply, 400, e)) return;
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
             }
 
             if (!userExists) {
-                ru.errCheck(reply, 400, "Provided user doesn't exist.");
+                ru.errCheck(reply, rc.BAD_REQUEST, "Provided user doesn't exist.");
                 return;
             }
 
@@ -108,11 +109,11 @@ function routes (fastify, opts, done) {
             try {
                 uJson = await um.User.retrieve(request.body.userId);
             } catch (e) {
-                ru.errCheck(reply, 400, e);
+                ru.errCheck(reply, rc.BAD_REQUEST, e);
             }
 
             if (!uJson) {
-                ru.errCheck(reply, 400,
+                ru.errCheck(reply, rc.BAD_REQUEST,
                     "Provided user json was empty.");
                 return;
             }
@@ -128,10 +129,10 @@ function routes (fastify, opts, done) {
                         }
                 });
             } catch (e) {
-                if (ru.errCheck(reply, 400, e)) return;
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
             }
 
-            reply.status(200);
+            reply.status(rc.OK);
             reply.send("course added");
 
         }
@@ -153,15 +154,15 @@ function routes (fastify, opts, done) {
             try {
                 user = await um.User.sanitizedJson(request.params.userId);
             } catch (e) {
-                ru.errCheck(reply, 400, e);
+                ru.errCheck(reply, rc.BAD_REQUEST, e);
                 return;
             }
             if (!user) {
-                ru.errCheck(reply, 400, "No user found");
+                ru.errCheck(reply, rc.BAD_REQUEST, "No user found");
                 return;
             }
 
-            reply.status(200);
+            reply.status(rc.OK);
             reply.send(user);
         }
     });

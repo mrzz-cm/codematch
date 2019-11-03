@@ -3,6 +3,8 @@ const matchingModule = require("../../../matching");
 const userModule = require("../../../user");
 const ru = require("../../../utils/router");
 
+const rc = ru.responseCodes;
+
 function routes (fastify, opts, done) {
 
     /* POST Requests */
@@ -37,11 +39,11 @@ function routes (fastify, opts, done) {
             try {
                 userExists = await um.User.exists(request.body.userId);
             } catch (e) {
-                if (ru.errCheck(reply, 400, e)) return;
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
             }
 
             if (!userExists) {
-                reply.status(400);
+                reply.status(rc.BAD_REQUEST);
                 reply.send("Provided user doesn't exist.");
                 return;
             }
@@ -50,11 +52,11 @@ function routes (fastify, opts, done) {
             try {
                 uJson = await um.User.retrieve(request.body.userId);
             } catch (e) {
-                if (ru.errCheck(reply, 400, e)) return;
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
             }
 
             if (!uJson) {
-                reply.status(500);
+                reply.status(rc.INTERNAL_SERVER_ERROR);
                 reply.send(`No user ${request.body.userId} found`);
                 return;
             }
@@ -80,11 +82,11 @@ function routes (fastify, opts, done) {
                     body.questionText
                 );
             } catch (e) {
-                if (ru.errCheck(reply, 400, e)) return;
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
             }
 
             if (!q) {
-                reply.status(500);
+                reply.status(rc.INTERNAL_SERVER_ERROR);
                 reply.send(`No question found in user ${body.userId}`);
                 return;
             }
@@ -93,7 +95,7 @@ function routes (fastify, opts, done) {
             try {
                 await q.create();
             } catch (e) {
-                if (ru.errCheck(reply, 500, e)) return;
+                if (ru.errCheck(reply, rc.INTERNAL_SERVER_ERROR, e)) return;
             }
 
             // set the user's current question
@@ -109,14 +111,14 @@ function routes (fastify, opts, done) {
                         }
                 });
             } catch (e) {
-                if (ru.errCheck(reply, 500, e)) return;
+                if (ru.errCheck(reply, rc.INTERNAL_SERVER_ERROR, e)) return;
             }
 
             let uQuestion;
             try {
                 uQuestion = await qm.Question.retrieve(user.currentQuestion);
             } catch (e) {
-                if (ru.errCheck(reply, 500, e)) return;
+                if (ru.errCheck(reply, rc.INTERNAL_SERVER_ERROR, e)) return;
             }
 
             const question = qm.Question.fromJson(uQuestion);
@@ -125,7 +127,7 @@ function routes (fastify, opts, done) {
             try {
                 match = await new mm.Match(question).optimalHelper();
             } catch (e) {
-                reply.status(500);
+                reply.status(rc.INTERNAL_SERVER_ERROR);
                 reply.send(e);
 
                 // notify that there was no match
@@ -150,7 +152,7 @@ function routes (fastify, opts, done) {
 
             } catch (e) {
                 request.log.info(e);
-                if (ru.errCheck(reply, 500, e)) return;
+                if (ru.errCheck(reply, rc.INTERNAL_SERVER_ERROR, e)) return;
             }
 
             // send notification to helper
@@ -217,7 +219,7 @@ function routes (fastify, opts, done) {
             }
             );
 
-            reply.status(200);
+            reply.status(rc.OK);
             reply.send({ msg: `Created question ${q.uuid}`});
         }
     });
@@ -252,11 +254,11 @@ function routes (fastify, opts, done) {
             try {
                 qJson = await qm.Question.retrieve(questionId);
             } catch (e) {
-                if (ru.errCheck(reply, 400, e)) return;
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
             }
 
             if (qJson.seeker === userId) {
-                reply.status(400);
+                reply.status(rc.BAD_REQUEST);
                 reply.send("Cannot accept your own question.");
             }
 
@@ -270,7 +272,7 @@ function routes (fastify, opts, done) {
                         }
                 });
             } catch (e) {
-                if (ru.errCheck(reply, 400, e)) return;
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
             }
 
             try {
@@ -281,10 +283,10 @@ function routes (fastify, opts, done) {
                     "basic", {}
                 );
             } catch (e) {
-                if (ru.errCheck(reply, 400, e)) return;
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
             }
 
-            reply.status(200);
+            reply.status(rc.OK);
             reply.send({ msg: `${userId} accepted ${questionId}` });
 
             // update the helper
@@ -292,7 +294,7 @@ function routes (fastify, opts, done) {
             try {
                 helper = await um.User.retrieve(qJson.optimalHelper);
             } catch (e) {
-                if (ru.errCheck(reply, 400, e)) return;
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
             }
 
             if (!helper) {
@@ -337,7 +339,7 @@ function routes (fastify, opts, done) {
             const seekerId = request.params.seekerId;
 
             if ((rating < 1) || (rating > 10)) {
-                reply.status(400);
+                reply.status(rc.BAD_REQUEST);
                 reply.send({
                     msg: `Points '${rating} is not withing range 1-10`
                 });
@@ -350,13 +352,13 @@ function routes (fastify, opts, done) {
             try {
                 uJson = await um.User.retrieve(seekerId);
             } catch (e) {
-                if (ru.errCheck(reply, 400, e)) return;
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
             }
 
             const seeker = um.User.fromJson(uJson);
 
             if (seeker.currentQuestion == null) {
-                reply.status(400);
+                reply.status(rc.BAD_REQUEST);
                 reply.send(
                     `Seeker '${seeker.userId} doesn't` +
                     " have an open question.");
@@ -367,14 +369,14 @@ function routes (fastify, opts, done) {
             try {
                 qJson = await qm.Question.retrieve(seeker.currentQuestion);
             } catch (e) {
-                if (ru.errCheck(reply, 400, e)) return;
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
             }
 
             let hJson;
             try {
                 hJson = await um.User.retrieve(qJson.finalHelper);
             } catch (e) {
-                if (ru.errCheck(reply, 400, e)) return;
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
             }
 
             const helper = um.User.fromJson(hJson);
@@ -389,17 +391,17 @@ function routes (fastify, opts, done) {
                         }
                     });
             } catch (e) {
-                if (ru.errCheck(reply, 400, e)) return;
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
             }
 
             // clear the seeker's question
             try {
                 await seeker.update({ $set: { currentQuestion: null }});
             } catch (e) {
-                if (ru.errCheck(reply, 400, e)) return;
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
             }
 
-            reply.status(200);
+            reply.status(rc.OK);
             reply.send(`Rated user ${helper.userId}`);
 
         }
@@ -421,18 +423,18 @@ function routes (fastify, opts, done) {
             try {
                 q = await qm.Question.retrieve(request.params.questionId);
             } catch (e) {
-                if (ru.errCheck(reply, 400, e)) return;
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
             }
 
             fastify.log.info(q);
 
             if (!q) {
-                reply.status(400);
+                reply.status(rc.BAD_REQUEST);
                 reply.send("No question found");
                 return;
             }
 
-            reply.status(200);
+            reply.status(rc.OK);
             reply.send(q);
         }
     });
