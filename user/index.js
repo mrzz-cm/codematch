@@ -324,7 +324,7 @@ class User {
      */
     rating(question, user) {
         return (
-            (this.location.distance(user.location) * LOCATION_WEIGHT) +
+            ((- this.location.distance(user.location)) * LOCATION_WEIGHT) +
             (this.lastOnline * LAST_ACTIVE_WEIGHT) +
             (this.points * USER_RATING_WEIGHT) +
             (this._courses.includes(question.courseCode) ? COURSE_CODE_WEIGHT : 0)
