@@ -6,7 +6,7 @@ import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
+//import android.widget.AdapterView;
 import android.widget.TextView;
 
 import org.jetbrains.annotations.NotNull;

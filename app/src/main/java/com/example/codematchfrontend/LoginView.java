@@ -5,20 +5,20 @@ import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.FormBody;
 import okhttp3.MediaType;
-import okhttp3.MultipartBody;
+//import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
-import android.accounts.AccountManager;
+//import android.accounts.AccountManager;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.StrictMode;
+//import android.os.Handler;
+//import android.os.StrictMode;
 import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
@@ -39,7 +39,9 @@ import java.io.IOException;
 
 
 public class LoginView extends AppCompatActivity {
-    GoogleSignInClient mGoogleSignInClient;
+    String CHANNEL_ID = "1";
+    private GoogleSignInClient mGoogleSignInClient;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -177,7 +179,7 @@ public class LoginView extends AppCompatActivity {
                     Global.API_KEY = response.body().string();
 
                     System.out.println("Api key updated to " + Global.API_KEY + "\n");
-                    notify_create_account( jsonObject.get("access_token").toString());
+                    notifyCreateAccount( jsonObject.get("access_token").toString());
                     notifyFirebaseToken();
 
                     updateUI(faccount);
@@ -188,7 +190,7 @@ public class LoginView extends AppCompatActivity {
         });
     }
 
-    private void notify_create_account( String google_access_token) {
+    private void notifyCreateAccount(String google_access_token) {
         JSONObject jsonObject = new JSONObject();
         try {
             jsonObject.put("access_token", google_access_token);
@@ -243,7 +245,7 @@ public class LoginView extends AppCompatActivity {
             e.printStackTrace();
         }
     }
-    String CHANNEL_ID = "1";
+
     //Move to notificationsModule
     public void createNotificationChannel() {
         // Create the NotificationChannel, but only on API 26+ because

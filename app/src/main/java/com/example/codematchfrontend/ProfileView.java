@@ -1,10 +1,7 @@
 package com.example.codematchfrontend;
 
-import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
-import androidx.core.app.NotificationCompat;
-import androidx.core.app.NotificationManagerCompat;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -16,10 +13,9 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 
 import android.app.Dialog;
-import android.app.PendingIntent;
 import android.content.Intent;
 import android.os.Bundle;
-import android.text.method.ScrollingMovementMethod;
+//import android.text.method.ScrollingMovementMethod;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -27,10 +23,9 @@ import android.view.View;
 import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
+//import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONArray;
@@ -39,9 +34,8 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.LinkedList;
-import java.util.List;
 
-import static com.example.codematchfrontend.Global.createID;
+//import static com.example.codematchfrontend.Global.createID;
 
 public class ProfileView extends AppCompatActivity implements CoursesListAdapter.CoursesListClickListener{
 
@@ -89,7 +83,7 @@ public class ProfileView extends AppCompatActivity implements CoursesListAdapter
 
         // debug: initialize courses
         courses = new LinkedList<String>();
-        update_all_courses();
+        updateAllCourses();
 
         adapter = new CoursesListAdapter(this, this.courses);
         coursesView.setAdapter(adapter);
@@ -105,7 +99,7 @@ public class ProfileView extends AppCompatActivity implements CoursesListAdapter
         });
     }
 
-    private void update_all_courses() {
+    private void updateAllCourses() {
         System.out.println("updating all courses");
         System.out.println("id passted to get courses: " + Global.EMAIL);
         Request get_all_courses_request = new Request.Builder()
