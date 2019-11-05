@@ -36,9 +36,10 @@ const collections = {
 
 module.exports = {
     mongoDBConnection: mongoDBConnection,
+    collections: collections,
     googleAuth: googleAuth,
     domain: domain,
     FCM_KEY: FCM_KEY,
     jwtSecret: jwtSecret,
-    logLevel: logLevel
+    logLevel: logLevel,
 };
