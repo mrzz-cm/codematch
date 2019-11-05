@@ -226,17 +226,18 @@ public class ProfileView extends AppCompatActivity implements CoursesListAdapter
             case R.id.postingViewButton:
                 Toast.makeText(this, "Posting View selected!!", Toast.LENGTH_SHORT).show();
                 switchTabToPostingView();
-                return true;
+                break;
             case R.id.notifyViewButton:
                 Toast.makeText(this, "Notification View selected!!", Toast.LENGTH_SHORT).show();
                 switchTabToNotifyView();
-
-                return true;
+                break;
             case R.id.profileViewButton:
                 Toast.makeText(this, "Profile View selected!!", Toast.LENGTH_SHORT).show();
                 switchTabToProfileView();
+                break;
             default: return super.onOptionsItemSelected(item);
         }
+        return true;
     }
 
     public void deleteProfile() {

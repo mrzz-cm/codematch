@@ -12,8 +12,6 @@ import okhttp3.Response;
 import android.app.Activity;
 //import android.content.Context;
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.Menu;
@@ -80,13 +78,13 @@ public class PostingView extends AppCompatActivity {
             if (data == null) {
                 return;
             } else {
-                Uri image = data.getData();
-                InputStream imageStream = null;
-                try{
-                    imageStream = getContentResolver().openInputStream(image);
-                } catch (FileNotFoundException e) {
-                    e.printStackTrace();
-                }
+//                Uri image = data.getData();
+//                InputStream imageStream = null;
+//                try{
+//                    imageStream = getContentResolver().openInputStream(image);
+//                } catch (FileNotFoundException e) {
+//                    e.printStackTrace();
+//                }
 
                 System.out.println("detected image");
 //                Bitmap bitmapedimage = BitmapFactory.decodeStream(imageStream);
