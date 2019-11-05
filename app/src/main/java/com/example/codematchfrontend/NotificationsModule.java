@@ -37,7 +37,7 @@ import androidx.core.app.NotificationManagerCompat;
 import static com.example.codematchfrontend.Global.createID;
 
 public class NotificationsModule extends FirebaseMessagingService {
-    String CHANNEL_ID = "1";
+    private String CHANNEL_ID = "1";
 
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {

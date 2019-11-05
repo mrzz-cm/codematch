@@ -15,7 +15,7 @@ import android.app.Dialog;
 //import android.app.NotificationChannel;
 //import android.app.NotificationManager;
 import android.content.Intent;
-import android.os.Build;
+//import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -41,14 +41,15 @@ import java.util.LinkedList;
 
 public class NotifyView extends AppCompatActivity implements NotifyViewAdapter.NotificationItemClickListener{
 
-    private RecyclerView newQuestionsView;
-    private RecyclerView.LayoutManager layoutManager;
+
+
     private NotifyViewAdapter adapter;
     private LinkedList<String> notifications;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-
+        RecyclerView newQuestionsView;
+        RecyclerView.LayoutManager layoutManager;
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_notify_view);
 
@@ -64,7 +65,7 @@ public class NotifyView extends AppCompatActivity implements NotifyViewAdapter.N
         newQuestionsView.addItemDecoration(dividerItemDecoration);
 
         notifications = new LinkedList<String>();
-        update_all_questions();
+        updateAllQuestions();
 
         adapter = new NotifyViewAdapter(this, this.notifications);
         newQuestionsView.setAdapter(adapter);
@@ -79,7 +80,7 @@ public class NotifyView extends AppCompatActivity implements NotifyViewAdapter.N
         });
     }
 
-    private void update_all_questions() {
+    private void updateAllQuestions() {
         System.out.println("updating all questions");
         System.out.println("id passted to get questions: " + Global.EMAIL);
         Request get_all_questions_request = new Request.Builder()
@@ -229,7 +230,7 @@ public class NotifyView extends AppCompatActivity implements NotifyViewAdapter.N
     @Override
     protected void onResume() {
         super.onResume();
-        update_all_questions();
+        updateAllQuestions();
     }
 
     private void removeNotificationAtPosition(int position) {

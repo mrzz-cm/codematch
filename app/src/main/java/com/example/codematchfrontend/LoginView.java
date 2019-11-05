@@ -39,7 +39,7 @@ import java.io.IOException;
 
 
 public class LoginView extends AppCompatActivity {
-    String CHANNEL_ID = "1";
+    private String CHANNEL_ID = "1";
     private GoogleSignInClient mGoogleSignInClient;
 
 

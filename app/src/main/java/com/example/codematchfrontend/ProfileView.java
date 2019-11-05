@@ -40,8 +40,7 @@ import java.util.LinkedList;
 public class ProfileView extends AppCompatActivity implements CoursesListAdapter.CoursesListClickListener{
 
     private LinkedList<String> courses;
-    private RecyclerView coursesView;
-    private RecyclerView.LayoutManager layoutManager;
+
     private CoursesListAdapter adapter;
 
 
@@ -65,6 +64,8 @@ public class ProfileView extends AppCompatActivity implements CoursesListAdapter
     }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        RecyclerView.LayoutManager layoutManager;
+        RecyclerView coursesView;
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile_view);
 
