@@ -34,8 +34,6 @@ import androidx.core.app.NotificationManagerCompat;
 //import com.google.firebase.messaging.FirebaseMessagingService;
 //import com.google.firebase.messaging.RemoteMessage;
 
-import static com.example.codematchfrontend.Global.createID;
-
 public class NotificationsModule extends FirebaseMessagingService {
     private String CHANNEL_ID = "1";
 
@@ -59,11 +57,11 @@ public class NotificationsModule extends FirebaseMessagingService {
 
         System.out.println("notification type: " + notificationType);
 
-        if (notificationType.equals("basic")) {
+        if ("basic".equals(notificationType)) {
             newNotification(getApplicationContext(), titleString, "");
-        } else if (notificationType.equals("helperMatch")) {
+        } else if ("helperMatch".equals(notificationType)) {
             newHelperMatchNotification(getApplicationContext(), titleString, "", bodyString);
-        } else if (notificationType.equals("")){
+        } else if ("".equals(notificationType)){
             newRatingNotification(getApplicationContext(), titleString, "", "");
         }
     }
@@ -74,7 +72,7 @@ public class NotificationsModule extends FirebaseMessagingService {
         // manage this apps subscriptions on the server side, send the
         // Instance ID token to your app server.
         System.out.println("firebase token " + token);
-        Global.FIREBASE_TOKEN = token;
+        GlobalUtils.FIREBASE_TOKEN = token;
     }
 
     public void newNotification (Context ctx, String textTitle, String textContent) {
@@ -92,7 +90,7 @@ public class NotificationsModule extends FirebaseMessagingService {
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
                 .setContentIntent(pendingIntent)
                 .setAutoCancel(true);
-        int notificationId = createID();
+        int notificationId = GlobalUtils.createID();
 
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(ctx);
         notificationManager.notify(notificationId, builder.build());
@@ -113,7 +111,7 @@ public class NotificationsModule extends FirebaseMessagingService {
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
                 .setContentIntent(pendingIntent)
                 .setAutoCancel(true);
-        int notificationId = createID();
+        int notificationId = GlobalUtils.createID();
 
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(ctx);
         notificationManager.notify(notificationId, builder.build());
@@ -133,7 +131,7 @@ public class NotificationsModule extends FirebaseMessagingService {
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
                 .setContentIntent(pendingIntent)
                 .setAutoCancel(true);
-        int notificationId = createID();
+        int notificationId = GlobalUtils.createID();
 
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(ctx);
         notificationManager.notify(notificationId, builder.build());
@@ -153,7 +151,7 @@ public class NotificationsModule extends FirebaseMessagingService {
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
                 .setContentIntent(pendingIntent)
                 .setAutoCancel(true);
-        int notificationId = createID();
+        int notificationId = GlobalUtils.createID();
 
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(ctx);
         notificationManager.notify(notificationId, builder.build());

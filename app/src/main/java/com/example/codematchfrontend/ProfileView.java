@@ -102,13 +102,13 @@ public class ProfileView extends AppCompatActivity implements CoursesListAdapter
 
     private void updateAllCourses() {
         System.out.println("updating all courses");
-        System.out.println("id passted to get courses: " + Global.EMAIL);
+        System.out.println("id passted to get courses: " + GlobalUtils.EMAIL);
         Request get_all_courses_request = new Request.Builder()
-                .url(Global.BASE_URL + "/user/" + Global.EMAIL)
-                .addHeader("Authorization", "Bearer " + Global.API_KEY)
+                .url(GlobalUtils.BASE_URL + "/user/" + GlobalUtils.EMAIL)
+                .addHeader("Authorization", "Bearer " + GlobalUtils.API_KEY)
                 .build();
 
-        Global.HTTP_CLIENT.newCall(get_all_courses_request).enqueue(new Callback() {
+        GlobalUtils.HTTP_CLIENT.newCall(get_all_courses_request).enqueue(new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
                 System.out.println("Error: "+ e.toString());
@@ -177,7 +177,7 @@ public class ProfileView extends AppCompatActivity implements CoursesListAdapter
             // send course information to the backend
             JSONObject jsonObject = new JSONObject();
             try {
-                jsonObject.put("userId", Global.EMAIL);
+                jsonObject.put("userId", GlobalUtils.EMAIL);
                 jsonObject.put("courseId", course);
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -187,12 +187,12 @@ public class ProfileView extends AppCompatActivity implements CoursesListAdapter
             RequestBody body = RequestBody.create(jsonObject.toString(), JSON);
 
             Request post_course_request = new Request.Builder()
-                    .url(Global.BASE_URL + "/user/add-course")
-                    .addHeader("Authorization", "Bearer " + Global.API_KEY)
+                    .url(GlobalUtils.BASE_URL + "/user/add-course")
+                    .addHeader("Authorization", "Bearer " + GlobalUtils.API_KEY)
                     .post(body)
                     .build();
 
-            Global.HTTP_CLIENT.newCall(post_course_request).enqueue(new Callback() {
+            GlobalUtils.HTTP_CLIENT.newCall(post_course_request).enqueue(new Callback() {
                 @Override
                 public void onFailure(@NotNull Call call, @NotNull IOException e) {
                     System.out.println("Error: "+ e.toString());

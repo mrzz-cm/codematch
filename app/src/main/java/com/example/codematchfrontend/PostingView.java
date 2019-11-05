@@ -89,7 +89,7 @@ public class PostingView extends AppCompatActivity {
                 }
 
                 System.out.println("detected image");
-                Bitmap bitmapedimage = BitmapFactory.decodeStream(imageStream);
+//                Bitmap bitmapedimage = BitmapFactory.decodeStream(imageStream);
 
             }
         }
@@ -103,7 +103,7 @@ public class PostingView extends AppCompatActivity {
 
         JSONObject jsonObject = new JSONObject();
         try {
-            jsonObject.put("userId", Global.EMAIL);
+            jsonObject.put("userId", GlobalUtils.EMAIL);
             jsonObject.put("title", questionTitle);
             jsonObject.put("courseCode", courseIDs);
             jsonObject.put("questionText", question);
@@ -115,12 +115,12 @@ public class PostingView extends AppCompatActivity {
         RequestBody body = RequestBody.create(jsonObject.toString(), JSON);
 
         Request notify_questions_create_request = new Request.Builder()
-                .url(Global.BASE_URL + "/questions/create")
-                .addHeader("Authorization", "Bearer " + Global.API_KEY)
+                .url(GlobalUtils.BASE_URL + "/questions/create")
+                .addHeader("Authorization", "Bearer " + GlobalUtils.API_KEY)
                 .post(body)
                 .build();
 
-        Global.HTTP_CLIENT.newCall(notify_questions_create_request).enqueue(new Callback() {
+        GlobalUtils.HTTP_CLIENT.newCall(notify_questions_create_request).enqueue(new Callback() {
              @Override
              public void onFailure(@NotNull Call call, @NotNull IOException e) {
                  System.out.println("Error: "+ e.toString());
@@ -161,17 +161,18 @@ public class PostingView extends AppCompatActivity {
             case R.id.postingViewButton:
                 Toast.makeText(this, "Posting View selected!!", Toast.LENGTH_SHORT).show();
                 switchTabToPostingView();
-                return true;
+                break;
             case R.id.notifyViewButton:
                 Toast.makeText(this, "Notification View selected!!", Toast.LENGTH_SHORT).show();
                 switchTabToNotifyView();
-
-                return true;
+                break;
             case R.id.profileViewButton:
                 Toast.makeText(this, "Profile View selected!!", Toast.LENGTH_SHORT).show();
                 switchTabToProfileView();
+                break;
             default: return super.onOptionsItemSelected(item);
         }
+        return true;
     }
 
 }

@@ -88,12 +88,12 @@ public class RatingView extends AppCompatActivity {
         RequestBody body = RequestBody.create(jsonObject.toString(), JSON);
 
         Request send_rating_request = new Request.Builder()
-                .url(Global.BASE_URL + "/questions/close/" + Global.EMAIL)
-                .addHeader("Authorization", "Bearer " + Global.API_KEY)
+                .url(GlobalUtils.BASE_URL + "/questions/close/" + GlobalUtils.EMAIL)
+                .addHeader("Authorization", "Bearer " + GlobalUtils.API_KEY)
                 .post(body)
                 .build();
 
-        Global.HTTP_CLIENT.newCall(send_rating_request).enqueue(new Callback() {
+        GlobalUtils.HTTP_CLIENT.newCall(send_rating_request).enqueue(new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
                 System.out.println("Error: "+ e.toString());

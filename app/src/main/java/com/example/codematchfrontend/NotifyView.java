@@ -82,13 +82,13 @@ public class NotifyView extends AppCompatActivity implements NotifyViewAdapter.N
 
     private void updateAllQuestions() {
         System.out.println("updating all questions");
-        System.out.println("id passted to get questions: " + Global.EMAIL);
+        System.out.println("id passted to get questions: " + GlobalUtils.EMAIL);
         Request get_all_questions_request = new Request.Builder()
-                .url(Global.BASE_URL + "/user/" + Global.EMAIL)
-                .addHeader("Authorization", "Bearer " + Global.API_KEY)
+                .url(GlobalUtils.BASE_URL + "/user/" + GlobalUtils.EMAIL)
+                .addHeader("Authorization", "Bearer " + GlobalUtils.API_KEY)
                 .build();
 
-        Global.HTTP_CLIENT.newCall(get_all_questions_request).enqueue(new Callback() {
+        GlobalUtils.HTTP_CLIENT.newCall(get_all_questions_request).enqueue(new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
                 System.out.println("Error: "+ e.toString());
@@ -99,16 +99,14 @@ public class NotifyView extends AppCompatActivity implements NotifyViewAdapter.N
                 System.out.println("Get all questions returned code " + response.code());
                 try {
                     JSONObject jsonObject = new JSONObject(response.body().string());
-                    if (jsonObject.has("currentQuestion")){
-                        if (!jsonObject.isNull("currentQuestion")){
-                            final String question_id = jsonObject.get("currentQuestion").toString();
-                            new Handler(Looper.getMainLooper()).post(new Runnable(){
-                                @Override
-                                public void run() {
-                                    addNotification(question_id);
-                                }
-                            });
-                        }
+                    if (jsonObject.has("currentQuestion") && !jsonObject.isNull("currentQuestion")){
+                        final String question_id = jsonObject.get("currentQuestion").toString();
+                        new Handler(Looper.getMainLooper()).post(new Runnable(){
+                            @Override
+                            public void run() {
+                                addNotification(question_id);
+                            }
+                        });
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -120,8 +118,6 @@ public class NotifyView extends AppCompatActivity implements NotifyViewAdapter.N
 
     @Override
     public void onItemClick(View view, int position) {
-        System.out.println(position + " clicked\n");
-
         final int pressed_position = position;
 
         final Dialog dialog = new Dialog(this);
@@ -136,11 +132,11 @@ public class NotifyView extends AppCompatActivity implements NotifyViewAdapter.N
         final String questionID = notifications.get(position);
 
         Request get_question_data_request = new Request.Builder()
-                .url(Global.BASE_URL + "/questions/" + questionID)
-                .addHeader("Authorization", "Bearer " + Global.API_KEY)
+                .url(GlobalUtils.BASE_URL + "/questions/" + questionID)
+                .addHeader("Authorization", "Bearer " + GlobalUtils.API_KEY)
                 .build();
 
-        Global.HTTP_CLIENT.newCall(get_question_data_request).enqueue(new Callback() {
+        GlobalUtils.HTTP_CLIENT.newCall(get_question_data_request).enqueue(new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
                 System.out.println("Error: "+ e.toString());
@@ -170,12 +166,21 @@ public class NotifyView extends AppCompatActivity implements NotifyViewAdapter.N
         Button yes = (Button) dialog.findViewById(R.id.alertbox_yes);
         Button no = (Button) dialog.findViewById(R.id.alertbox_no);
 
+        setupClickListeners(close, yes, no, questionID, pressed_position, dialog);
+        dialog.show();
+    }
+
+    private void setupClickListeners(Button close, Button yes, Button no, String questionID_param, int pressed_position_param, Dialog dialog_param) {
+        final String questionID = questionID_param;
+        final int pressed_position = pressed_position_param;
+        final Dialog dialog = dialog_param;
+
         yes.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 JSONObject jsonObject = new JSONObject();
                 try {
-                    jsonObject.put("userId", Global.EMAIL);
+                    jsonObject.put("userId", GlobalUtils.EMAIL);
                     jsonObject.put("questionId", questionID);
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -185,23 +190,23 @@ public class NotifyView extends AppCompatActivity implements NotifyViewAdapter.N
                 RequestBody body = RequestBody.create(jsonObject.toString(), JSON);
 
                 Request notify_question_accepted = new Request.Builder()
-                        .url(Global.BASE_URL + "/questions/accept")
-                        .addHeader("Authorization", "Bearer " + Global.API_KEY)
+                        .url(GlobalUtils.BASE_URL + "/questions/accept")
+                        .addHeader("Authorization", "Bearer " + GlobalUtils.API_KEY)
                         .post(body)
                         .build();
 
-                 Global.HTTP_CLIENT.newCall(notify_question_accepted).enqueue(new Callback() {
-                     @Override
-                     public void onFailure(@NotNull Call call, @NotNull IOException e) {
+                GlobalUtils.HTTP_CLIENT.newCall(notify_question_accepted).enqueue(new Callback() {
+                    @Override
+                    public void onFailure(@NotNull Call call, @NotNull IOException e) {
+                        System.out.println("Notify question accepted failed");
+                    }
 
-                     }
-
-                     @Override
-                     public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
-                         int statuscode = response.code();
-                         System.out.println("Accept question return " + statuscode + "\n");
-                     }
-                 });
+                    @Override
+                    public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+                        int statuscode = response.code();
+                        System.out.println("Accept question return " + statuscode + "\n");
+                    }
+                });
 
                 removeNotificationAtPosition(pressed_position);
                 dialog.cancel();
@@ -224,7 +229,6 @@ public class NotifyView extends AppCompatActivity implements NotifyViewAdapter.N
                 dialog.cancel();
             }
         });
-        dialog.show();
     }
 
     @Override
@@ -286,17 +290,18 @@ public class NotifyView extends AppCompatActivity implements NotifyViewAdapter.N
             case R.id.postingViewButton:
                 Toast.makeText(this, "Posting View selected!!", Toast.LENGTH_SHORT).show();
                 switchTabToPostingView();
-                return true;
+                break;
             case R.id.notifyViewButton:
                 Toast.makeText(this, "Notification View selected!!", Toast.LENGTH_SHORT).show();
                 switchTabToNotifyView();
-
-                return true;
+                break;
             case R.id.profileViewButton:
                 Toast.makeText(this, "Profile View selected!!", Toast.LENGTH_SHORT).show();
                 switchTabToProfileView();
+                break;
             default: return super.onOptionsItemSelected(item);
         }
+        return true;
     }
 
 }

@@ -63,11 +63,11 @@ public class NotifyViewAdapter extends RecyclerView.Adapter<NotifyViewAdapter.No
         String questionID = dataset.get(position);
 
         Request get_question_title_request = new Request.Builder()
-                .url(Global.BASE_URL + "/questions/" + questionID)
-                .addHeader("Authorization", "Bearer " + Global.API_KEY)
+                .url(GlobalUtils.BASE_URL + "/questions/" + questionID)
+                .addHeader("Authorization", "Bearer " + GlobalUtils.API_KEY)
                 .build();
 
-        Global.HTTP_CLIENT.newCall(get_question_title_request).enqueue(new Callback() {
+        GlobalUtils.HTTP_CLIENT.newCall(get_question_title_request).enqueue(new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
                 System.out.println("Error: "+ e.toString());

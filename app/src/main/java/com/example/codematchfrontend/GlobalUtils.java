@@ -3,7 +3,7 @@ package com.example.codematchfrontend;
 import okhttp3.OkHttpClient;
 
 
-public class Global {
+public class GlobalUtils {
     public static String BASE_URL = "https://cm.johnramsden.ca/";
     public static String API_KEY = "";
     public static String EMAIL = "";
