@@ -6,7 +6,7 @@ const config = require("../config");
 const SERVER_KEY = config.FCM_KEY;
 const sender = new gcm.Sender(SERVER_KEY);
 
-const userCollection = "users";
+const userCollection = config.collections.users;
 
 let mongo;
 

@@ -1,5 +1,9 @@
 const user = require("../user");
+const config = require("../config");
 const logger = require("../logger").logger;
+
+const userCollection = config.collections.users;
+const EARTH_RADIUS = 6371; // Earth's radius (KM)
 
 let mongo;
 
@@ -27,14 +31,6 @@ class Match {
     */
     async optimalHelper() {
         const um = user({ mongo: mongo });
-        let allMatches;
-        try {
-            allMatches = await um.User.getAllUsers();
-        } catch (e) {
-            throw new Error(e);
-        }
-
-        let highest = {"user": null, "rating": null};
 
         let seekerJson;
         try {
@@ -43,28 +39,145 @@ class Match {
             throw new Error(e);
         }
 
-        for (let i = 0; i < allMatches.length; i++) {
-            const u = allMatches[i];
-            logger.log("debug","Checking match:", {
-                userId: u.userId,
-                currentQuestion: u.currentQuestion,
-                seeker: this._question.seeker,
-            });
+        const collection = await mongo.db.collection(userCollection);
 
-            if ((u.userId === this._question.seeker) ||
-                (u.currentQuestion != null)) {
-                continue;
+        let highest;
+        try {
+            /* Calculate highest rated user with MongoDB query */
+            highest = await collection.aggregate([{
+                $match: {
+                    userId: {
+                        $ne: seekerJson.userId
+                    },
+                    currentQuestion: {
+                        $ne: null
+                    }
+                }
+            },
+            {
+                $addFields: {
+                    dLat: {
+                        $degreesToRadians: {
+                            $subtract: [
+                                seekerJson.location.latitude,
+                                "$location.latitude"
+                            ]
+                        }
+                    },
+                    dLong: {
+                        $degreesToRadians: {
+                            $subtract: [
+                                seekerJson.location.longitude,
+                                "$location.longitude"
+                            ]
+                        }
+                    },
+                    lat1: {
+                        $degreesToRadians: 1
+                    },
+                    long1: {
+                        $degreesToRadians: 2
+                    },
+                    lat2: {
+                        $degreesToRadians: "$location.latitude"
+                    },
+                    long2: {
+                        $degreesToRadians: "$location.longitude"
+                    },
+
+                    totalPoints: {
+                        $multiply: ["$points", 1]
+                    },
+                    totalLastOnline: {
+                        $multiply: ["$lastOnline", 1]
+                    },
+
+                    totalCourses: {
+                        $cond: {
+                            if: {
+                                $setIsSubset: [
+                                    [], "$courses"
+                                ]
+                            },
+                            then: 1,
+                            else: 0
+                        }
+                    },
+                },
+            },
+            {
+                $addFields: {
+                    totalRating: {
+                        $add: [{
+                            $add: [
+                                "$totalPoints",
+                                {
+                                    $add: [{
+                                        $add: [
+                                            "$totalLastOnline", "$totalCourses"
+                                        ]
+                                    },
+                                    {
+                                        $add: [{
+                                            $multiply: [{
+                                                $sin: {
+                                                    $divide: ["$dLat", 2]
+                                                }
+                                            },
+                                            {
+                                                $sin: {
+                                                    $divide: ["$dLong", 2]
+                                                }
+                                            }
+                                            ]
+                                        },
+                                        {
+                                            $multiply: [{
+                                                $multiply: [{
+                                                    $cos: "$lat1"
+                                                },
+                                                {
+                                                    $cos: "$lat2"
+                                                },
+                                                {
+                                                    $sin: {
+                                                        $divide: ["$dLong", 2]
+                                                    }
+                                                },
+                                                {
+                                                    $sin: {
+                                                        $divide: ["$dLong", 2]
+                                                    }
+                                                }
+                                                ]
+                                            }, -EARTH_RADIUS]
+                                        }
+                                        ]
+                                    }
+                                    ]
+                                }
+                            ]
+                        }]
+                    }
+                },
+            },
+            {
+                $group: {
+                    _id: null,
+                    finalRating: {
+                        $max: "$totalRating"
+                    }
+                }
             }
-            const rating = u.rating(this._question, um.User.fromJson(seekerJson));
-            logger.log("debug","Rating:", {
-                userId: u.userId,
-                rating: rating,
-            });
-            if (highest.rating === null || highest.rating < rating) {
-                highest.user = u;
-                highest.rating = rating;
-            }
+            ]);
+        } catch (e) {
+            throw new Error(e);
         }
+
+        logger.log("debug","Found match:", {
+            highest: highest,
+            seeker: this._question.seeker,
+        });
 
         /* The seeker’s rating will be taken into account as well, to
          * incentivize users to act as helpers. If the seeker’s rating is too far
