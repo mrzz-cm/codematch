@@ -46,14 +46,13 @@ const routes = [
 ];
 routes.forEach((p) => fastify.register(p.plugin, p.options));
 
-function startServer(fastify, port, callback) {
-    fastify.listen(port, (err) => {
-        if (err) {
-            fastify.log.error(err);
-            process.exit(1);
-        }
-        callback(err, fastify);
-    });
+async function startServer(fastify, port) {
+    try {
+        await fastify.listen(port);
+    } catch (err) {
+        fastify.log.error(err);
+        process.exit(1);
+    }
 }
 
 // Options currently unused

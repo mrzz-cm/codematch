@@ -15,6 +15,9 @@ const jwtValdatorPlugin = fastifyPlugin(async function(fastify) {
     });
 
     fastify.decorate("authenticate", async (request, reply) => {
+        // Dont require auth during testing
+        if (process.env.MODE === "test") return;
+
         try {
             await request.jwtVerify();
         } catch (err) {

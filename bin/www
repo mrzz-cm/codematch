@@ -20,7 +20,7 @@ const port = normalizePort(process.env.PORT || "3000");
  * Listen on provided port, on all network interfaces after database initialized
  */
 
-app.start(fastify, port, () => {});
+app.start(fastify, port);
 
 /**
  * Normalize a port into a number, string, or false.

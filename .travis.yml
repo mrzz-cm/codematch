@@ -3,6 +3,9 @@ node_js: "12"
 
 services: mongodb
 
+env:
+  - MODE=test
+
 before_install:
   - |
     mongo admin --eval 'db.createUser(

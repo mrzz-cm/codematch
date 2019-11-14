@@ -6,7 +6,7 @@
     "start": "node ./bin/www",
     "watch": "node ./node_modules/nodemon/bin/nodemon.js ./bin/www",
     "doc-gen": "documentation",
-    "test": "tap",
+    "test": "jest",
     "lint": "eslint '**/*.js' 'bin/*'"
   },
   "dependencies": {
@@ -29,9 +29,9 @@
   "devDependencies": {
     "documentation": "^12.1.2",
     "eslint": "^6.5.1",
+    "jest": "^24.9.0",
     "jslint": "^0.12.1",
     "nodemon": "^1.19.4",
-    "shot": "^4.0.7",
-    "tap": "^14.6.9"
+    "shot": "^4.0.7"
   }
 }
