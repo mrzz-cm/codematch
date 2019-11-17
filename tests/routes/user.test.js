@@ -2,7 +2,7 @@
 
 /* eslint no-undef: "off" */
 
-const app = require("../app.js");
+const app = require("../../app");
 const fastify = app.fastify;
 
 describe("Basic test", () => {
