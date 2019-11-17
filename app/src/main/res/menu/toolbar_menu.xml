@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/postingViewButton"
+        android:icon="@drawable/ic_postingviewicon"
+        android:title="Posting View"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/notifyViewButton"
+        android:icon="@drawable/ic_notification_icon"
+        android:title="Notification View"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/profileViewButton"
+        android:icon="@drawable/ic_person_black_24dp"
+        android:title="Profile View"
+        app:showAsAction="ifRoom" />
+
+</menu>
