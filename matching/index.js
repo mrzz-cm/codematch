@@ -41,10 +41,10 @@ class Match {
 
         const collection = await mongo.db.collection(userCollection);
 
-        let highest;
+        let highestQuery;
         try {
             /* Calculate highest rated user with MongoDB query */
-            highest = await collection.aggregate([{
+            highestQuery = await collection.aggregate([{
                 $match: {
                     userId: {
                         $ne: seekerJson.userId
@@ -96,7 +96,7 @@ class Match {
                         $cond: {
                             if: {
                                 $setIsSubset: [
-                                    [], "$courses"
+                                    seekerJson.courses, "$courses"
                                 ]
                             },
                             then: 1,
@@ -166,12 +166,49 @@ class Match {
                     _id: null,
                     finalRating: {
                         $max: "$totalRating"
+                    },
+                    /* Get all the documents in the group using $push */
+                    records: {
+                        $push: "$$ROOT"
                     }
+                }
+            },
+            /* Keep only that which have maximum finalRating == $totalRating */
+            {
+                $project: {
+                    items: {
+                        $filter: {
+                            input: "$records",
+                            as: "re",
+                            cond: {$eq: ["$$re.totalRating", "$$ROOT.finalRating"]}
+                        }
+                    },
+                    finalRating: "$$ROOT.finalRating"
                 }
             }
             ]);
         } catch (e) {
             throw new Error(e);
+        }
+
+        let highestUsers;
+        try {
+            highestUsers = await highestQuery.next();
+        } catch (e) {
+            throw new Error(e);
+        }
+
+        if ((highestUsers.items === null) ||
+            (highestUsers.items.length === 0)) {
+            throw new Error("no match was found for user");
+        }
+
+        let highest;
+        for (const u of highestUsers.items) {
+            highest = { userId: u.userId, rating: u.totalRating };
+            if (highest.userId !== null) {
+                break;
+            }
         }
 
         logger.log("debug","Found match:", {
@@ -188,11 +225,11 @@ class Match {
         //     matchSimilarScore = false;
         // }
 
-        if (highest.user === null) {
+        if (highest.userId === null) {
             throw new Error("no match was found for user");
         }
 
-        return highest.user;
+        return highest;
     }
 
 }
