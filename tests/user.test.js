@@ -3,7 +3,7 @@
 /* eslint no-undef: "off" */
 
 const app = require("../app.js");
-const fastify = app.fastify; /* eslint-disable-line */
+const fastify = app.fastify;
 
 describe("Basic test", () => {
     afterAll(() => {
@@ -21,17 +21,20 @@ describe("Basic test", () => {
         const responseBody = JSON.parse(response.body);
         expect(responseBody).toEqual(
             {
-                "_id": "5db533dc1c29471f985ad0df",
-                "userId": "user0@example.com",
-                "points": 0,
+                "_id": "5dd0c159655e815a5740e06b",
                 "courses": [],
-                "questionsPosted": [],
-                "questionsHelped": [],
-                "lastOnline": 1572156380007,
                 "currentQuestion": null,
+                "fcmToken": null,
+                "lastOnline": 1573962073665,
+                "location": {
+                    "latitude": -123.24,
+                    "longitude": 49.26
+                },
+                "points": 0,
+                "questionsHelped": [],
+                "questionsPosted": [],
                 "token": null,
-                "location": {"latitude": 0, "longitude": 0},
-                "fcmToken": null
+                "userId": "user0@example.com"
             }
         );
 
