@@ -12,7 +12,6 @@ import okhttp3.Response;
 import android.app.Activity;
 //import android.content.Context;
 import android.content.Intent;
-//import android.net.Uri;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -26,9 +25,7 @@ import org.jetbrains.annotations.NotNull;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-//import java.io.FileNotFoundException;
 import java.io.IOException;
-//import java.io.InputStream;
 
 public class PostingView extends AppCompatActivity {
 
