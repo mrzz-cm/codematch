@@ -17,7 +17,6 @@
     "fastify-mongodb": "^2.0.0",
     "fastify-oauth2": "^2.3.0",
     "fastify-plugin": "latest",
-    "geolib": "^3.0.4",
     "minimist": "^1.2.0",
     "node-gcm": "^1.0.2",
     "request": "^2.88.0",
@@ -30,7 +29,6 @@
     "documentation": "^12.1.2",
     "eslint": "^6.5.1",
     "jest": "^24.9.0",
-    "jslint": "^0.12.1",
     "nodemon": "^1.19.4",
     "shot": "^4.0.7"
   }

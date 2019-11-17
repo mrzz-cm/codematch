@@ -1,4 +1,3 @@
-const geolib = require("geolib");
 const gcm = require("node-gcm");
 
 const config = require("../config");
@@ -9,12 +8,6 @@ const sender = new gcm.Sender(SERVER_KEY);
 const userCollection = config.collections.users;
 
 let mongo;
-
-/* TODO: Decide on weights */
-const LOCATION_WEIGHT = 1;
-const LAST_ACTIVE_WEIGHT = 1;
-const COURSE_CODE_WEIGHT = 1;
-const USER_RATING_WEIGHT = 1;
 
 /**
  * Class representing a User
@@ -30,7 +23,7 @@ class User {
      * @param {number}      lastOnline
      * @param {string}      currentQuestion
      * @param {string}      token
-     * @param {Location}    location
+     * @param {Object}      location
      * @param {string}      fcmToken
      */
     constructor(userId, points, courses, questionsPosted, questionsHelped,
@@ -57,7 +50,8 @@ class User {
     static newUser(email) {
         return new User(email, 0, [],
             [], [], Date.now(),
-            null, null, new Location(0, 0), null);
+            null, null,
+            { longitude: 0, latitude: 0}, null);
     }
 
     /**
@@ -70,14 +64,14 @@ class User {
             jsonUser.questionsPosted, jsonUser.questionsHelped,
             jsonUser.lastOnline, jsonUser.currentQuestion,
             jsonUser.token,
-            Location.fromJson(jsonUser.location),
+            jsonUser.location,
             jsonUser.fcmToken
         );
     }
 
     /**
      * Get the location
-     * @returns {Location} location
+     * @returns {Object} location
      */
     get location() {
         return this._location;
@@ -85,7 +79,7 @@ class User {
 
     /**
      * Set the location
-     * @param {Location} location
+     * @param {Object} location
      */
     set location(location) {
         this._location = location;
@@ -220,7 +214,7 @@ class User {
             lastOnline: this._lastOnline,
             currentQuestion: this._currentQuestion,
             token: this._token,
-            location: this._location.toJson(),
+            location: this._location,
             fcmToken: this._fcmToken
         };
     }
@@ -313,22 +307,6 @@ class User {
             throw new Error("Failed getting all users");
         }
         return await users.map((q) => (this.fromJson(q)));
-    }
-
-    /**
-     * Get a users rating
-     *
-     * @param question
-     * @param user
-     * @returns {number}
-     */
-    rating(question, user) {
-        return (
-            ((- this.location.distance(user.location)) * LOCATION_WEIGHT) +
-            (this.lastOnline * LAST_ACTIVE_WEIGHT) +
-            (this.points * USER_RATING_WEIGHT) +
-            (this._courses.includes(question.courseCode) ? COURSE_CODE_WEIGHT : 0)
-        );
     }
 
     /**
@@ -426,39 +404,6 @@ class User {
         );
     }
 
-}
-
-/**
- * Create a Location
- */
-class Location {
-    /**
-     * @param {number} latitude
-     * @param {number} longitude
-     * @param {number} timestamp
-     */
-    constructor(latitude, longitude, timestamp) {
-        this._latitude = latitude;
-        this._longitude = longitude;
-        this._timestamp = timestamp;
-    }
-
-    toJson() {
-        return {latitude: this._latitude, longitude: this._longitude};
-    }
-
-    static fromJson(jsonLocation) {
-        return new Location(jsonLocation.latitude, jsonLocation.longitude, 0);
-    }
-
-    /**
-     * calculates the distance between two locations in kilometers
-     *
-     * @param {Location} location
-     */
-    distance(location) {
-        return geolib.getDistance(this.toJson(), location.toJson());
-    }
 }
 
 module.exports = function (options) {
