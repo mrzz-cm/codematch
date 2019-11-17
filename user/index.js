@@ -306,7 +306,7 @@ class User {
         } catch (err) {
             throw new Error("Failed getting all users");
         }
-        return await users.map((q) => (this.fromJson(q)));
+        return users.map((q) => (this.fromJson(q)));
     }
 
     /**
