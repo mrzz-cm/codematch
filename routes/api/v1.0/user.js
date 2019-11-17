@@ -83,7 +83,7 @@ function routes (fastify, opts, done) {
     });
 
     /**
-     * POST - Add a new cource by ID
+     * POST - Add a new course by ID
      */
     fastify.route({
         method: "POST",
@@ -144,6 +144,63 @@ function routes (fastify, opts, done) {
             reply.status(rc.OK);
             reply.send("course added");
 
+        }
+    });
+
+    /**
+     * PUT user location data
+     */
+    fastify.route({
+        method: "PUT",
+        url: "/location/:userId",
+        body: {
+            type: "object",
+            required: ["longitude", "latitude"],
+            properties: {
+                longitude: { type: "number" },
+                latitude: { type: "number" }
+            }
+        },
+        preValidation: [ fastify.authenticate ],
+        handler: async (request, reply) => {
+            const um = userModule({ mongo: fastify.mongo });
+
+            const location = {
+                longitude: request.body.longitude,
+                latitude: request.body.latitude
+            };
+
+            let exists;
+            try {
+                exists = await um.User.exists(request.params.userId);
+            } catch (e) {
+                ru.errCheck(reply, rc.BAD_REQUEST, e);
+                return;
+            }
+
+            if (!exists) {
+                ru.errCheck(reply, rc.BAD_REQUEST, "No user found");
+                return;
+            }
+
+            try {
+                const userJson = await um.User.retrieve(request.params.userId);
+                const user = await um.User.fromJson(userJson);
+                await user.update({
+                    $set: {
+                        location: {
+                            longitude: location.longitude,
+                            latitude: location.latitude
+                        }
+                    }
+                });
+            } catch (e) {
+                ru.errCheck(reply, rc.INTERNAL_SERVER_ERROR, e);
+                return;
+            }
+
+            reply.status(rc.OK);
+            reply.send({ msg: "Updated location successfully" });
         }
     });
 
