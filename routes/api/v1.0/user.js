@@ -19,7 +19,9 @@ function routes (fastify, opts, done) {
                 required: ["access_token"],
                 properties: {
                     access_token: { type: "string" },
-                    test_email:  { type: "string" }
+                    test_email:  { type: "string" },
+                    longitude: { type: "number" },
+                    latitude: { type: "number" },
                 }
             }
         },
@@ -27,6 +29,11 @@ function routes (fastify, opts, done) {
         handler: async (request, reply) => {
             const um = userModule({ mongo: fastify.mongo });
             request.log.info(request.body);
+
+            const location = {
+                longitude: request.body.longitude,
+                latitude: request.body.latitude
+            };
 
             let emailJson;
             if (process.env.MODE === "test") {
@@ -60,8 +67,10 @@ function routes (fastify, opts, done) {
             }
 
             // store to database
+            const newUser = um.User.newUser(emailJson.email);
+            newUser.location = location;
             try {
-                await um.User.newUser(emailJson.email).create();
+                await newUser.create();
             } catch (e) {
                 if (ru.errCheck(reply, rc.INTERNAL_SERVER_ERROR, e)) return;
             }

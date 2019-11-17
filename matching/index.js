@@ -206,18 +206,19 @@ class Match {
 
         let highestUsers;
         try {
-            highestUsers = await highestQuery.next();
+            highestUsers = await highestQuery.toArray();
         } catch (e) {
             throw new Error(e);
         }
 
-        if ((highestUsers.items === null) ||
-            (highestUsers.items.length === 0)) {
+        if ((highestUsers.length === 0) ||
+            (highestUsers[0].items === null) ||
+            (highestUsers[0].items.length === 0)) {
             throw new Error("no match was found for user");
         }
 
         let highest;
-        for (const u of highestUsers.items) {
+        for (const u of highestUsers[0].items) {
             highest = { userId: u.userId, rating: u.totalRating };
             if (highest.userId !== null) {
                 break;
