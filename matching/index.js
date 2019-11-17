@@ -5,6 +5,12 @@ const logger = require("../logger").logger;
 const userCollection = config.collections.users;
 const EARTH_RADIUS = 6371; // Earth's radius (KM)
 
+/* TODO: Decide on weights */
+const LOCATION_WEIGHT = 1;
+const LAST_ACTIVE_WEIGHT = 1;
+const COURSE_CODE_WEIGHT = 1;
+const USER_RATING_WEIGHT = 1;
+
 let mongo;
 
 /**
@@ -86,10 +92,10 @@ class Match {
                     },
 
                     totalPoints: {
-                        $multiply: ["$points", 1]
+                        $multiply: [ "$points", USER_RATING_WEIGHT ]
                     },
                     totalLastOnline: {
-                        $multiply: ["$lastOnline", 1]
+                        $multiply: [ "$lastOnline", LAST_ACTIVE_WEIGHT ]
                     },
 
                     totalCourses: {
@@ -99,7 +105,7 @@ class Match {
                                     seekerJson.courses, "$courses"
                                 ]
                             },
-                            then: 1,
+                            then: COURSE_CODE_WEIGHT,
                             else: 0
                         }
                     },
@@ -132,25 +138,32 @@ class Match {
                                             ]
                                         },
                                         {
-                                            $multiply: [{
-                                                $multiply: [{
-                                                    $cos: "$lat1"
-                                                },
+                                            $multiply: [
                                                 {
-                                                    $cos: "$lat2"
-                                                },
-                                                {
-                                                    $sin: {
-                                                        $divide: ["$dLong", 2]
+                                                    $multiply: [{
+                                                        $cos: "$lat1"
+                                                    },
+                                                    {
+                                                        $cos: "$lat2"
+                                                    },
+                                                    {
+                                                        $sin: {
+                                                            $divide: [
+                                                                "$dLong", 2
+                                                            ]
+                                                        }
+                                                    },
+                                                    {
+                                                        $sin: {
+                                                            $divide: [
+                                                                "$dLong", 2
+                                                            ]
+                                                        }
                                                     }
+                                                    ]
                                                 },
-                                                {
-                                                    $sin: {
-                                                        $divide: ["$dLong", 2]
-                                                    }
-                                                }
-                                                ]
-                                            }, -EARTH_RADIUS]
+                                                EARTH_RADIUS * -LOCATION_WEIGHT
+                                            ]
                                         }
                                         ]
                                     }
