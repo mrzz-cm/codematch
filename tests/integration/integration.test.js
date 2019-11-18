@@ -10,7 +10,7 @@ const fastify = app.fastify;
 let um;
 let qm;
 
-beforeEach(async () => {
+beforeAll(async () => {
     await fastify.ready();
     um = userModule({ mongo: fastify.mongo });
     qm = questionsModule({ mongo: fastify.mongo });
@@ -21,7 +21,7 @@ afterAll(() => {
 });
 
 describe("Account creation test", () => {
-    const testUser = "abcd";
+    const testUser = "testuser0@example.com";
 
     afterAll(async () => {
         const collection = await fastify.mongo.db.collection("users");
@@ -43,7 +43,7 @@ describe("Account creation test", () => {
         expect(response.statusCode).toBe(200);
 
         // check the user is in database
-        um.User.retrieve('abcd')
+        um.User.retrieve(testUser)
             .then(() => expect(um.User.exists(testUser)).toBeTruthy())
             .then(() => done());
     });
