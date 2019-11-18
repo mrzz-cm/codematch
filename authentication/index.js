@@ -46,8 +46,8 @@ async function requestEmail(token) {
 module.exports = {
     plugin: jwtValdatorPlugin,
     options: {},
-    requestEmail: requestEmail,
-    oauthPlugin: oauthPlugin,
+    requestEmail,
+    oauthPlugin,
     oauthOptions: {
         name: "googleOAuth2",
         scope: ["email"],

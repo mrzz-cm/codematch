@@ -285,7 +285,7 @@ class User {
     static async retrieve(userId) {
         const collection = await mongo.db.collection(userCollection);
         try {
-            return collection.findOne({userId: userId});
+            return collection.findOne({ userId });
         } catch (err) {
             throw new Error(
                 `Failed to retrieve user ${userId}`
@@ -297,17 +297,17 @@ class User {
      * Retrieve all users from database.
      * @returns {Promise<User[]>} all users
      */
-    static async getAllUsers() {
-        let users;
-        try {
-            users = await mongo.db.collection(userCollection)
-                .find({})
-                .toArray();
-        } catch (err) {
-            throw new Error("Failed getting all users");
-        }
-        return users.map((q) => (this.fromJson(q)));
-    }
+    // static async getAllUsers() {
+    //     let users;
+    //     try {
+    //         users = await mongo.db.collection(userCollection)
+    //             .find({})
+    //             .toArray();
+    //     } catch (err) {
+    //         throw new Error("Failed getting all users");
+    //     }
+    //     return users.map((q) => (this.fromJson(q)));
+    // }
 
     /**
      * Get 'sanitized' user in JSON format removing secret fields
@@ -352,7 +352,7 @@ class User {
 
         // update database
         try {
-            return await user.update({$set: {fcmToken: fcmToken}});
+            return await user.update({$set: { fcmToken }});
         } catch (err) {
             return new Error(err);
         }
@@ -363,9 +363,9 @@ class User {
         // create message
         const message = new gcm.Message({
             notification: {
-                title: title,
-                body: body,
-                data: data
+                title,
+                body,
+                data
             }
         });
 

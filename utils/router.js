@@ -30,6 +30,6 @@ const responseCodes = {
 };
 
 module.exports = {
-    errCheck: errCheck,
-    responseCodes: responseCodes
+    errCheck,
+    responseCodes
 };
