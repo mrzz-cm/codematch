@@ -7,16 +7,25 @@ const userModule = require("../../user");
 const questionsModule = require("../../questions");
 const fastify = app.fastify;
 
+let um;
+let qm;
+
+beforeEach(async () => {
+    await fastify.ready();
+    um = userModule({ mongo: fastify.mongo });
+    qm = questionsModule({ mongo: fastify.mongo });
+});
+
+afterAll(() => {
+    fastify.close();
+});
+
 describe("Account creation test", () => {
-    let um;
+    const testUser = "abcd";
 
-    beforeEach(async () => {
-        await fastify.ready();
-        um = userModule({ mongo: fastify.mongo })
-    });
-
-    afterAll(() => {
-        fastify.close();
+    afterAll(async () => {
+        const collection = await fastify.mongo.db.collection("users");
+        await collection.deleteOne({ userId: testUser });
     });
 
     test("Account creation success", async (done) => {
@@ -24,37 +33,38 @@ describe("Account creation test", () => {
             method: "POST",
             url: "/user/register",
             body: {
-                "test_email": "abcd",
-                "longitude": 100,
-                "latitude": -100
+                test_email: testUser,
+                longitude: 100,
+                latitude: -100,
+                access_token: "NOT_A_TOKEN"
             }
         });
 
         expect(response.statusCode).toBe(200);
 
         // check the user is in database
-        um = userModule({ mongo: fastify.mongo });
-        const userExists = await um.User.retrieve('abcd');
-
-        expect(userExists).toBe(true);
-
-        done();
+        um.User.retrieve('abcd')
+            .then(() => expect(um.User.exists(testUser)).toBeTruthy())
+            .then(() => done());
     });
 });
 
 
 describe("Posting new question test", () => {
-    let um;
-    let qm;
 
-    beforeEach(async () => {
-        await fastify.ready();
-        um = userModule({ mongo: fastify.mongo });
-        qm = questionsModule({ mongo: fastify.mongo });
+    let question;
+    const testUser = "abcd";
+
+    afterEach(async () => {
+        const collection = await fastify.mongo.db.collection("questions");
+        const userCollection = await fastify.mongo.db.collection("users");
+        await collection.deleteOne({uuid: question.uuid});
+        await userCollection.deleteOne({ userId: testUser });
     });
 
-    afterAll(() => {
-        fastify.close();
+    beforeEach(async () => {
+        const user = um.User.newUser(testUser);
+        await user.create();
     });
 
     test("Post new question success", async (done) => {
@@ -78,9 +88,10 @@ describe("Posting new question test", () => {
         expect(questionId).toBeTruthy();
 
         // check the question in the database
-        const question = qm.Question.retrieve(questionId);
+        question = await qm.Question.retrieve(questionId);
+
         expect(question).toBeTruthy();
-        expect(question.seeker).toBe("user0");
+        expect(result.seeker).toBe("user0");
 
         done();
     });
