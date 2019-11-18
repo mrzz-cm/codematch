@@ -53,7 +53,7 @@ describe("Account creation test", () => {
 describe("Posting new question test", () => {
 
     let question;
-    const testUser = "abcd";
+    const testUser = "testuser0@example.com";
 
     afterEach(async () => {
         const collection = await fastify.mongo.db.collection("questions");
@@ -72,7 +72,7 @@ describe("Posting new question test", () => {
             method: "POST",
             url: "/questions/create",
             body: {
-                "userId": "user0",
+                "userId": testUser,
                 "title": "Test Question",
                 "courseCode": "CPEN 321",
                 "questionText": "A test question."
