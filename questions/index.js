@@ -162,7 +162,7 @@ class Question {
     static async retrieve(uuid) {
         const collection = await mongo.db.collection(questionCollection);
         try {
-            return collection.findOne({uuid: uuid});
+            return collection.findOne({ uuid });
         } catch (err) {
             throw new Error(
                 `Failed to retrieve question ${uuid}`

@@ -57,6 +57,6 @@ async function startServer(fastify, port) {
 
 // Options currently unused
 module.exports = {
-    fastify: fastify,
+    fastify,
     start: startServer,
 };

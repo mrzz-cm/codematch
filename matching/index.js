@@ -36,7 +36,7 @@ class Match {
      * @return {Promise<any>} Optimal helper
     */
     async optimalHelper() {
-        const um = user({ mongo: mongo });
+        const um = user({ mongo });
 
         let seekerJson;
         try {
@@ -226,7 +226,7 @@ class Match {
         }
 
         logger.log("debug","Found match:", {
-            highest: highest,
+            highest,
             seeker: this._question.seeker,
         });
 
