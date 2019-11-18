@@ -6,7 +6,7 @@
     "start": "node ./bin/www",
     "watch": "node ./node_modules/nodemon/bin/nodemon.js ./bin/www",
     "doc-gen": "documentation",
-    "test": "jest --coverage",
+    "test": "jest",
     "lint": "eslint '**/*.js' 'bin/*'"
   },
   "dependencies": {
