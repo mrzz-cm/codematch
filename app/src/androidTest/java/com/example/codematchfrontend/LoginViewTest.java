@@ -8,6 +8,7 @@ import android.view.ViewParent;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
+import org.hamcrest.core.IsInstanceOf;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -35,7 +36,7 @@ public class LoginViewTest {
     public ActivityTestRule<LoginView> mActivityTestRule = new ActivityTestRule<>(LoginView.class);
 
     @Test
-    public void loginViewTest() {
+    public void loginViewTest3() {
         ViewInteraction je = onView(
                 allOf(withText("Sign in"),
                         childAtPosition(
@@ -47,55 +48,22 @@ public class LoginViewTest {
                         isDisplayed()));
         je.perform(click());
 
-        ViewInteraction recyclerView = onView(
-                allOf(withId(R.id.notifications_list),
-                        childAtPosition(
-                                childAtPosition(
-                                        withId(android.R.id.content),
-                                        0),
-                                1),
-                        isDisplayed()));
-        recyclerView.check(matches(isDisplayed()));
+        try{
+            Thread.sleep(10000);
 
-        ViewInteraction imageButton = onView(
-                allOf(withId(R.id.postQuestionFAB),
-                        childAtPosition(
-                                childAtPosition(
-                                        withId(android.R.id.content),
-                                        0),
-                                4),
-                        isDisplayed()));
-        imageButton.check(matches(isDisplayed()));
+        } catch (InterruptedException e) {
 
-        ViewInteraction button = onView(
-                allOf(withId(R.id.button4),
-                        childAtPosition(
-                                childAtPosition(
-                                        withId(android.R.id.content),
-                                        0),
-                                3),
-                        isDisplayed()));
-        button.check(matches(isDisplayed()));
+        }
 
-        ViewInteraction button2 = onView(
-                allOf(withId(R.id.button5),
-                        childAtPosition(
+        ViewInteraction linearLayout = onView(
+                allOf(childAtPosition(
+                        allOf(withId(R.id.notifications_list),
                                 childAtPosition(
-                                        withId(android.R.id.content),
-                                        0),
-                                2),
+                                        IsInstanceOf.<View>instanceOf(android.view.ViewGroup.class),
+                                        1)),
+                        0),
                         isDisplayed()));
-        button2.check(matches(isDisplayed()));
-
-        ViewInteraction button3 = onView(
-                allOf(withId(R.id.button5),
-                        childAtPosition(
-                                childAtPosition(
-                                        withId(android.R.id.content),
-                                        0),
-                                2),
-                        isDisplayed()));
-        button3.check(matches(isDisplayed()));
+        linearLayout.check(matches(isDisplayed()));
     }
 
     private static Matcher<View> childAtPosition(
