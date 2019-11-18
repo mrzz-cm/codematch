@@ -297,17 +297,17 @@ class User {
      * Retrieve all users from database.
      * @returns {Promise<User[]>} all users
      */
-    static async getAllUsers() {
-        let users;
-        try {
-            users = await mongo.db.collection(userCollection)
-                .find({})
-                .toArray();
-        } catch (err) {
-            throw new Error("Failed getting all users");
-        }
-        return users.map((q) => (this.fromJson(q)));
-    }
+    // static async getAllUsers() {
+    //     let users;
+    //     try {
+    //         users = await mongo.db.collection(userCollection)
+    //             .find({})
+    //             .toArray();
+    //     } catch (err) {
+    //         throw new Error("Failed getting all users");
+    //     }
+    //     return users.map((q) => (this.fromJson(q)));
+    // }
 
     /**
      * Get 'sanitized' user in JSON format removing secret fields

@@ -33,16 +33,15 @@ jest.mock("../../user", () => function() {
     return module;
 });
 
-// user.User.sanitizedJson.mockImplementation(() => expectedUser);
+beforeAll(async () => {
+    await fastify.ready();
+});
+
+afterAll(() => {
+    fastify.close();
+});
 
 describe("Basic test", () => {
-    beforeEach(async () => {
-        await fastify.ready();
-    });
-
-    afterAll(() => {
-        fastify.close();
-    });
 
     test("Responds with success on request /user/:userId", async (done) => {
         const response = await fastify.inject({

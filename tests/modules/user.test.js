@@ -5,22 +5,25 @@
 const app = require("../../app");
 const userModule = require("../../user");
 
+let um;
+
 const fastify = app.fastify;
 
-let um;
+beforeAll(async () => {
+    await fastify.ready();
+    um = userModule({ mongo: fastify.mongo });
+});
+
+afterAll(() => {
+    fastify.close();
+});
 
 describe("User creation test", () => {
     const tu = "testuser@example.com";
 
-    beforeEach(async () => {
-        await fastify.ready();
-        um = userModule({ mongo: fastify.mongo });
-    });
-
     afterAll(async () => {
         const collection = await fastify.mongo.db.collection("users");
         await collection.deleteOne({userId: tu});
-        fastify.close();
     });
 
     test("Checks user is created", async (done) => {
@@ -41,8 +44,6 @@ describe("User update test", () => {
     let user;
 
     beforeEach(async () => {
-        await fastify.ready();
-        um = userModule({ mongo: fastify.mongo });
         user = um.User.newUser(tu);
         await user.create();
     });
@@ -50,7 +51,6 @@ describe("User update test", () => {
     afterAll(async () => {
         const collection = await fastify.mongo.db.collection("users");
         await collection.deleteOne({userId: tu});
-        fastify.close();
     });
 
     test("Checks user is updated", async (done) => {
@@ -61,7 +61,9 @@ describe("User update test", () => {
 
         user.update({ $set: { courses: courses } })
             .then(() => um.User.retrieve(tu))
-            .then((result) => expect(result.courses).toStrictEqual(courses))
+            .then((result) => (
+                expect(result.courses).toStrictEqual(courses)
+            ))
             .then(() => done());
     });
 });
