@@ -12,7 +12,7 @@ let um;
 describe("Basic test", () => {
     beforeEach(async () => {
         await fastify.ready();
-        um = userModule({ mongo: fastify.mongo })
+        um = userModule({ mongo: fastify.mongo });
     });
 
     afterAll(() => {
