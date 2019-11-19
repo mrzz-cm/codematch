@@ -54,17 +54,21 @@ describe("Posting new question test", () => {
 
     let question;
     const testUser = "testuser1@example.com";
+    const testUser2 = "testuser2@example.com";
 
     afterAll(async () => {
         const collection = await fastify.mongo.db.collection("questions");
         const userCollection = await fastify.mongo.db.collection("users");
         await collection.deleteOne({uuid: question.uuid});
         await userCollection.deleteOne({ userId: testUser });
+        await userCollection.deleteOne({ userId: testUser2 });
     });
 
     beforeAll(async () => {
         const user = um.User.newUser(testUser);
         await user.create();
+        const user2 = um.User.newUser(testUser2);
+        await user2.create();
     });
 
     test("Post new question success", async (done) => {
