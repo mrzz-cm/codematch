@@ -53,16 +53,16 @@ describe("Account creation test", () => {
 describe("Posting new question test", () => {
 
     let question;
-    const testUser = "testuser0@example.com";
+    const testUser = "testuser1@example.com";
 
-    afterEach(async () => {
+    afterAll(async () => {
         const collection = await fastify.mongo.db.collection("questions");
         const userCollection = await fastify.mongo.db.collection("users");
         await collection.deleteOne({uuid: question.uuid});
         await userCollection.deleteOne({ userId: testUser });
     });
 
-    beforeEach(async () => {
+    beforeAll(async () => {
         const user = um.User.newUser(testUser);
         await user.create();
     });
@@ -72,27 +72,24 @@ describe("Posting new question test", () => {
             method: "POST",
             url: "/questions/create",
             body: {
-                "userId": testUser,
-                "title": "Test Question",
-                "courseCode": "CPEN 321",
-                "questionText": "A test question."
+                userId: testUser,
+                title: "Test Question",
+                courseCode: "CPEN 321",
+                questionText: "A test question."
             }
         });
 
         expect(response.statusCode).toBe(200);
 
         // check existence of question in user and question database
-        const user = um.User.retrieve("user0");
-        const questionId = user.currentQuestion;
-
-        expect(questionId).toBeTruthy();
-
-        // check the question in the database
-        question = await qm.Question.retrieve(questionId);
-
-        expect(question).toBeTruthy();
-        expect(result.seeker).toBe("user0");
-
-        done();
+        um.User.retrieve(testUser)
+            .then((user) => qm.Question.retrieve(user.currentQuestion))
+            .then((q) => {
+                question = q;
+                expect(q).toBeTruthy();
+                expect(q.uuid).toBeTruthy();
+                expect(q.seeker).toBe(testUser);
+                return done();
+            })
     });
 });
