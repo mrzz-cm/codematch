@@ -35,7 +35,7 @@ matrix:
             - echo no | avdmanager create avd --force -n emulatorApi24 -k "system-images;android-24;default;armeabi-v7a"
             - $ANDROID_HOME/emulator/emulator -avd emulatorApi24 -no-audio -no-window &
 #             - android-wait-for-emulator
-            - sleep 5
+            - adb wait-for-device
             - adb shell input keyevent 82 &
           script:
             - |
