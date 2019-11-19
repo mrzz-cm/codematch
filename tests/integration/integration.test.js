@@ -5,6 +5,9 @@
 const app = require("../../app.js");
 const userModule = require("../../user");
 const questionsModule = require("../../questions");
+const ru = require("../../utils/router");
+const rc = ru.responseCodes;
+
 const fastify = app.fastify;
 
 let um;
@@ -50,6 +53,38 @@ describe("Account creation test", () => {
 });
 
 
+describe("Account duplicate creation test", () => {
+    const testUser = "testuser0@example.com";
+
+    afterAll(async () => {
+        const collection = await fastify.mongo.db.collection("users");
+        await collection.deleteOne({ userId: testUser });
+    });
+
+    beforeAll(async () => {
+        const user = um.User.newUser(testUser);
+        await user.create();
+    });
+
+    test("Account duplicate creation test", async (done) => {
+        const response = await fastify.inject({
+            method: "POST",
+            url: "/user/register",
+            body: {
+                test_email: testUser,
+                longitude: 100,
+                latitude: -100,
+                access_token: "NOT_A_TOKEN"
+            }
+        });
+
+        expect(response.statusCode).toBe(rc.BAD_REQUEST);
+
+        done();
+    });
+});
+
+
 describe("Account modification test", () => {
     const testUser = "testUser@example.com";
 
@@ -83,6 +118,21 @@ describe("Account modification test", () => {
         done();
     });
 
+    test("Update location non-existent user test", async (done) => {
+        const response = await fastify.inject({
+            method: "PUT",
+            url: "/user/location/idontexist",
+            body: {
+                longitude: -100,
+                latitude: 100
+            }
+        });
+
+        expect(response.statusCode).toBe(rc.BAD_REQUEST);
+
+        done();
+    });
+
     test("Add course test", async (done) => {
         const response = await fastify.inject({
             method: "POST",
@@ -98,6 +148,21 @@ describe("Account modification test", () => {
         // check database
         const user = await um.User.retrieve(testUser);
         expect(user.courses).toEqual(["CPEN 321"]);
+
+        done();
+    });
+
+    test("Add course non-existent user test", async (done) => {
+        const response = await fastify.inject({
+            method: "POST",
+            url: "/user/add-course",
+            body: {
+                userId: "idontexist",
+                courseId: "CPEN 321"
+            }
+        });
+
+        expect(response.statusCode).toBe(rc.BAD_REQUEST);
 
         done();
     });
@@ -125,6 +190,17 @@ describe("Getting user data", () => {
 
         expect(response.statusCode).toBe(200);
         expect(JSON.parse(response.body).userId).toBe(testUser);
+
+        done();
+    });
+
+    test("Getting non-existent user data", async (done) => {
+        const response = await fastify.inject({
+            method: "GET",
+            url: "/user/idontexist"
+        });
+
+        expect(response.statusCode).toBe(rc.BAD_REQUEST);
 
         done();
     });
@@ -168,6 +244,17 @@ describe("Getting question data", () => {
 
         expect(response.statusCode).toBe(200);
         expect(JSON.parse(response.body).uuid).toBe(questionId);
+
+        done();
+    });
+
+    test("Getting non-existent question data", async (done) => {
+        const response = await fastify.inject({
+            method: "GET",
+            url: "/questions/idontexist"
+        });
+
+        expect(response.statusCode).toBe(rc.BAD_REQUEST);
 
         done();
     });
@@ -220,6 +307,23 @@ describe("Posting new question test", () => {
                 expect(q.questionState).toBe("Waiting");
                 return done();
             })
+    });
+
+    test("Post new question non-existent user", async (done) => {
+        const response = await fastify.inject({
+            method: "POST",
+            url: "/questions/create",
+            body: {
+                userId: "idontexist",
+                title: "Test Question",
+                courseCode: "CPEN 321",
+                questionText: "A test question."
+            }
+        });
+
+        expect(response.statusCode).toBe(rc.BAD_REQUEST);
+        
+        done();
     });
 });
 
@@ -289,6 +393,21 @@ describe("Helping a question test", () => {
         expect(question.helperAccepted).toBe(true);
         expect(question.finalHelper).toBe(testHelper);
         expect(question.questionState).toBe("Matched");
+
+        done();
+    });
+
+    test("Offering help a question non-existent parameters test", async (done) => {
+        const helpResponse = await fastify.inject({
+            method: "POST",
+            url: "/questions/accept",
+            body: {
+                userId: "idontexist",
+                questionId: "idontexist",
+            }
+        });
+
+        expect(helpResponse.statusCode).toBe(rc.BAD_REQUEST);
 
         done();
     });
