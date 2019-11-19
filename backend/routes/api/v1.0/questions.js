@@ -1,10 +1,17 @@
-const notificationsModule = require("../../../notifications");
 const questionsModule = require("../../../questions");
 const matchingModule = require("../../../matching");
 const userModule = require("../../../user");
 const ru = require("../../../utils/router");
 
+const rc = ru.responseCodes;
+
 function routes (fastify, opts, done) {
+
+    /* POST Requests */
+
+    /**
+     * POST - Create a new question
+     */
     fastify.route({
         method: "POST",
         url: "/create",
@@ -21,221 +28,205 @@ function routes (fastify, opts, done) {
             }
         },
         preValidation: [ fastify.authenticate ],
-        handler: function(request, reply) {
+        handler: async (request, reply) => {
             const qm = questionsModule({ mongo: fastify.mongo });
             const um = userModule({ mongo: fastify.mongo });
             const mm = matchingModule({ mongo: fastify.mongo });
-            const nm = notificationsModule({ mongo: fastify.mongo });
 
-            let user;
+            const body = request.body;
 
-            function updateUserCallback(err) {
-                console.log((user.toJson()));
-                if (err) {
-                    console.log(err);
-                    reply.status(500);
-                    reply.send(err);
-                    return;
-                }
-
-                qm.Question.retrieve(user.currentQuestion, async (err, result) => {
-                    const question = qm.Question.fromJson(result);
-                    new mm.Match(question).optimalHelper((err, match) => {
-
-                        if (match === null) {
-                            console.log(err);
-                            reply.status(500);
-                            reply.send(err);
-
-                            // notify that there was no match
-                            nm.sendUserNotification(
-                                user.userId,
-                                "No match was found for your problem.",
-                                "basic",
-                                {
-                                    notificationType: "basic"
-                                },
-                                (err) => {}
-                            );
-
-                            return;
-                        }
-
-                        // send notification to seeker
-                        nm.sendUserNotification(
-                            user.userId,
-                            `You were matched with '${match.userId}`,
-                            "basic",
-                            {
-                                notificationType: "basic"
-                            },
-                            (err) => {
-                                if (err) {
-                                    request.log.info(err);
-                                    reply.status(500);
-                                    reply.send(err);
-                                    return;
-                                }
-                                reply.status(200);
-                                reply.send("Question posted.");
-                            });
-
-                        // send notification to helper
-                        nm.sendUserNotification(
-                            match.userId,
-                            `You have a new question from ${user.userId}`,
-                            `helperMatch ${question.uuid}`,
-                            {
-                                notificationType: "helperMatch",
-                                questionId: question.uuid
-                            },
-                            (err) => {
-                                if (err) {
-                                    request.log.info("Warning: notifying helper " +
-                                        "about a new question failed!");
-                                }
-                            }
-                        );
-
-                        // update question fields
-                        question.helperNotifiedTimestamp = Date.now();
-                        question.optimalHelper = match.userId;
-                        question.prevCheckedHelpers.push(match.userId);
-                        question.questionState = "Waiting";
-
-                        question.update(
-                            {$set: {
-                                helperNotifiedTimestamp: question.helperNotifiedTimestamp,
-                                optimalHelper: question.optimalHelper,
-                                prevCheckedHelpers: question.prevCheckedHelpers,
-                                questionState: question.questionState
-                            }},
-                            function(err) {
-                                if (err) {
-                                    request.log.info(err);
-                                    request.log.info("Warning: Failed to update question " +
-                                    "state in database after match was found!");
-                                }
-                            }
-                        );
-
-                        // update helper fields
-                        um.User.retrieve(match.userId, (err, data) => {
-                            if (err) {
-                                request.log.info(err);
-                                request.log.info("Warning: Failed to retrieve helper " +
-                                 "for question!");
-                                return;
-                            }
-
-                            const optimalHelper = um.User.fromJson(data);
-                            optimalHelper.currentQuestion = question.uuid;
-                            // update database
-                            optimalHelper.update({$set: 
-                                {
-                                    currentQuestion: optimalHelper.currentQuestion
-                                }
-                            }, (err) => {
-                                if (err) {
-                                    request.log.info(err);
-                                    request.log.info("Warning: Failed to set helper's fields " +
-                                        "when they were selected for a question");
-                                }
-                            });
-                        });
-                    });
-                });
+            let userExists;
+            try {
+                userExists = await um.User.exists(request.body.userId);
+            } catch (e) {
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
             }
 
-            function createQuestionCallback(err, status, new_question) {
-                if (err || !new_question) {
-                    reply.status(status);
-                    reply.send(err);
-                    return;
-                }
+            if (!userExists) {
+                reply.status(rc.BAD_REQUEST);
+                reply.send("Provided user doesn't exist.");
+                return;
+            }
 
-                // put the question into the database
-                new_question.create(function(err) {
-                    if (err) {
-                        reply.status(500);
-                        reply.send(err);
-                        return;
-                    }
+            let uJson;
+            try {
+                uJson = await um.User.retrieve(request.body.userId);
+            } catch (e) {
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
+            }
 
-                    // set the user's current question
-                    user.currentQuestion = new_question.uuid;
-                    user.questionsPosted.push(new_question.uuid);
+            if (!uJson) {
+                reply.status(rc.INTERNAL_SERVER_ERROR);
+                reply.send(`No user ${request.body.userId} found`);
+                return;
+            }
 
-                    // update the user
-                    user.update({$set: 
+            // check that the user can post the question
+            const user = um.User.fromJson(uJson);
+
+            if (user.currentQuestion) {
+                reply.status(401);
+                reply.send(
+                    "Cannot post a question when you are already " +
+                    "registered to another question!");
+                return;
+            }
+
+            // create the question
+            let q;
+            try {
+                q = await qm.Question.newQuestion(
+                    body.userId,
+                    body.title,
+                    body.courseCode,
+                    body.questionText
+                );
+            } catch (e) {
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
+            }
+
+            if (!q) {
+                reply.status(rc.INTERNAL_SERVER_ERROR);
+                reply.send(`No question found in user ${body.userId}`);
+                return;
+            }
+
+            // put the question into the database
+            try {
+                await q.create();
+            } catch (e) {
+                if (ru.errCheck(reply, rc.INTERNAL_SERVER_ERROR, e)) return;
+            }
+
+            // set the user's current question
+            user.currentQuestion = q.uuid;
+            user.questionsPosted.push(q.uuid);
+
+            // update the user
+            try {
+                await user.update({$set:
                         {
-                            currentQuestion: new_question.uuid,
+                            currentQuestion: q.uuid,
                             questionsPosted: user.questionsPosted
                         }
-                    }, updateUserCallback);
                 });
+            } catch (e) {
+                if (ru.errCheck(reply, rc.INTERNAL_SERVER_ERROR, e)) return;
             }
 
-            function getUserCallback(err, result) {
-                if (err || !result) {
-                    reply.status(500);
-                    reply.send(err);
-                    return;
-                }
-
-                // check that the user can post the question
-                user = um.User.fromJson(result);
-
-                if (user.currentQuestion) {
-                    reply.status(401);
-                    reply.send("Cannot post a question when you are already " +
-                               "registered to another question!");
-                    return;
-                }
-
-                // create the question
-                qm.createQuestion(request.body, createQuestionCallback);
+            let uQuestion;
+            try {
+                uQuestion = await qm.Question.retrieve(user.currentQuestion);
+            } catch (e) {
+                if (ru.errCheck(reply, rc.INTERNAL_SERVER_ERROR, e)) return;
             }
 
-            function userExistsCallback(userExists) {
-                if (userExists) {
-                    // get the user
-                    um.User.retrieve(request.body.userId, getUserCallback);
-                } else {
-                    reply.status(400);
-                    reply.send("Provided user doesn't exist.");
-                }
+            const question = qm.Question.fromJson(uQuestion);
+
+            let match;
+            try {
+                match = await new mm.Match(question).optimalHelper();
+            } catch (e) {
+                reply.status(rc.INTERNAL_SERVER_ERROR);
+                reply.send(e);
+
+                // notify that there was no match
+                await um.User.sendNotification(
+                    user.userId,
+                    "No match was found for your problem.",
+                    "basic",
+                    {
+                        notificationType: "basic"
+                    });
             }
 
-            um.User.exists(request.body.userId)
-                .then(userExistsCallback)
-                .catch(err => {
-                    reply.status(400);
-                    reply.send(err);
-                });
+            // send notification to seeker
+            try {
+                await um.User.sendNotification(
+                    user.userId,
+                    `You were matched with '${match.userId}`,
+                    "basic",
+                    {
+                        notificationType: "basic"
+                    });
+
+            } catch (e) {
+                request.log.info(e);
+                if (ru.errCheck(reply, rc.INTERNAL_SERVER_ERROR, e)) return;
+            }
+
+            // send notification to helper
+            try {
+                await um.User.sendNotification(
+                    match.userId,
+                    `You have a new question from ${user.userId}`,
+                    `helperMatch ${question.uuid}`,
+                    {
+                        notificationType: "helperMatch",
+                        questionId: question.uuid
+                    });
+
+            } catch (e) {
+                request.log.info("Warning: notifying helper " +
+                    "about a new question failed!");
+            }
+
+            // update question fields
+            question.helperNotifiedTimestamp = Date.now();
+            question.optimalHelper = match.userId;
+            question.prevCheckedHelpers.push(match.userId);
+            question.questionState = "Waiting";
+
+            try {
+                await question.update(
+                    {$set: {
+                        helperNotifiedTimestamp: question.helperNotifiedTimestamp,
+                        optimalHelper: question.optimalHelper,
+                        prevCheckedHelpers: question.prevCheckedHelpers,
+                        questionState: question.questionState
+                    }});
+            } catch(e) {
+                request.log.info(e);
+                request.log.info("Warning: Failed to update question " +
+                    "state in database after match was found!");
+            }
+
+
+            // update helper fields
+            let hJson;
+            try {
+                hJson = await um.User.retrieve(match.userId);
+            } catch (e) {
+                request.log.info(e);
+                request.log.info("Warning: Failed to retrieve helper " +
+                    "for question!");
+                return;
+            }
+
+            const optimalHelper = um.User.fromJson(hJson);
+            optimalHelper.currentQuestion = question.uuid;
+
+            // update database
+            optimalHelper.update({$set:
+                    {
+                        currentQuestion: optimalHelper.currentQuestion
+                    }
+            }).catch((err) => {
+                request.log.info(err);
+                request.log.info(
+                    "Warning: Failed to set helper's fields " +
+                        "when they were selected for a question");
+            }
+            );
+
+            reply.status(rc.OK);
+            reply.send({ msg: `Created question ${q.uuid}`});
         }
     });
 
-    fastify.route({
-        method: "GET",
-        url: "/:questionId",
-        preValidation: [ fastify.authenticate ],
-        handler: function(request, reply) {
-            const qm = questionsModule({ mongo: fastify.mongo });
-
-            qm.getQuestion(request.params.questionId, function(err, data) {
-                if (err || !data) {
-                    reply.status(400);
-                    reply.send(err);
-                    return;
-                }
-
-                reply.status(200);
-                reply.send(data);
-            });
-        }
-    });
-
+    /**
+     * POST - Accept a question as a helper
+     */
     fastify.route({
         method: "POST",
         url: "/accept",
@@ -250,70 +241,84 @@ function routes (fastify, opts, done) {
             }
         },
         preValidation: [ fastify.authenticate ],
-        handler: function(request, reply) {
-            const nm = notificationsModule({ mongo: fastify.mongo });
+        handler: async (request, reply) => {
             const qm = questionsModule({ mongo: fastify.mongo });
             const um = userModule({ mongo: fastify.mongo });
 
+            const userId = request.body.userId;
+            const questionId = request.body.questionId;
+
             // TODO: add more security checks
 
-            function getHelperCallback(err, data) {
-                if (err || !data) {
-                    request.log.info(err);
-                    return;
-                }
-
-                // update helper
-                const user = um.User.fromJson(data);
-                user.questionsHelped.push(request.body.questionId);
-
-                user.update(
-                    {$set: {
-                        currentQuestion: request.body.questionId,
-                        questionsHelped: user.questionsHelped
-                    }},
-                    (err) => {
-                        if (err) {
-                            request.log.info(err);
-                        }
-                    }
-                );
+            let qJson;
+            try {
+                qJson = await qm.Question.retrieve(questionId);
+            } catch (e) {
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
             }
 
-            qm.Question.retrieve(request.body.questionId, (err, q) => {
-                if (ru.errCheck(reply, 400, err)) return;
+            if (qJson.seeker === userId) {
+                reply.status(rc.BAD_REQUEST);
+                reply.send("Cannot accept your own question.");
+            }
 
-                if (q.seeker === request.body.userId) {
-                    reply.status(400);
-                    reply.send("Cannot accept your own question.");
-                }
-
-                qm.Question.fromJson(q).update({
+            try {
+                await qm.Question.fromJson(qJson).update({
                     $set:
                         {
                             helperAccepted: true,
                             finalHelper: request.body.userId,
                             questionState: "Matched"
                         }
-                }, (err) => {
-                    if (ru.errCheck(reply, 400, err)) return;
-                    
-                    nm.sendUserNotification(q.seeker, `Helper for ${q.title} accepted: 
-                    ${q.optimalHelper}`,
-                    "basic", {}, (err, result) => {
-                        if (ru.errCheck(reply, 400, err)) return;
-
-                        reply.status(200);
-                        reply.send("Found match");
-                    });
-
-                    // update the helper
-                    um.User.retrieve(q.optimalHelper, getHelperCallback);
                 });
-            });
+            } catch (e) {
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
+            }
+
+            try {
+                await um.User.sendNotification(
+                    qJson.seeker,
+                    `Helper for ${qJson.title} accepted: 
+                    ${qJson.optimalHelper}`,
+                    "basic", {}
+                );
+            } catch (e) {
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
+            }
+
+            reply.status(rc.OK);
+            reply.send({ msg: `${userId} accepted ${questionId}` });
+
+            // update the helper
+            let helper;
+            try {
+                helper = await um.User.retrieve(qJson.optimalHelper);
+            } catch (e) {
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
+            }
+
+            if (!helper) {
+                request.log.info("No helper found");
+                return;
+            }
+
+            // update helper
+            const user = um.User.fromJson(helper);
+            user.questionsHelped.push(questionId);
+
+            user.update( {
+                $set: {
+                    currentQuestion: questionId,
+                    questionsHelped: user.questionsHelped
+                }
+            })
+                .catch(request.log.info);
         }
     });
 
+    /**
+     * POST - Close a question as a seeker
+     */
     fastify.route({
         method: "POST",
         url: "/close/:seekerId",
@@ -327,67 +332,110 @@ function routes (fastify, opts, done) {
             }
         },
         preValidation: [ fastify.authenticate ],
-        handler: function(request, reply) {
+        handler: async (request, reply) => {
             const um = userModule({ mongo: fastify.mongo });
             const qm = questionsModule({ mongo: fastify.mongo });
             const rating = request.body.rating;
             const seekerId = request.params.seekerId;
 
+            if ((rating < 1) || (rating > 10)) {
+                reply.status(rc.BAD_REQUEST);
+                reply.send({
+                    msg: `Points '${rating} is not withing range 1-10`
+                });
+                return;
+            }
+
             // TODO: If seeker matches
 
-            um.User.retrieve(seekerId, (err, u) => {
-                if (ru.errCheck(reply, 400, err)) return;
+            let uJson;
+            try {
+                uJson = await um.User.retrieve(seekerId);
+            } catch (e) {
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
+            }
 
-                const seeker = um.User.fromJson(u);
+            const seeker = um.User.fromJson(uJson);
 
-                if (seeker.currentQuestion == null) {
-                    reply.status(400);
-                    reply.send(
-                        `Seeker '${seeker.userId} doesn't` +
-                        " have an open question.");
-                    return;
-                }
+            if (seeker.currentQuestion == null) {
+                reply.status(rc.BAD_REQUEST);
+                reply.send(
+                    `Seeker '${seeker.userId} doesn't` +
+                    " have an open question.");
+                return;
+            }
 
-                // clear the seeker's question
-                seeker.update(
-                    {$set: {
-                        currentQuestion: null
-                    }},
-                    (err) => {
-                        if (ru.errCheck(reply, 400, err)) return;
+            let qJson;
+            try {
+                qJson = await qm.Question.retrieve(seeker.currentQuestion);
+            } catch (e) {
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
+            }
 
-                        qm.Question.retrieve(seeker.currentQuestion, (err, qJson) => {
+            let hJson;
+            try {
+                hJson = await um.User.retrieve(qJson.finalHelper);
+            } catch (e) {
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
+            }
 
-                            if ((rating < 1) || (rating > 10)) {
-                                reply.status(400);
-                                reply.send(`Points '${rating} is not withing range 1-10`);
-                                return;
-                            }
-        
-                            if (errCheck(reply, err)) return;
-        
-                            um.User.retrieve(qJson.finalHelper, (err, hJson) => {
-                                if (ru.errCheck(reply, 400, err)) return;
-        
-                                const helper = um.User.fromJson(hJson);
-        
-                                helper.update(
-                                    {
-                                        $set: {
-                                            points: (helper.points + rating),
-                                            currentQuestion: null
-                                        }
-                                    }, (err) => {
-                                        if (ru.errCheck(reply, 400, err)) return;
-        
-                                        reply.status(200);
-                                        reply.send(`Rated user ${helper.userId}`);
-                                    });
-                            });
-                        });
-                    }
-                );
-            });
+            const helper = um.User.fromJson(hJson);
+            fastify.log.info(uJson);
+
+            try {
+                await helper.update(
+                    {
+                        $set: {
+                            points: (helper.points + rating),
+                            currentQuestion: null
+                        }
+                    });
+            } catch (e) {
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
+            }
+
+            // clear the seeker's question
+            try {
+                await seeker.update({ $set: { currentQuestion: null }});
+            } catch (e) {
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
+            }
+
+            reply.status(rc.OK);
+            reply.send(`Rated user ${helper.userId}`);
+
+        }
+    });
+
+    /* GET Requests */
+
+    /**
+     * GET question data by UUID
+     */
+    fastify.route({
+        method: "GET",
+        url: "/:questionId",
+        preValidation: [ fastify.authenticate ],
+        handler: async (request, reply) => {
+            const qm = questionsModule({ mongo: fastify.mongo });
+
+            let q;
+            try {
+                q = await qm.Question.retrieve(request.params.questionId);
+            } catch (e) {
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
+            }
+
+            fastify.log.info(q);
+
+            if (!q) {
+                reply.status(rc.BAD_REQUEST);
+                reply.send("No question found");
+                return;
+            }
+
+            reply.status(rc.OK);
+            reply.send(q);
         }
     });
 

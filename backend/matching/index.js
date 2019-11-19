@@ -1,4 +1,15 @@
 const user = require("../user");
+const config = require("../config");
+const logger = require("../logger").logger;
+
+const userCollection = config.collections.users;
+const EARTH_RADIUS = 6371; // Earth's radius (KM)
+
+/* TODO: Decide on weights */
+const LOCATION_WEIGHT = 1;
+const LAST_ACTIVE_WEIGHT = 1;
+const COURSE_CODE_WEIGHT = 1;
+const USER_RATING_WEIGHT = 1;
 
 let mongo;
 
@@ -17,52 +28,222 @@ class Match {
     }
 
     /**
-     * Find the most optimal helper for a certain question based on question data
-     * (such as the course of origin), the location of nearby users, how active and
-     * how many points a user has, and other factors.
+     * Find the most optimal helper for a certain question based on question
+     * data
+     * (such as the course of origin), the location of nearby users, how active
+     * and how many points a user has, and other factors.
      *
-     * @return {Promise<Helper>} Optimal helper
+     * @return {Promise<any>} Optimal helper
     */
-    async optimalHelper(callback) {
-        const um = user({ mongo: mongo });
-        const allMatches = await um.User.getAllUsers(); //TODO: Error?
-        console.log("All matches: ", allMatches); // TODO: Remove
+    async optimalHelper() {
+        const um = user({ mongo });
 
-        let highest = {"user": null, "rating": null};
-        um.User.retrieve(this._question.seeker, (err, questionUser) => {
-            for (let i = 0; i < allMatches.length; i++) {
-                const u = allMatches[i];
-                console.log("checking user:", u.userId);
-                if ((u.userId === this._question.seeker) ||
-                    (u.currentQuestion == null)) {
-                    continue;
+        let seekerJson;
+        try {
+            seekerJson = await um.User.retrieve(this._question.seeker);
+        } catch (e) {
+            throw new Error(e);
+        }
+
+        const collection = await mongo.db.collection(userCollection);
+
+        let highestQuery;
+        try {
+            /* Calculate highest rated user with MongoDB query */
+            highestQuery = await collection.aggregate([{
+                $match: {
+                    userId: {
+                        $ne: seekerJson.userId
+                    },
+                    currentQuestion: {
+                        $eq: null
+                    }
                 }
-                const rating = u.rating(this._question, um.User.fromJson(questionUser));
-                if (highest.rating === null || highest.rating < rating) {
-                    highest.user = u;
-                    highest.rating = rating;
+            },
+            {
+                $addFields: {
+                    dLat: {
+                        $degreesToRadians: {
+                            $subtract: [
+                                seekerJson.location.latitude,
+                                "$location.latitude"
+                            ]
+                        }
+                    },
+                    dLong: {
+                        $degreesToRadians: {
+                            $subtract: [
+                                seekerJson.location.longitude,
+                                "$location.longitude"
+                            ]
+                        }
+                    },
+                    lat1: {
+                        $degreesToRadians: 1
+                    },
+                    long1: {
+                        $degreesToRadians: 2
+                    },
+                    lat2: {
+                        $degreesToRadians: "$location.latitude"
+                    },
+                    long2: {
+                        $degreesToRadians: "$location.longitude"
+                    },
+
+                    totalPoints: {
+                        $multiply: [ "$points", USER_RATING_WEIGHT ]
+                    },
+                    totalLastOnline: {
+                        $multiply: [ "$lastOnline", LAST_ACTIVE_WEIGHT ]
+                    },
+
+                    totalCourses: {
+                        $cond: {
+                            if: {
+                                $setIsSubset: [
+                                    seekerJson.courses, "$courses"
+                                ]
+                            },
+                            then: COURSE_CODE_WEIGHT,
+                            else: 0
+                        }
+                    },
+                },
+            },
+            {
+                $addFields: {
+                    totalRating: {
+                        $add: [{
+                            $add: [
+                                "$totalPoints",
+                                {
+                                    $add: [{
+                                        $add: [
+                                            "$totalLastOnline", "$totalCourses"
+                                        ]
+                                    },
+                                    {
+                                        $add: [{
+                                            $multiply: [{
+                                                $sin: {
+                                                    $divide: ["$dLat", 2]
+                                                }
+                                            },
+                                            {
+                                                $sin: {
+                                                    $divide: ["$dLong", 2]
+                                                }
+                                            }
+                                            ]
+                                        },
+                                        {
+                                            $multiply: [
+                                                {
+                                                    $multiply: [{
+                                                        $cos: "$lat1"
+                                                    },
+                                                    {
+                                                        $cos: "$lat2"
+                                                    },
+                                                    {
+                                                        $sin: {
+                                                            $divide: [
+                                                                "$dLong", 2
+                                                            ]
+                                                        }
+                                                    },
+                                                    {
+                                                        $sin: {
+                                                            $divide: [
+                                                                "$dLong", 2
+                                                            ]
+                                                        }
+                                                    }
+                                                    ]
+                                                },
+                                                EARTH_RADIUS * -LOCATION_WEIGHT
+                                            ]
+                                        }
+                                        ]
+                                    }
+                                    ]
+                                }
+                            ]
+                        }]
+                    }
+                },
+            },
+            {
+                $group: {
+                    _id: null,
+                    finalRating: {
+                        $max: "$totalRating"
+                    },
+                    /* Get all the documents in the group using $push */
+                    records: {
+                        $push: "$$ROOT"
+                    }
+                }
+            },
+            /* Keep only that which have maximum finalRating == $totalRating */
+            {
+                $project: {
+                    items: {
+                        $filter: {
+                            input: "$records",
+                            as: "re",
+                            cond: {$eq: ["$$re.totalRating", "$$ROOT.finalRating"]}
+                        }
+                    },
+                    finalRating: "$$ROOT.finalRating"
                 }
             }
+            ]);
+        } catch (e) {
+            throw new Error(e);
+        }
 
-            // TODO: ??
-            /* The seeker’s rating will be taken into account as well, to
-             * incentivize users to act as helpers. If the seeker’s rating is too far
-             * below the best helper’s, the next best helper is chosen, and so on.
-             * This can be represented as follows:
-             */
-            // if ((highest.rating - question.uuid) < scoreDifferenceThreshold) {
-            //     matchSimilarScore = false;
-            // }
+        let highestUsers;
+        try {
+            highestUsers = await highestQuery.toArray();
+        } catch (e) {
+            throw new Error(e);
+        }
 
-            if (highest.user === null) {
-                console.log("no match was found for user, returning ", highest.user);
-                callback("No match", highest.user);
-                return;
+        if ((highestUsers.length === 0) ||
+            (highestUsers[0].items === null) ||
+            (highestUsers[0].items.length === 0)) {
+            throw new Error("no match was found for user");
+        }
+
+        let highest;
+        for (const u of highestUsers[0].items) {
+            highest = { userId: u.userId, rating: u.totalRating };
+            if (highest.userId !== null) {
+                break;
             }
+        }
 
-            console.log("match found for user, returning ", highest.user.userId);
-            callback(err, highest.user);
+        logger.log("debug","Found match:", {
+            highest,
+            seeker: this._question.seeker,
         });
+
+        /* The seeker’s rating will be taken into account as well, to
+         * incentivize users to act as helpers. If the seeker’s rating is too far
+         * below the best helper’s, the next best helper is chosen, and so on.
+         * This can be represented as follows:
+         */
+        // if ((highest.rating - question.uuid) < scoreDifferenceThreshold) {
+        //     matchSimilarScore = false;
+        // }
+
+        if (highest.userId === null) {
+            throw new Error("no match was found for user");
+        }
+
+        return highest;
     }
 
 }

@@ -1,67 +1,13 @@
-const geolib = require("geolib");
+const gcm = require("node-gcm");
 
-const userCollection = "users";
+const config = require("../config");
+
+const SERVER_KEY = config.FCM_KEY;
+const sender = new gcm.Sender(SERVER_KEY);
+
+const userCollection = config.collections.users;
+
 let mongo;
-
-/**
- * Class representing a Helper
- */
-class Helper {
-    /**
-     * @param {User} user
-     * @param {boolean} accepted
-     */
-    constructor(user, accepted) {
-        this._user = user;
-        this._accepted = accepted;
-    }
-
-    /**
-     * @returns {Helper} Empty helper
-     */
-    static emptyHelper() {
-        return new Helper("", false);
-    }
-
-    /**
-     * Get the user
-     * @returns {User} The user
-     */
-    get user() {
-        return this._user;
-    }
-
-    /**
-     * Set the user
-     * @param {User} user
-     */
-    set user(user) {
-        this._user = user;
-    }
-
-    /**
-     * Get accepted
-     * @returns {boolean} accepted
-     */
-    get accepted() {
-        return this._accepted;
-    }
-
-    /**
-     * Set accepted
-     * @param {boolean} accepted
-     */
-    set accepted(accepted) {
-        this._accepted = accepted;
-    }
-
-}
-
-/* TODO: Decide on weights */
-const LOCATION_WEIGHT = 1;
-const LAST_ACTIVE_WEIGHT = 1;
-const COURSE_CODE_WEIGHT = 1;
-const USER_RATING_WEIGHT = 1;
 
 /**
  * Class representing a User
@@ -77,7 +23,7 @@ class User {
      * @param {number}      lastOnline
      * @param {string}      currentQuestion
      * @param {string}      token
-     * @param {Location}    location
+     * @param {Object}      location
      * @param {string}      fcmToken
      */
     constructor(userId, points, courses, questionsPosted, questionsHelped,
@@ -104,7 +50,8 @@ class User {
     static newUser(email) {
         return new User(email, 0, [],
             [], [], Date.now(),
-            null, null, new Location(0, 0), null);
+            null, null,
+            { longitude: 0, latitude: 0}, null);
     }
 
     /**
@@ -112,20 +59,19 @@ class User {
      * @param {object} jsonUser
      */
     static fromJson(jsonUser) {
-        console.log(jsonUser);
         return new User(
             jsonUser.userId, jsonUser.points, jsonUser.courses,
             jsonUser.questionsPosted, jsonUser.questionsHelped,
             jsonUser.lastOnline, jsonUser.currentQuestion,
             jsonUser.token,
-            Location.fromJson(jsonUser.location),
+            jsonUser.location,
             jsonUser.fcmToken
         );
     }
 
     /**
      * Get the location
-     * @returns {Location} location
+     * @returns {Object} location
      */
     get location() {
         return this._location;
@@ -133,7 +79,7 @@ class User {
 
     /**
      * Set the location
-     * @param {Location} location
+     * @param {Object} location
      */
     set location(location) {
         this._location = location;
@@ -268,160 +214,196 @@ class User {
             lastOnline: this._lastOnline,
             currentQuestion: this._currentQuestion,
             token: this._token,
-            location: this._location.toJson(),
+            location: this._location,
             fcmToken: this._fcmToken
         };
     }
 
     /**
-     * Check if a user exists
+     * Check if user exists
      *
      * @param userId
      * @returns {Promise<boolean>}
      */
     static async exists(userId) {
-        const count = await mongo.db.collection(userCollection)
-            .find({ "userId": { $exists: true, $eq: userId } })
-            .count();
-
-        return count !== 0;
+        try {
+            const count = await mongo.db.collection(userCollection)
+                .find({"userId": {$exists: true, $eq: userId}})
+                .count();
+            return count !== 0;
+        } catch (err) {
+            throw new Error(
+                `Failed to check for ${userId} in database ${err}`
+            );
+        }
     }
 
     /**
-     * Adds a user to our database.
-     * @param {function} callback
+     * Adds a user to the database.
+     *
+     * @returns {Promise<any>}
      */
-    create(callback) {
-        const collection = mongo.db.collection(userCollection);
-
+    async create() {
+        const collection = await mongo.db.collection(userCollection);
         const jsonData = this.toJson();
-        collection.ensureIndex({ userId: 1 }, { unique: true }, () => {
-            collection.insertOne(jsonData, function (err, result) {
-                if (err !== null) {
-                    console.log(
-                        `Failed to insert ${jsonData.userId} into users`);
-                } else {
-                    console.log(
-                        `Inserted user ${jsonData.userId} into users`);
-                }
-                callback(err);
-            });
-        });
+        try {
+            await collection.createIndexes(
+                [ { key: { userId: 1 } } ],
+                { unique: true }
+            );
+            return collection.insertOne(jsonData);
+        } catch (err) {
+            throw new Error(
+                `Failed to insert ${jsonData.userId} into the collection ${err}`
+            );
+        }
     }
 
     /**
      * Updates the user in the database.
-     * @param {object}      update
-     * @param {function}    callback
+     *
+     * @param {object} update
+     * @returns {Promise<any>}
      */
-    update(update, callback) {
-        const collection = mongo.db.collection(userCollection);
-
-        collection.findOneAndUpdate(
-            { userId: this._userId },
-            update,
-            callback
-        );
+    async update(update) {
+        const collection = await mongo.db.collection(userCollection);
+        try {
+            return collection.findOneAndUpdate({userId: this._userId}, update);
+        } catch (err) {
+            throw new Error(
+                `Failed to update user ${this._userId}`
+            );
+        }
     }
 
     /**
-     * Retrieve a user from database.
-     * @param {string} email
-     * @param {function} callback
+     * Retrieve a user from database
+     *
+     * @param {string} userId
+     * @returns {Promise<any>}
      */
-    static retrieve(email, callback) {
-        mongo.db.collection(userCollection).findOne({
-            userId: email
-        }, (err, result) => {
-            if (err !== null) {
-                console.log(`Failed to retrieve ${email} from the collection`);
-            } else {
-                console.log(`Retrieved user ${result} from the collection`);
-            }
-            callback(err, result);
-        });
+    static async retrieve(userId) {
+        const collection = await mongo.db.collection(userCollection);
+        try {
+            return collection.findOne({ userId });
+        } catch (err) {
+            throw new Error(
+                `Failed to retrieve user ${userId}`
+            );
+        }
     }
 
     /**
      * Retrieve all users from database.
      * @returns {Promise<User[]>} all users
      */
-    static async getAllUsers() {
-        const r = await mongo.db.collection(userCollection)
-            .find({})
-            .toArray();
-        return r.map((q) => (this.fromJson(q)));
-    }
-
-    rating(question, user) {
-        return (
-            (this.location.distance(user.location) * LOCATION_WEIGHT) +
-            (this.lastOnline * LAST_ACTIVE_WEIGHT) +
-            (this.points * USER_RATING_WEIGHT) +
-            (this._courses.includes(question.courseCode) ? COURSE_CODE_WEIGHT : 0)
-        );
-    }
-
-    static sanitizedJson(userId, callback) {
-        User.retrieve(userId, function(err, data) {
-            if (err || !data) {
-                callback(err, data);
-                return;
-            }
-
-            // remove the token fields before sending data back to client
-            data.token = null;
-            data.fcmToken = null;
-            callback(err, data);
-        });
-    }
-}
-
-/**
- * Create a Location
- */
-class Location {
-    /**
-     * @param {number} latitude
-     * @param {number} longitude
-     * @param {number} timestamp
-     */
-    constructor(latitude, longitude, timestamp) {
-        this._latitude = latitude;
-        this._longitude = longitude;
-        // this._timestamp = timestamp;
-    }
-
-    toJson() {
-        return { latitude: this._latitude, longitude: this._longitude };
-    }
-
-    static fromJson(jsonLocation) {
-        return new Location(jsonLocation.latitude, jsonLocation.longitude, 0);
-    }
+    // static async getAllUsers() {
+    //     let users;
+    //     try {
+    //         users = await mongo.db.collection(userCollection)
+    //             .find({})
+    //             .toArray();
+    //     } catch (err) {
+    //         throw new Error("Failed getting all users");
+    //     }
+    //     return users.map((q) => (this.fromJson(q)));
+    // }
 
     /**
-     * calculates the distance between two locations in kilometers
+     * Get 'sanitized' user in JSON format removing secret fields
      *
-     * @param {Location} location
+     * @param userId
+     * @returns {Promise<any>}
      */
-    distance(location) {
-        return geolib.getDistance(this.toJson(), location.toJson());
-    }
-}
+    static async sanitizedJson(userId) {
+        let userJson;
+        try {
+            userJson = await User.retrieve(userId);
+        } catch (err) {
+            throw new Error(err);
+        }
 
-function getUser(userId, callback) {
-    User.retrieve(userId, function(err, data) {
-        if (err || !data) {
-            callback(err, data);
-            return;
+        if (!userJson) {
+            throw new Error("No user found");
         }
 
         // remove the token fields before sending data back to client
-        data.token = null;
-        data.fcmToken = null;
-        callback(err, data);
-    });
+        userJson.token = null;
+        userJson.fcmToken = null;
+
+        return userJson;
+    }
+
+    static async registerForNotifications(userId, fcmToken) {
+        let userJson;
+        try {
+            userJson = await User.retrieve(userId);
+        } catch (err) {
+            return new Error(err);
+        }
+
+        if (!userJson) {
+            return new Error(
+                `Cannot find user ${userId} to register for notifications`);
+        }
+
+        const user = User.fromJson(userJson);
+        user.fcmToken = fcmToken;
+
+        // update database
+        try {
+            return await user.update({$set: { fcmToken }});
+        } catch (err) {
+            return new Error(err);
+        }
+    }
+
+    static async sendNotification(userId, title, body, data) {
+
+        // create message
+        const message = new gcm.Message({
+            notification: {
+                title,
+                body,
+                data
+            }
+        });
+
+        // get user
+
+        let user;
+        try {
+            user = await User.retrieve(userId);
+        } catch (err) {
+            return new Error(err);
+        }
+
+        if (!user) {
+            return new Error(`Cannot find user ${userId}`);
+        }
+
+        if (!user.fcmToken) {
+            return new Error("Cannot get user FCM token");
+        }
+
+        const fcmToken = user.fcmToken;
+
+        // Specify which registration IDs to deliver the message to
+        const regTokens = [fcmToken];
+
+        return new Promise(
+            (resolve, reject) => {
+                // Actually send the message
+                sender.send(message, {
+                    registrationTokens: regTokens
+                }, (err, result) => {
+                    if (err) reject(err);
+                    resolve(result);
+                });
+            }
+        );
+    }
+
 }
 
 module.exports = function (options) {
@@ -430,7 +412,6 @@ module.exports = function (options) {
     const module = {};
 
     module.User = User;
-    module.getUser = getUser;
 
     return module;
 };

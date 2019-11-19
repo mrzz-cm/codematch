@@ -104,6 +104,24 @@ db.createUser(
 )
 ```
 
+### Dump and Restore
+
+Dump database:
+
+```shell script
+mongodump --db=codematch \
+          --username=codematch \
+          --password=<PASSWORD>
+```
+
+Restore database:
+
+```shell script
+mongorestore --db=codematch \
+             --username=codematch \
+             --password=<PASSWORD> dump/codematch
+```
+
 ## API Keys
 
 Create a new project [Codematch](https://console.developers.google.com/apis/library).

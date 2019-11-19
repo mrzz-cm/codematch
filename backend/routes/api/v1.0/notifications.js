@@ -1,9 +1,14 @@
-const notificationsModule = require("../../../notifications");
+const userModule = require("../../../user");
 const ru = require("../../../utils/router");
-
-// TODO: Use https://www.npmjs.com/package/firebase-admin
+const rc = ru.responseCodes;
 
 function routes(fastify, opts, done) {
+
+    /* POST Requests */
+
+    /**
+     * POST - Register a new user for push notifications
+     */
     fastify.route({
         method: "POST",
         url: "/register",
@@ -18,15 +23,19 @@ function routes(fastify, opts, done) {
             }
         },
         preValidation: [ fastify.authenticate ],
-        handler: function(request, reply) {
-            const nm = notificationsModule({ mongo: fastify.mongo });
-            nm.registerUserForNotifications(request.body.userId, request.body.fcmToken,
-                function(err, data) {
-                    if (ru.errCheck(reply, 400, err)) return;
+        handler: async (request, reply) => {
+            const um = userModule({ mongo: fastify.mongo });
 
-                    reply.status(200);
-                    reply.send("New FCM token registered.");
-                });
+            try {
+                await um.User.registerForNotifications(
+                    request.body.userId, request.body.fcmToken
+                );
+            } catch (e) {
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
+            }
+
+            reply.status(rc.OK);
+            reply.send("New FCM token registered.");
         }
     });
 

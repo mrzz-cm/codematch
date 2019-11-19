@@ -22,14 +22,24 @@ const googleAuth = {
 
 const FCM_KEY = "FCM key here";
 
-const domain = 'cm.johnramsden.ca';
+const domain = "cm.johnramsden.ca";
 
 const jwtSecret = "SECRET_HERE";
 
+const logLevel = process.env.LOG_LEVEL || "debug";
+
+
+const collections = {
+    users: "users",
+    questions: "questions",
+};
+
 module.exports = {
     mongoDBConnection: mongoDBConnection,
+    collections: collections,
     googleAuth: googleAuth,
-    FCM_KEY: FCM_KEY,
     domain: domain,
-    jwtSecret: jwtSecret
+    FCM_KEY: FCM_KEY,
+    jwtSecret: jwtSecret,
+    logLevel: logLevel,
 };

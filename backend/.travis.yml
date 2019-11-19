@@ -3,6 +3,9 @@ node_js: "12"
 
 services: mongodb
 
+env:
+  - MODE=test
+
 before_install:
   - |
     mongo admin --eval 'db.createUser(
@@ -24,4 +27,8 @@ before_install:
       }
     )'
   - cp config.js.example config.js
+  - mongorestore --db=codematch --username=codematch --password=password data/tests/dump/codematch
 
+script:
+  - npm test
+  - npm run lint

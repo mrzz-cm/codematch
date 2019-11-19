@@ -27,10 +27,6 @@ const routes = [
         options: authentication.oauthOptions
     },
     {
-        plugin: require("./routes/api/v1.0/index"),
-        options: {}
-    },
-    {
         plugin: require("./routes/api/v1.0/auth"),
         options: { prefix: "/auth" }
     },
@@ -50,18 +46,17 @@ const routes = [
 ];
 routes.forEach((p) => fastify.register(p.plugin, p.options));
 
-function startServer(fastify, port, callback) {
-    fastify.listen(port, (err, address) => {
-        if (err) {
-            fastify.log.error(err);
-            process.exit(1);
-        }
-        callback(err, fastify);
-    });
+async function startServer(fastify, port) {
+    try {
+        await fastify.listen(port);
+    } catch (err) {
+        fastify.log.error(err);
+        process.exit(1);
+    }
 }
 
 // Options currently unused
 module.exports = {
-    fastify: fastify,
+    fastify,
     start: startServer,
 };

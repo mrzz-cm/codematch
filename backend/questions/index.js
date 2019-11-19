@@ -1,4 +1,3 @@
-const userModule = require("../user");
 const uuidv1 = require("uuid/v1");
 
 const questionCollection = "questions";
@@ -99,64 +98,76 @@ class Question {
         };
     }
 
+    /**
+     * Check if question exists
+     *
+     * @param uuid
+     * @returns {Promise<boolean>}
+     */
     static async exists(uuid) {
-        const count = await mongo.db.collection(questionCollection)
-            .find({ "uuid": { $exists: true, $eq: uuid } })
-            .count();
-
-        return count !== 0;
+        try {
+            const count = await mongo.db.collection(questionCollection)
+                .find({"uuid": {$exists: true, $eq: uuid}})
+                .count();
+            return count !== 0;
+        } catch (err) {
+            throw new Error(
+                `Failed to check for ${uuid} in database`
+            );
+        }
     }
 
     /**
      * Adds a question to our database.
-     * @param {function} callback
+     * @return Promise<any>
      */
-    create(callback) {
-        const collection = mongo.db.collection(questionCollection);
-
+    async create() {
+        const collection = await mongo.db.collection(questionCollection);
         const jsonData = this.toJson();
-        collection.ensureIndex({ uuid: 1 }, { unique: true }, () => {
-            collection.insertOne(jsonData, function (err, result) {
-                if (err !== null) {
-                    console.log(`Failed to insert ${jsonData.uuid} into the collection`);
-                } else {
-                    console.log(`Inserted question ${jsonData.uuid} into the collection`);
-                }
-                callback(err);
-            });
-        });
+        try {
+            await collection.createIndexes(
+                [ { key: {uuid: 1 } } ],
+                { unique: true }
+            );
+            return collection.insertOne(jsonData);
+        } catch (err) {
+            throw new Error(
+                `Failed to insert ${jsonData.uuid} into the collection`
+            );
+        }
     }
 
     /**
-     * Updates the question in the database.
-     * @param {object}      update
-     * @param {function}    callback
+     * Updates the question in the database
+     *
+     * @param {object} update
+     * @return {Promise<any>}
      */
-    update(update, callback) {
-        const collection = mongo.db.collection(questionCollection);
-
-        collection.findOneAndUpdate(
-            { uuid: this.uuid },
-            update,
-            callback
-        );
+    async update(update) {
+        const collection = await mongo.db.collection(questionCollection);
+        try {
+            return collection.findOneAndUpdate({uuid: this.uuid}, update);
+        } catch (err) {
+            throw new Error(
+                `Failed to update question ${this.uuid}`
+            );
+        }
     }
 
     /**
      * Retrieve a question from database.
      * @param {string}   uuid
-     * @param {function} callback
+     * @return {Promise<Object>}
      */
-    static retrieve(uuid, callback) {
-        const collection = mongo.db.collection(questionCollection);
-        collection.findOne({ uuid: uuid }, function (err, result) {
-            if (err !== null) {
-                console.log(`Failed to retrieve ${uuid} from the collection`);
-            } else {
-                console.log(`Retrieved question ${result} from the collection`);
-            }
-            callback(err, result);
-        });
+    static async retrieve(uuid) {
+        const collection = await mongo.db.collection(questionCollection);
+        try {
+            return collection.findOne({ uuid });
+        } catch (err) {
+            throw new Error(
+                `Failed to retrieve question ${uuid}`
+            );
+        }
     }
 }
 
@@ -165,28 +176,11 @@ class Question {
  * Module Functions
  */
 
-/**
- * Handles the request to post a question.
- */
-function createQuestion(questionData, callback) {
-    // make a new question
-    const new_question = Question.newQuestion(questionData.userId, questionData.title,
-        questionData.courseCode, questionData.questionText);
-    callback(null, 200, new_question);
-}
-
-function getQuestion(questionId, callback) {
-    Question.retrieve(questionId, callback);
-}
-
-
 module.exports = function (options) {
     mongo = options.mongo;
 
     const module = {};
 
-    module.createQuestion = createQuestion;
-    module.getQuestion = getQuestion;
     module.Question = Question;
 
     return module;
