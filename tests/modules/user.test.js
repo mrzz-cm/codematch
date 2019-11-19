@@ -67,3 +67,36 @@ describe("User update test", () => {
             .then(() => done());
     });
 });
+
+
+describe("User Json test", () => {
+
+    test("User fromJson constructor and toJson method working", async (done) => {
+        const userJson = {
+            "courses": [],
+            "currentQuestion": null,
+            "fcmToken": null,
+            "lastOnline": 1573962073665,
+            "location": {
+                "latitude": -123.24,
+                "longitude": 49.26
+            },
+            "points": 1,
+            "questionsHelped": [],
+            "questionsPosted": [],
+            "token": null,
+            "userId": "testUser"
+        };
+
+        const newUser = um.User.fromJson(userJson);
+
+        expect(newUser.toJson()).toEqual(userJson);
+
+        // modify the user, try again
+        newUser.currentQuestion = "questionId";
+
+        expect(newUser.toJson().currentQuestion).toBe("questionId");
+
+        done();
+    });
+});
