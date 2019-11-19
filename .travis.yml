@@ -19,6 +19,7 @@ matrix:
             - ANDROID_BUILD_TOOLS_VERSION=29.0.0
             - ANDROID_SDK_TOOLS=sdk-tools-linux-4333796.zip
           install:
+            - cd $TRAVIS_BUILD_DIR/backend && npm install
             # latest SDK Platform-Tools
             - yes | sdkmanager "platform-tools" >/dev/null
             # defined SDK Platform
@@ -28,7 +29,6 @@ matrix:
             # list installed and available packages
             - sdkmanager --list
           script:
-            - cd $TRAVIS_BUILD_DIR/backend && npm install
             - |
               node "$TRAVIS_BUILD_DIR/backend/bin/www" &
               SERVER_PID=$!
