@@ -10,6 +10,7 @@ mongo admin --eval 'db.createUser(
           ]
         }
       )'
+
 mongo codematch --eval 'db.createUser(
       {
         user: "codematch",
@@ -18,5 +19,3 @@ mongo codematch --eval 'db.createUser(
       }
     )'
 
-# mongorestore --db=codematch --username=codematch --password=password \
-#     "$TRAVIS_BUILD_DIR/backend/data/tests/dump/codematch"
