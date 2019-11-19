@@ -2,7 +2,7 @@
 
 if ! dpkg -s openjdk-8-jdk >/dev/null 2>&1; then
     apt-get update
-    apt-get install openjdk-8-jdk
+    apt-get install openjdk-8-jdk android-tools-adb
 fi
 
 java -version
