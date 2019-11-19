@@ -50,6 +50,130 @@ describe("Account creation test", () => {
 });
 
 
+describe("Account modification test", () => {
+    const testUser = "testUser@example.com";
+
+    afterAll(async () => {
+        const userCollection = await fastify.mongo.db.collection("users");
+        await userCollection.deleteOne({ userId: testUser });
+    });
+
+    beforeAll(async () => {
+        const user = um.User.newUser(testUser);
+        await user.create();
+    });
+
+    test("Update location test", async (done) => {
+        const response = await fastify.inject({
+            method: "PUT",
+            url: "/user/location/" + testUser,
+            body: {
+                longitude: -100,
+                latitude: 100
+            }
+        });
+
+        expect(response.statusCode).toBe(200);
+
+        // check database
+        const user = await um.User.retrieve(testUser);
+        expect(user.location.longitude).toBe(-100);
+        expect(user.location.latitude).toBe(100);
+
+        done();
+    });
+
+    test("Add course test", async (done) => {
+        const response = await fastify.inject({
+            method: "POST",
+            url: "/user/add-course",
+            body: {
+                userId: testUser,
+                courseId: "CPEN 321"
+            }
+        });
+
+        expect(response.statusCode).toBe(200);
+
+        // check database
+        const user = await um.User.retrieve(testUser);
+        expect(user.courses).toEqual(["CPEN 321"]);
+
+        done();
+    });
+});
+
+
+describe("Getting user data", () => {
+    const testUser = "testUser@example.com";
+
+    afterAll(async () => {
+        const userCollection = await fastify.mongo.db.collection("users");
+        await userCollection.deleteOne({ userId: testUser });
+    });
+
+    beforeAll(async () => {
+        const user = um.User.newUser(testUser);
+        await user.create();
+    });
+
+    test("Getting user data", async (done) => {
+        const response = await fastify.inject({
+            method: "GET",
+            url: "/user/" + testUser
+        });
+
+        expect(response.statusCode).toBe(200);
+        expect(JSON.parse(response.body).userId).toBe(testUser);
+
+        done();
+    });
+});
+
+
+describe("Getting question data", () => {
+    let questionId;
+    const testQuestion = {
+        uuid: "123",
+        title: "test problem",
+        courseCode: "CPEN 321",
+        questionText: "A test problem",
+        seeker: "testuser@example.com",
+        creationTimestamp: 123,
+        optimalHelper: "helper@example.com",
+        helperNotifiedTimestamp: 124,
+        helperAccepted: null,
+        prevCheckedHelpers: [],
+        finalHelper: null,
+        questionState: "Waiting",
+        finalScore: null
+    };
+
+    afterAll(async () => {
+        const collection = await fastify.mongo.db.collection("questions");
+        await collection.deleteOne({uuid: questionId});
+    });
+
+    beforeAll(async () => {
+        const q = qm.Question.fromJson(testQuestion);
+        await q.create();
+        questionId = q.uuid;
+    });
+
+    test("Getting user data", async (done) => {
+        const response = await fastify.inject({
+            method: "GET",
+            url: "/questions/" + questionId
+        });
+
+        expect(response.statusCode).toBe(200);
+        expect(JSON.parse(response.body).uuid).toBe(questionId);
+
+        done();
+    });
+});
+
+
 describe("Posting new question test", () => {
 
     let question;
