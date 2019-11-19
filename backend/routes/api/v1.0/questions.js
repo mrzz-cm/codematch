@@ -382,6 +382,7 @@ function routes (fastify, opts, done) {
             const helper = um.User.fromJson(hJson);
             fastify.log.info(uJson);
 
+            // update helper's points
             try {
                 await helper.update(
                     {
@@ -397,6 +398,21 @@ function routes (fastify, opts, done) {
             // clear the seeker's question
             try {
                 await seeker.update({ $set: { currentQuestion: null }});
+            } catch (e) {
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
+            }
+
+            // set the status of the question to "Resolved"
+            const question = qm.Question.fromJson(qJson);
+            try {
+                await question.update(
+                    {
+                        $set: {
+                            finalScore: rating,
+                            questionState: "Resolved"
+                        }
+                    }
+                );
             } catch (e) {
                 if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
             }
