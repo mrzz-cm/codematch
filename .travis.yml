@@ -27,7 +27,6 @@ before_install:
       }
     )'
   - cp config.js.example config.js
-  - mongorestore --db=codematch --username=codematch --password=password data/tests/dump/codematch
 
 script:
   - npm test
