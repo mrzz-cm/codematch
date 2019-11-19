@@ -2,6 +2,8 @@
 
 /* eslint no-undef: "off" */
 const app = require("../../app");
+const logger = require("../../logger").logger;
+
 const fastify = app.fastify;
 const { PerformanceObserver, performance } = require('perf_hooks');
 
@@ -31,6 +33,8 @@ describe("Check matching functional requirements", () => {
 
         const t1 = performance.now();
         const time = t1 - t0;
+
+        logger.info("Time to Run matching", { time });
 
         // API response time to input data under 30 ms
         expect(time).toBeLessThan(30);
