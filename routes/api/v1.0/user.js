@@ -62,7 +62,7 @@ function routes (fastify, opts, done) {
             }
 
             if (userExists) {
-                ru.errCheck(reply, rc.INTERNAL_SERVER_ERROR, "User exists");
+                ru.errCheck(reply, rc.BAD_REQUEST, "User exists");
                 return;
             }
 

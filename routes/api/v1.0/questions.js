@@ -86,7 +86,7 @@ function routes (fastify, opts, done) {
             }
 
             if (!q) {
-                reply.status(rc.INTERNAL_SERVER_ERROR);
+                reply.status(rc.BAD_REQUEST);
                 reply.send(`No question found in user ${body.userId}`);
                 return;
             }
@@ -95,7 +95,7 @@ function routes (fastify, opts, done) {
             try {
                 await q.create();
             } catch (e) {
-                if (ru.errCheck(reply, rc.INTERNAL_SERVER_ERROR, e)) return;
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
             }
 
             // set the user's current question
@@ -248,7 +248,18 @@ function routes (fastify, opts, done) {
             const userId = request.body.userId;
             const questionId = request.body.questionId;
 
-            // TODO: add more security checks
+            let userExists;
+            try {
+                userExists = await um.User.exists(request.body.userId);
+            } catch (e) {
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
+            }
+
+            if (!userExists) {
+                reply.status(rc.BAD_REQUEST);
+                reply.send("Provided user doesn't exist.");
+                return;
+            }
 
             let qJson;
             try {
