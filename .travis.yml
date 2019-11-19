@@ -12,6 +12,7 @@ matrix:
             - npm test
             - npm run lint
         - language: minimal
+          services: mongodb
           sudo: required
           env:
             - SUB_WORKING_DIRECTORY=frontend

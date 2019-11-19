@@ -28,7 +28,6 @@ const jwtSecret = "SECRET_HERE";
 
 const logLevel = process.env.LOG_LEVEL || "debug";
 
-
 const collections = {
     users: "users",
     questions: "questions",
