@@ -5,25 +5,28 @@ import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.FormBody;
 import okhttp3.MediaType;
-import okhttp3.MultipartBody;
+//import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
-import android.accounts.AccountManager;
+//import android.accounts.AccountManager;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.StrictMode;
+//import android.os.Handler;
+//import android.os.StrictMode;
 import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
-import com.google.android.gms.auth.api.signin.*;
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.auth.api.signin.GoogleSignInClient;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -39,7 +42,9 @@ import java.io.IOException;
 
 
 public class LoginView extends AppCompatActivity {
-    GoogleSignInClient mGoogleSignInClient;
+    private String CHANNEL_ID = "1";
+    private GoogleSignInClient mGoogleSignInClient;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,6 +60,8 @@ public class LoginView extends AppCompatActivity {
                 switch (v.getId()) {
                     case R.id.sign_in_button:
                         signIn();
+                        break;
+                    default:
                         break;
                 }
             }
@@ -73,7 +80,7 @@ public class LoginView extends AppCompatActivity {
                         // Get new Instance ID token
                         String token = task.getResult().getToken();
                         System.out.println("Firebase token changed to " + token);
-                        Global.FIREBASE_TOKEN = token;
+                        GlobalUtils.FIREBASE_TOKEN = token;
                     }
                 });
 
@@ -115,7 +122,7 @@ public class LoginView extends AppCompatActivity {
             GoogleSignInAccount account = task.getResult(ApiException.class);
 
             // signed in successfully, show the notification UI
-            Global.EMAIL = account.getEmail();
+            GlobalUtils.EMAIL = account.getEmail();
             sendAccessToken(account);
         } catch (ApiException e) {
             System.out.println("signInResult:failed code=" + e.getStatusCode());
@@ -143,7 +150,7 @@ public class LoginView extends AppCompatActivity {
         final GoogleSignInAccount faccount = account;
 
         String authcode = account.getServerAuthCode();
-        final OkHttpClient client = Global.HTTP_CLIENT;
+        final OkHttpClient client = GlobalUtils.HTTP_CLIENT;
         RequestBody requestBody = new FormBody.Builder()
                 .add("grant_type", "authorization_code")
                 .add("client_id", getString(R.string.default_web_client_id))
@@ -166,18 +173,17 @@ public class LoginView extends AppCompatActivity {
             public void onResponse(Call call2, Response response) throws IOException {
                 try {
                     JSONObject jsonObject = new JSONObject(response.body().string());
-                    String message = jsonObject.toString(5);
 
                     Request getServerTokenRequest = new Request.Builder()
-                            .url(Global.BASE_URL + "/auth/token?access_token=" + jsonObject.get("access_token"))
+                            .url(GlobalUtils.BASE_URL + "/auth/token?access_token=" + jsonObject.get("access_token"))
                             .build();
                     Call call = client.newCall(getServerTokenRequest);
-                    response = call.execute();
+                    Response newResponse = call.execute();
 
-                    Global.API_KEY = response.body().string();
+                    GlobalUtils.API_KEY = newResponse.body().string();
 
-                    System.out.println("Api key updated to " + Global.API_KEY + "\n");
-                    notify_create_account( jsonObject.get("access_token").toString());
+                    System.out.println("Api key updated to " + GlobalUtils.API_KEY + "\n");
+                    notifyCreateAccount( jsonObject.get("access_token").toString());
                     notifyFirebaseToken();
 
                     updateUI(faccount);
@@ -188,7 +194,7 @@ public class LoginView extends AppCompatActivity {
         });
     }
 
-    private void notify_create_account( String google_access_token) {
+    private void notifyCreateAccount(String google_access_token) {
         JSONObject jsonObject = new JSONObject();
         try {
             jsonObject.put("access_token", google_access_token);
@@ -200,14 +206,14 @@ public class LoginView extends AppCompatActivity {
         RequestBody body = RequestBody.create(jsonObject.toString(), JSON);
 
         Request notify_create_account_request = new Request.Builder()
-                .url(Global.BASE_URL + "/user/register")
-                .addHeader("Authorization", "Bearer " + Global.API_KEY)
+                .url(GlobalUtils.BASE_URL + "/user/register")
+                .addHeader("Authorization", "Bearer " + GlobalUtils.API_KEY)
                 .post(body)
                 .build();
 
         Response response = null;
         try {
-            response = Global.HTTP_CLIENT.newCall(notify_create_account_request).execute();
+            response = GlobalUtils.HTTP_CLIENT.newCall(notify_create_account_request).execute();
             int statuscode = response.code();
             System.out.println("Create account return " + statuscode + "\n");
         } catch (IOException e) {
@@ -219,8 +225,8 @@ public class LoginView extends AppCompatActivity {
     private void notifyFirebaseToken() {
         JSONObject jsonObject = new JSONObject();
         try {
-            jsonObject.put("userId", Global.EMAIL);
-            jsonObject.put("fcmToken", Global.FIREBASE_TOKEN);
+            jsonObject.put("userId", GlobalUtils.EMAIL);
+            jsonObject.put("fcmToken", GlobalUtils.FIREBASE_TOKEN);
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -229,21 +235,21 @@ public class LoginView extends AppCompatActivity {
         RequestBody body = RequestBody.create(jsonObject.toString(), JSON);
 
         Request notify_send_firebase_key = new Request.Builder()
-                .url(Global.BASE_URL + "/notifications/register")
-                .addHeader("Authorization", "Bearer " + Global.API_KEY)
+                .url(GlobalUtils.BASE_URL + "/notifications/register")
+                .addHeader("Authorization", "Bearer " + GlobalUtils.API_KEY)
                 .post(body)
                 .build();
 
         Response response = null;
         try {
-            response = Global.HTTP_CLIENT.newCall(notify_send_firebase_key).execute();
+            response = GlobalUtils.HTTP_CLIENT.newCall(notify_send_firebase_key).execute();
             int statuscode = response.code();
             System.out.println("Send firebase key return " + statuscode + "\n");
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
-    String CHANNEL_ID = "1";
+
     //Move to notificationsModule
     public void createNotificationChannel() {
         // Create the NotificationChannel, but only on API 26+ because
