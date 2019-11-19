@@ -8,7 +8,6 @@ import android.view.ViewParent;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
-import org.hamcrest.core.IsInstanceOf;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -25,7 +24,6 @@ import androidx.test.uiautomator.Until;
 
 import static androidx.test.espresso.Espresso.onView;
 import static androidx.test.espresso.action.ViewActions.click;
-import static androidx.test.espresso.assertion.ViewAssertions.matches;
 import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static androidx.test.espresso.matcher.ViewMatchers.withClassName;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
@@ -35,13 +33,13 @@ import static org.hamcrest.Matchers.is;
 
 @LargeTest
 @RunWith(AndroidJUnit4.class)
-public class LoginViewTest {
+public class PostQuestionTest {
 
     @Rule
     public ActivityTestRule<LoginView> mActivityTestRule = new ActivityTestRule<>(LoginView.class);
 
     @Test
-    public void loginViewTest3() {
+    public void postQuestionTest() {
         ViewInteraction je = onView(
                 allOf(withText("Sign in"),
                         childAtPosition(
@@ -69,15 +67,38 @@ public class LoginViewTest {
 
         }
 
-        ViewInteraction linearLayout = onView(
-                allOf(childAtPosition(
-                        allOf(withId(R.id.notifications_list),
+        ViewInteraction floatingActionButton = onView(
+                allOf(withId(R.id.postQuestionFAB),
+                        childAtPosition(
                                 childAtPosition(
-                                        IsInstanceOf.<View>instanceOf(android.view.ViewGroup.class),
-                                        1)),
-                        0),
+                                        withId(android.R.id.content),
+                                        0),
+                                4),
                         isDisplayed()));
-        linearLayout.check(matches(isDisplayed()));
+        floatingActionButton.perform(click());
+
+        try{
+            Thread.sleep(5000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        ViewInteraction appCompatButton = onView(
+                allOf(withId(R.id.postQuestionButton), withText("Post question"),
+                        childAtPosition(
+                                childAtPosition(
+                                        withId(android.R.id.content),
+                                        0),
+                                4),
+                        isDisplayed()));
+        appCompatButton.perform(click());
+
+        device.openNotification();
+        device.wait(Until.hasObject(By.textStartsWith("codematchfrontend")), 1000);
+        UiObject2 title = device.findObject(By.text("codematchfrontend"));
+        UiObject2 description = device.findObject(By.text("No match was found for your problem."));
+        assert(description.getText().equals("No match was found for your problem."));
+        title.click();
     }
 
     private static Matcher<View> childAtPosition(
