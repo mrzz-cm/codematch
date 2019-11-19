@@ -46,6 +46,8 @@ matrix:
             - chmod +x $TRAVIS_BUILD_DIR/frontend/gradlew
             - cd $TRAVIS_BUILD_DIR/frontend && ./gradlew connectedAndroidTest
             - kill $SERVER_PID
+          licenses:
+            - '.+'
 
 before_install:
   - if [ "$SUB_WORKING_DIRECTORY" = "backend" ]; then
