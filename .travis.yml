@@ -34,7 +34,7 @@ matrix:
               SERVER_PID=$!
               export SERVER_PID=$SERVER_PID
             - chmod +x $TRAVIS_BUILD_DIR/frontend/gradlew
-            - $TRAVIS_BUILD_DIR/frontend/gradlew connectedAndroidTest
+            - cd $TRAVIS_BUILD_DIR/frontend && ./gradlew connectedAndroidTest
             - kill $SERVER_PID
 
 before_install:
@@ -48,4 +48,3 @@ before_install:
     fi
   - cp "$TRAVIS_BUILD_DIR/backend/config.js.example" "$TRAVIS_BUILD_DIR/backend/config.js"
   - cd "$TRAVIS_BUILD_DIR/$SUB_WORKING_DIRECTORY"
-  - yes | sdkmanager "platforms;android-27"
