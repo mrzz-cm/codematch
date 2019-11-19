@@ -165,3 +165,83 @@ describe("Helping a question test", () => {
         done();
     });
 });
+
+
+describe("Rating a helper test", () => {
+
+    let question;
+    const testSeeker = "testSeeker@example.com";
+    const testHelper = "testHelper@example.com";
+
+    afterAll(async () => {
+        const collection = await fastify.mongo.db.collection("questions");
+        const userCollection = await fastify.mongo.db.collection("users");
+        await collection.deleteOne({uuid: question.uuid});
+        await userCollection.deleteOne({ userId: testSeeker });
+        await userCollection.deleteOne({ userId: testHelper });
+    });
+
+    beforeAll(async () => {
+        const seekerUser = um.User.newUser(testSeeker);
+        await seekerUser.create();
+
+        const helperUser = um.User.newUser(testHelper);
+        await helperUser.create();
+    });
+
+    test("Rating a helper", async (done) => {
+        // step one: seeker posts the question
+        await fastify.inject({
+            method: "POST",
+            url: "/questions/create",
+            body: {
+                userId: testSeeker,
+                title: "Test Question",
+                courseCode: "CPEN 321",
+                questionText: "A test question."
+            }
+        });
+
+        // get the question ID
+        var seekerUser = await um.User.retrieve(testSeeker);
+        question = await qm.Question.retrieve(seekerUser.currentQuestion);
+
+        // step two: helper accepts to give help
+        await fastify.inject({
+            method: "POST",
+            url: "/questions/accept",
+            body: {
+                userId: testHelper,
+                questionId: question.uuid,
+            }
+        });
+
+        // step three: seeker rates the helper
+        const rateResponse = await fastify.inject({
+            method: "POST",
+            url: "/questions/close/" + testSeeker,
+            body: {
+                rating: 8
+            }
+        });
+
+        expect(rateResponse.statusCode).toBe(200);
+
+        // check rating wrote through
+        var helperUser = await um.User.retrieve(testHelper);
+
+        expect(helperUser.points).toBe(8);
+        
+        // check the question is resolved
+        var seekerUser = await um.User.retrieve(testSeeker);
+        expect(seekerUser.currentQuestion).toBe(null);
+        expect(helperUser.currentQuestion).toBe(null);
+
+        question = await qm.Question.retrieve(question.uuid);
+        expect(question.questionState).toBe("Resolved");
+        expect(question.finalScore).toBe(8);
+
+        done();
+    });
+});
+
