@@ -11,14 +11,22 @@ matrix:
           script:
             - npm test
             - npm run lint
-        - language: android
+        - language: minimal
           sudo: required
-          env: SUB_WORKING_DIRECTORY=frontend
-          dist: trusty
+          env:
+            - SUB_WORKING_DIRECTORY=frontend
+            - ANDROID_API_LEVEL=28
+            - ANDROID_BUILD_TOOLS_VERSION=28.0.3
+            - ANDROID_SDK_TOOLS=sdk-tools-linux-4333796.zip
+          dist: xenial
           script:
             - true
 
 before_install:
-  - if [ "$SUB_WORKING_DIRECTORY" = "backend" ]; then ./scripts/mongosetup.sh; fi
+  - if [ "$SUB_WORKING_DIRECTORY" = "backend" ]; then
+        ./scripts/mongosetup.sh;
+    else
+        ./scripts/android_before_install.sh;
+    fi
   - cp "$TRAVIS_BUILD_DIR/backend/config.js.example" "$TRAVIS_BUILD_DIR/backend/config.js"
   - cd "$TRAVIS_BUILD_DIR/$SUB_WORKING_DIRECTORY"
