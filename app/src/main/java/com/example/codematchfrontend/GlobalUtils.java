@@ -6,7 +6,7 @@ import okhttp3.OkHttpClient;
 
 
 public class GlobalUtils {
-    static Helper getBASEID = new Helper();
+   /* static Helper getBASEID = new Helper();
     public static String BASE_URL;
 
     static {
@@ -15,7 +15,8 @@ public class GlobalUtils {
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
+    }*/
+    public static String BASE_URL = "https://cm.johnramsden.ca";
 
     public static String API_KEY = "";
     public static String EMAIL = "";
