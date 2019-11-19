@@ -1,0 +1,24 @@
+global:
+  env:
+    - MODE=test
+
+matrix:
+    include:
+        - language: node_js
+          services: mongodb
+          node_js: "12"
+          env: SUB_WORKING_DIRECTORY=backend
+          script:
+            - npm test
+            - npm run lint
+        - language: android
+          sudo: required
+          env: SUB_WORKING_DIRECTORY=frontend
+          dist: trusty
+          script:
+            - true
+
+before_install:
+  - if [ "$SUB_WORKING_DIRECTORY" = "backend" ]; then ./scripts/mongosetup.sh; fi
+  - cp "$TRAVIS_BUILD_DIR/backend/config.js.example" "$TRAVIS_BUILD_DIR/backend/config.js"
+  - cd "$TRAVIS_BUILD_DIR/$SUB_WORKING_DIRECTORY"
