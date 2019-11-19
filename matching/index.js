@@ -56,7 +56,7 @@ class Match {
                         $ne: seekerJson.userId
                     },
                     currentQuestion: {
-                        $ne: null
+                        $eq: null
                     }
                 }
             },
