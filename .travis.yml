@@ -4,6 +4,7 @@ global:
 
 language: node_js
 services: mongodb
+dist: trusty
 node_js: "12"
 
 matrix:
