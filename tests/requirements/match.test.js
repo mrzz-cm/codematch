@@ -32,6 +32,10 @@ describe("Check matching functional requirements", () => {
         const t1 = performance.now();
         const time = t1 - t0;
 
+        // API response time to input data under 30 ms
+        expect(time).toBeLessThan(30);
+
+        // Matching  algorithm and database lookup under 100 ms
         expect(time).toBeLessThan(100);
 
         done();

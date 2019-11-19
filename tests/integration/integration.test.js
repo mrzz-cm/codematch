@@ -236,7 +236,7 @@ describe("Getting question data", () => {
         questionId = q.uuid;
     });
 
-    test("Getting user data", async (done) => {
+    test("Getting question data", async (done) => {
         const response = await fastify.inject({
             method: "GET",
             url: "/questions/" + questionId
