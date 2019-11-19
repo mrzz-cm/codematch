@@ -21,7 +21,12 @@ matrix:
             - ANDROID_SDK_TOOLS=sdk-tools-linux-4333796.zip
           dist: xenial
           script:
-            - true
+            - |
+              node "$TRAVIS_BUILD_DIR/backend/bin/www" &
+              SERVER_PID=$!
+              export SERVER_PID=$SERVER_PID
+            - true # Tests go here
+            - kill $SERVER_PID
 
 before_install:
   - if [ "$SUB_WORKING_DIRECTORY" = "backend" ]; then

@@ -17,5 +17,6 @@ mongo codematch --eval 'db.createUser(
         roles: [ "dbOwner" ]
       }
     )'
-mongorestore --db=codematch --username=codematch --password=password \
-    "$TRAVIS_BUILD_DIR/backend/data/tests/dump/codematch"
+
+# mongorestore --db=codematch --username=codematch --password=password \
+#     "$TRAVIS_BUILD_DIR/backend/data/tests/dump/codematch"
