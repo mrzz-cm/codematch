@@ -21,14 +21,14 @@ matrix:
             - PATH=$ANDROID_HOME:$ANDROID_HOME/emulator:$ANDROID_HOME/platform-tools:$PATH
           install:
             - cd $TRAVIS_BUILD_DIR/backend && npm install
+            # list installed and available packages
+            - sdkmanager --list || true
             # latest SDK Platform-Tools
             - yes | sdkmanager "platform-tools" >/dev/null
             # defined SDK Platform
             - yes | sdkmanager "platforms;android-$ANDROID_API_LEVEL" >/dev/null
             # defined SDK Build-Tools
             - yes | sdkmanager "build-tools;$ANDROID_BUILD_TOOLS_VERSION" >/dev/null
-            # list installed and available packages
-            - sdkmanager --list
             - echo yes | sdkmanager "tools"
             - echo yes | sdkmanager "emulator"
             # Install the system image.
