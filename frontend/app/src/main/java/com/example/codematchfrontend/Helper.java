@@ -4,27 +4,44 @@ import android.content.Context;
 import android.content.res.Resources;
 import android.util.Log;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Date;
 import java.util.Properties;
 
-public final class Helper {
-    private static final String TAG = "Helper";
+public final  class Helper {
+    String result = "";
+    InputStream inputStream;
 
-    public static String getConfigValue(Context context, String name) {
-        Resources resources = context.getResources();
+    public  String getPropValues() throws IOException {
 
         try {
-            InputStream rawResource = resources.openRawResource(R.raw.config);
-            Properties properties = new Properties();
-            properties.load(rawResource);
-            return properties.getProperty(name);
-        } catch (Resources.NotFoundException e) {
-            Log.e(TAG, "Unable to find the config file: " + e.getMessage());
-        } catch (IOException e) {
-            Log.e(TAG, "Failed to open config file.");
-        }
+            Properties prop = new Properties();
+            String propFileName = "config.properties";
 
-        return null;
+            inputStream = getClass().getClassLoader().getResourceAsStream(propFileName);
+
+            if (inputStream != null) {
+                prop.load(inputStream);
+            } else {
+                throw new FileNotFoundException("property file '" + propFileName + "' not found in the classpath");
+            }
+
+            Date time = new Date(System.currentTimeMillis());
+
+            // get the property value and print it out
+            String user = prop.getProperty("user");
+            //String company1 = prop.getProperty("company1");
+            //String company2 = prop.getProperty("company2");
+           // String company3 = prop.getProperty("company3");
+
+            result = "user";
+        } catch (Exception e) {
+            System.out.println("Exception: " + e);
+        } finally {
+            inputStream.close();
+        }
+        return result;
     }
 }
