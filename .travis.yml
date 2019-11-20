@@ -19,6 +19,12 @@ matrix:
             - ANDROID_BUILD_TOOLS_VERSION=29.0.0
             - ANDROID_SDK_TOOLS=sdk-tools-linux-4333796.zip
             - PATH=$ANDROID_HOME:$ANDROID_HOME/emulator:$ANDROID_HOME/platform-tools:$PATH
+          components:
+            - tools
+            - platform-tools
+            - build-tools-29.0.0
+            - android-29
+            - doc-29
           install:
             - cd $TRAVIS_BUILD_DIR/backend && npm install
             # list installed and available packages
