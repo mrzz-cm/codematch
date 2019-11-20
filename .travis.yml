@@ -22,6 +22,7 @@ matrix:
           components:
             - tools
             - platform-tools
+            - android-tools-adb
             - build-tools-29.0.0
             - android-29
             - doc-29
