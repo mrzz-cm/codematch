@@ -15,6 +15,7 @@ import okhttp3.Response;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.os.Build;
 import android.os.Bundle;
 //import android.os.Handler;
@@ -39,21 +40,29 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 
-
-
 public class LoginView extends AppCompatActivity {
     private String CHANNEL_ID = "1";
     private GoogleSignInClient mGoogleSignInClient;
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        try {
+            GlobalUtils.initializeFromConfig(this);
+        } catch (IOException e) {
+            /* TODO: Unable to find the config file or
+             *       Failed reading configuration file, exit in graceful manner
+             */
+            System.exit(1);
+        }
+
         createNotificationChannel();
 
         setContentView(R.layout.activity_login_view);
 
         SignInButton googleButton = findViewById(R.id.sign_in_button);
+
         googleButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
