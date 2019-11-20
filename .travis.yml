@@ -18,6 +18,7 @@ matrix:
             - ANDROID_API_LEVEL=29
             - ANDROID_BUILD_TOOLS_VERSION=29.0.0
             - ANDROID_SDK_TOOLS=sdk-tools-linux-4333796.zip
+            - PATH=$ANDROID_HOME:$ANDROID_HOME/emulator:$ANDROID_HOME/platform-tools:$PATH
           install:
             - cd $TRAVIS_BUILD_DIR/backend && npm install
             # latest SDK Platform-Tools
@@ -34,8 +35,9 @@ matrix:
             # Create and start emulator for the script. Meant to race the install task.
             - echo no | avdmanager create avd --force -n emulatorApi24 -k "system-images;android-24;default;armeabi-v7a"
             - $ANDROID_HOME/emulator/emulator -avd emulatorApi24 -no-audio -no-window &
-#             - android-wait-for-emulator
-            - adb wait-for-device
+            - android-wait-for-emulator
+#             - adb wait-for-device
+            - sleep 20
             - adb shell input keyevent 82 &
           script:
             - |
@@ -45,6 +47,8 @@ matrix:
             - chmod +x $TRAVIS_BUILD_DIR/frontend/gradlew
             - cd $TRAVIS_BUILD_DIR/frontend && ./gradlew connectedAndroidTest
             - kill $SERVER_PID
+          licenses:
+            - '.+'
 
 before_install:
   - if [ "$SUB_WORKING_DIRECTORY" = "backend" ]; then
