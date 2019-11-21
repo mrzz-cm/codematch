@@ -468,9 +468,7 @@ describe("Rating a helper test", () => {
         const rateResponse = await fastify.inject({
             method: "POST",
             url: "/questions/close/" + testSeeker,
-            body: {
-                rating: rating
-            }
+            body: { rating }
         });
 
         const helperUser = await um.User.retrieve(testHelper);

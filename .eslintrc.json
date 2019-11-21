@@ -31,7 +31,7 @@
             "always"
         ],
         "curly": [
-            "error",
+            2,
             "multi-line"
         ]
     },
