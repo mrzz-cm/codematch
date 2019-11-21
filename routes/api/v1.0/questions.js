@@ -28,7 +28,7 @@ function routes (fastify, opts, done) {
             }
         },
         preValidation: [ fastify.authenticate ],
-        handler: async (request, reply) => {
+        async handler(request, reply) {
             const qm = questionsModule({ mongo: fastify.mongo });
             const um = userModule({ mongo: fastify.mongo });
             const mm = matchingModule({ mongo: fastify.mongo });
@@ -37,6 +37,7 @@ function routes (fastify, opts, done) {
 
             let userExists;
             try {
+                /* eslint-disable-next-line */
                 userExists = await um.User.exists(request.body.userId);
             } catch (e) {
                 if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
@@ -241,7 +242,7 @@ function routes (fastify, opts, done) {
             }
         },
         preValidation: [ fastify.authenticate ],
-        handler: async (request, reply) => {
+        async handler(request, reply) {
             const qm = questionsModule({ mongo: fastify.mongo });
             const um = userModule({ mongo: fastify.mongo });
 
@@ -250,6 +251,7 @@ function routes (fastify, opts, done) {
 
             let userExists;
             try {
+                /* eslint-disable-next-line */
                 userExists = await um.User.exists(request.body.userId);
             } catch (e) {
                 if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
@@ -343,7 +345,7 @@ function routes (fastify, opts, done) {
             }
         },
         preValidation: [ fastify.authenticate ],
-        handler: async (request, reply) => {
+        async handler(request, reply) {
             const um = userModule({ mongo: fastify.mongo });
             const qm = questionsModule({ mongo: fastify.mongo });
             const rating = request.body.rating;
@@ -443,7 +445,7 @@ function routes (fastify, opts, done) {
         method: "GET",
         url: "/:questionId",
         preValidation: [ fastify.authenticate ],
-        handler: async (request, reply) => {
+        async handler(request, reply) {
             const qm = questionsModule({ mongo: fastify.mongo });
 
             let q;

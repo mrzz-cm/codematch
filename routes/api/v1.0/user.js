@@ -18,15 +18,17 @@ function routes (fastify, opts, done) {
                 type: "object",
                 required: ["access_token"],
                 properties: {
+                    /* eslint-disable camelcase */
                     access_token: { type: "string" },
                     test_email:  { type: "string" },
+                    /* eslint-enable camelcase */
                     longitude: { type: "number" },
                     latitude: { type: "number" },
                 }
             }
         },
         preValidation: [ fastify.authenticate ],
-        handler: async (request, reply) => {
+        async handler(request, reply) {
             const um = userModule({ mongo: fastify.mongo });
             request.log.info(request.body);
 
@@ -99,7 +101,7 @@ function routes (fastify, opts, done) {
             }
         },
         preValidation: [ fastify.authenticate ],
-        handler: async (request, reply) => {
+        async handler(request, reply) {
             const um = userModule({ mongo: fastify.mongo });
 
             let userExists;
@@ -162,7 +164,7 @@ function routes (fastify, opts, done) {
             }
         },
         preValidation: [ fastify.authenticate ],
-        handler: async (request, reply) => {
+        async handler(request, reply) {
             const um = userModule({ mongo: fastify.mongo });
 
             const location = {
@@ -213,7 +215,7 @@ function routes (fastify, opts, done) {
         method: "GET",
         url: "/:userId",
         preValidation: [ fastify.authenticate ],
-        handler: async (request, reply) => {
+        async handler(request, reply) {
             const um = userModule({ mongo: fastify.mongo });
 
             let user;

@@ -5,7 +5,7 @@ const app = require("../../app");
 const logger = require("../../logger").logger;
 
 const fastify = app.fastify;
-const { PerformanceObserver, performance } = require('perf_hooks');
+const { performance } = require("perf_hooks");
 
 beforeAll(async () => {
     await fastify.ready();

@@ -13,7 +13,7 @@ function routes (fastify, opts, done) {
     fastify.route({
         method: "GET",
         url: "/google/callback",
-        handler: async function(request, reply) {
+        async handler(request, reply) {
             this.getAccessTokenFromAuthorizationCodeFlow(
                 request, async (err, result) => {
 
@@ -50,7 +50,7 @@ function routes (fastify, opts, done) {
                 }
             }
         },
-        handler: async (request, reply) => {
+        async handler(request, reply) {
             // Dont require real email during testing
             if (process.env.MODE === "test") {
                 reply.send(fastify.jwt.sign(process.env.MODE));
@@ -65,8 +65,6 @@ function routes (fastify, opts, done) {
             }
 
             reply.send(fastify.jwt.sign(authData.email));
-
-
         }
     });
 
