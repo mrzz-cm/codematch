@@ -1,8 +1,23 @@
 const questionsModule = require("../../../questions");
 const auth = require("../../../authentication");
 const matchingModule = require("../../../matching");
+const multerModule = require("../../../multer");
 const userModule = require("../../../user");
 const ru = require("../../../utils/router");
+const config = require("../../../config");
+
+const upload = multerModule.multer({
+    limits: { fileSize:  config.fileSettings.maxFileSize },
+    storage: multerModule.storageHandler
+});
+
+const qUploadHandler = upload.fields([
+        {
+            name: 'questionImage',
+            maxCount: 2
+        }
+    ]
+);
 
 const rc = ru.responseCodes;
 
@@ -18,26 +33,30 @@ function routes (fastify, opts, done) {
         url: "/create",
         schema: {
             body: {
-                type: "object",
                 required: ["userId", "title", "courseCode", "questionText"],
                 properties: {
                     userId: { type: "string" },
                     title: { type: "string" },
                     courseCode: { type: "string" },
-                    questionText:  { type: "string" }
+                    questionText:  { type: "string" },
                 }
             }
         },
+        preHandler: qUploadHandler,
         preValidation: [ fastify.authenticate ],
-        handler: async (request, reply) => {
+        async handler(request, reply) {
             const qm = questionsModule({ mongo: fastify.mongo });
             const um = userModule({ mongo: fastify.mongo });
             const mm = matchingModule({ mongo: fastify.mongo });
 
             const body = request.body;
+            const images = request.files.questionImage || [];
+
+            const imagePaths = images.map(i => i.path);
 
             let userExists;
             try {
+                /* eslint-disable-next-line */
                 userExists = await um.User.exists(request.body.userId);
             } catch (e) {
                 if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
@@ -85,7 +104,8 @@ function routes (fastify, opts, done) {
                     body.userId,
                     body.title,
                     body.courseCode,
-                    body.questionText
+                    body.questionText,
+                    imagePaths
                 );
             } catch (e) {
                 if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
@@ -110,7 +130,8 @@ function routes (fastify, opts, done) {
 
             // update the user
             try {
-                await user.update({$set:
+                await user.update({
+                    $set:
                         {
                             currentQuestion: q.uuid,
                             questionsPosted: user.questionsPosted
@@ -185,13 +206,15 @@ function routes (fastify, opts, done) {
 
             try {
                 await question.update(
-                    {$set: {
-                        helperNotifiedTimestamp: question.helperNotifiedTimestamp,
-                        optimalHelper: question.optimalHelper,
-                        prevCheckedHelpers: question.prevCheckedHelpers,
-                        questionState: question.questionState
-                    }});
-            } catch(e) {
+                    {
+                        $set: {
+                            helperNotifiedTimestamp: question.helperNotifiedTimestamp,
+                            optimalHelper: question.optimalHelper,
+                            prevCheckedHelpers: question.prevCheckedHelpers,
+                            questionState: question.questionState
+                        }
+                    });
+            } catch (e) {
                 request.log.info(e);
                 request.log.info("Warning: Failed to update question " +
                     "state in database after match was found!");
@@ -213,20 +236,21 @@ function routes (fastify, opts, done) {
             optimalHelper.currentQuestion = question.uuid;
 
             // update database
-            optimalHelper.update({$set:
+            optimalHelper.update({
+                $set:
                     {
                         currentQuestion: optimalHelper.currentQuestion
                     }
             }).catch((err) => {
-                request.log.info(err);
-                request.log.info(
-                    "Warning: Failed to set helper's fields " +
+                    request.log.info(err);
+                    request.log.info(
+                        "Warning: Failed to set helper's fields " +
                         "when they were selected for a question");
-            }
+                }
             );
 
             reply.status(rc.OK);
-            reply.send({ msg: `Created question ${q.uuid}`});
+            reply.send({msg: `Created question ${q.uuid}`});
         }
     });
 
@@ -247,7 +271,7 @@ function routes (fastify, opts, done) {
             }
         },
         preValidation: [ fastify.authenticate ],
-        handler: async (request, reply) => {
+        async handler(request, reply) {
             const qm = questionsModule({ mongo: fastify.mongo });
             const um = userModule({ mongo: fastify.mongo });
 
@@ -256,6 +280,7 @@ function routes (fastify, opts, done) {
 
             let userExists;
             try {
+                /* eslint-disable-next-line */
                 userExists = await um.User.exists(request.body.userId);
             } catch (e) {
                 if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
@@ -354,7 +379,7 @@ function routes (fastify, opts, done) {
             }
         },
         preValidation: [ fastify.authenticate ],
-        handler: async (request, reply) => {
+        async handler(request, reply) {
             const um = userModule({ mongo: fastify.mongo });
             const qm = questionsModule({ mongo: fastify.mongo });
             const rating = request.body.rating;
@@ -470,7 +495,7 @@ function routes (fastify, opts, done) {
         method: "GET",
         url: "/:questionId",
         preValidation: [ fastify.authenticate ],
-        handler: async (request, reply) => {
+        async handler(request, reply) {
             const qm = questionsModule({ mongo: fastify.mongo });
 
             let q;

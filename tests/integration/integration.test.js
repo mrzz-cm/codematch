@@ -108,7 +108,7 @@ describe("Account modification test", () => {
             }
         });
 
-        expect(response.statusCode).toBe(200);
+        expect(response.statusCode).toBe(rc.OK);
 
         // check database
         const user = await um.User.retrieve(testUser);
@@ -143,7 +143,7 @@ describe("Account modification test", () => {
             }
         });
 
-        expect(response.statusCode).toBe(200);
+        expect(response.statusCode).toBe(rc.OK);
 
         // check database
         const user = await um.User.retrieve(testUser);
@@ -188,7 +188,7 @@ describe("Getting user data", () => {
             url: "/user/" + testUser
         });
 
-        expect(response.statusCode).toBe(200);
+        expect(response.statusCode).toBe(rc.OK);
         expect(JSON.parse(response.body).userId).toBe(testUser);
 
         done();
@@ -236,13 +236,13 @@ describe("Getting question data", () => {
         questionId = q.uuid;
     });
 
-    test("Getting user data", async (done) => {
+    test("Getting question data", async (done) => {
         const response = await fastify.inject({
             method: "GET",
             url: "/questions/" + questionId
         });
 
-        expect(response.statusCode).toBe(200);
+        expect(response.statusCode).toBe(rc.OK);
         expect(JSON.parse(response.body).uuid).toBe(questionId);
 
         done();
@@ -259,7 +259,6 @@ describe("Getting question data", () => {
         done();
     });
 });
-
 
 describe("Posting new question test", () => {
 
@@ -306,7 +305,7 @@ describe("Posting new question test", () => {
                 expect(q.seeker).toBe(testUser);
                 expect(q.questionState).toBe("Waiting");
                 return done();
-            })
+            });
     });
 
     test("Post new question non-existent user", async (done) => {
@@ -330,7 +329,6 @@ describe("Posting new question test", () => {
 
 describe("Helping a question test", () => {
 
-    let question;
     const testSeeker = "testSeeker@example.com";
     const testHelper = "testHelper@example.com";
 
@@ -364,8 +362,9 @@ describe("Helping a question test", () => {
         });
 
         // get the question ID
-        var seekerUser = await um.User.retrieve(testSeeker);
-        question = await qm.Question.retrieve(seekerUser.currentQuestion);
+        const preSeekerUser = await um.User.retrieve(testSeeker);
+        const seekerQuestion = await qm.Question.retrieve(
+            preSeekerUser.currentQuestion);
 
         // step two: helper accepts to give help
         const helpResponse = await fastify.inject({
@@ -373,21 +372,21 @@ describe("Helping a question test", () => {
             url: "/questions/accept",
             body: {
                 userId: testHelper,
-                questionId: question.uuid,
+                questionId: seekerQuestion.uuid,
             }
         });
 
-        expect(helpResponse.statusCode).toBe(200);
+        expect(helpResponse.statusCode).toBe(rc.OK);
 
         // check the seeker and helper status
-        seekerUser = await um.User.retrieve(testSeeker);
+        const seekerUser = await um.User.retrieve(testSeeker);
         const helperUser = await um.User.retrieve(testHelper);
 
-        expect(seekerUser.currentQuestion).toBe(question.uuid);
-        expect(helperUser.currentQuestion).toBe(question.uuid);
+        expect(seekerUser.currentQuestion).toBe(seekerQuestion.uuid);
+        expect(helperUser.currentQuestion).toBe(seekerQuestion.uuid);
         
         // check the question data
-        question = await qm.Question.retrieve(question.uuid);
+        const question = await qm.Question.retrieve(seekerQuestion.uuid);
 
         expect(question.seeker).toBe(testSeeker);
         expect(question.helperAccepted).toBe(true);
@@ -450,8 +449,9 @@ describe("Rating a helper test", () => {
         });
 
         // get the question ID
-        var seekerUser = await um.User.retrieve(testSeeker);
-        question = await qm.Question.retrieve(seekerUser.currentQuestion);
+        const preSeekerUser = await um.User.retrieve(testSeeker);
+        const preQuestion = await qm.Question.retrieve(
+            preSeekerUser.currentQuestion);
 
         // step two: helper accepts to give help
         await fastify.inject({
@@ -459,34 +459,32 @@ describe("Rating a helper test", () => {
             url: "/questions/accept",
             body: {
                 userId: testHelper,
-                questionId: question.uuid,
+                questionId: preQuestion.uuid,
             }
         });
 
         // step three: seeker rates the helper
+        const rating = 8;
         const rateResponse = await fastify.inject({
             method: "POST",
             url: "/questions/close/" + testSeeker,
-            body: {
-                rating: 8
-            }
+            body: { rating }
         });
 
-        expect(rateResponse.statusCode).toBe(200);
+        const helperUser = await um.User.retrieve(testHelper);
+        const seekerUser = await um.User.retrieve(testSeeker);
+
+        // check the question is resolved
+        expect(rateResponse.statusCode).toBe(rc.OK);
+        expect(helperUser.points).toBe(rating);
 
         // check rating wrote through
-        var helperUser = await um.User.retrieve(testHelper);
-
-        expect(helperUser.points).toBe(8);
-        
-        // check the question is resolved
-        var seekerUser = await um.User.retrieve(testSeeker);
         expect(seekerUser.currentQuestion).toBe(null);
         expect(helperUser.currentQuestion).toBe(null);
 
-        question = await qm.Question.retrieve(question.uuid);
+        question = await qm.Question.retrieve(preQuestion.uuid);
         expect(question.questionState).toBe("Resolved");
-        expect(question.finalScore).toBe(8);
+        expect(question.finalScore).toBe(rating);
 
         done();
     });

@@ -29,6 +29,10 @@
         "semi": [
             "error",
             "always"
+        ],
+        "curly": [
+            2,
+            "multi-line"
         ]
     },
     "overrides": [

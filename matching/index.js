@@ -5,9 +5,8 @@ const logger = require("../logger").logger;
 const userCollection = config.collections.users;
 const EARTH_RADIUS = 6371; // Earth's radius (KM)
 
-/* TODO: Decide on weights */
 const LOCATION_WEIGHT = 1;
-const LAST_ACTIVE_WEIGHT = 1;
+const LAST_ACTIVE_WEIGHT = 10e-13;
 const COURSE_CODE_WEIGHT = 1;
 const USER_RATING_WEIGHT = 1;
 
@@ -210,6 +209,11 @@ class Match {
         } catch (e) {
             throw new Error(e);
         }
+
+        logger.log("debug","Match weights:", {
+            weights: highestUsers,
+            seeker: this._question.seeker,
+        });
 
         if ((highestUsers.length === 0) ||
             (highestUsers[0].items === null) ||

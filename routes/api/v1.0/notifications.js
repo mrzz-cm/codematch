@@ -24,7 +24,7 @@ function routes(fastify, opts, done) {
             }
         },
         preValidation: [ fastify.authenticate ],
-        handler: async (request, reply) => {
+        async handler(request, reply) {
             const um = userModule({ mongo: fastify.mongo });
 
             if (!auth.verifyUserToken(fastify, request, request.body.userId)) {

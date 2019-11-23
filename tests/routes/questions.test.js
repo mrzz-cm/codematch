@@ -41,7 +41,7 @@ jest.mock("../../user", () => function() {
         "questionsPosted": [],
         "token": null,
         "userId": "user1@example.com"
-    }
+    };
 
 
     /* mock User class */
@@ -128,7 +128,7 @@ jest.mock("../../questions", () => function() {
     }
     
     Question.newQuestion = jest.fn(function (user, title, courseCode, questionText) {
-        return new Question('question1', title, courseCode, questionText, 
+        return new Question("question1", title, courseCode, questionText, 
             user, 123456789, null, null, null, [], null, "Unmatched", null);
     });
     

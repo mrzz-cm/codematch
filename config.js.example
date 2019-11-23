@@ -28,18 +28,23 @@ const jwtSecret = "SECRET_HERE";
 
 const logLevel = process.env.LOG_LEVEL || "debug";
 
-
 const collections = {
     users: "users",
     questions: "questions",
 };
 
+const fileSettings = {
+    uploadDirectory: "uploads",
+    maxFileSize: 15728640 /* 15 MiB limit */
+};
+
 module.exports = {
-    mongoDBConnection: mongoDBConnection,
-    collections: collections,
-    googleAuth: googleAuth,
-    domain: domain,
-    FCM_KEY: FCM_KEY,
-    jwtSecret: jwtSecret,
-    logLevel: logLevel,
+    mongoDBConnection,
+    collections,
+    googleAuth,
+    domain,
+    FCM_KEY,
+    jwtSecret,
+    logLevel,
+    redis
 };
