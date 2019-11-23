@@ -1,6 +1,7 @@
 const fastify = require("fastify")({logger: true});
 const config = require("./config");
 const authentication = require("./authentication");
+const contentParser = require("./multer").multer.contentParser;
 
 const mCfg = config.mongoDBConnection;
 const mHost = config.mongoDBConnection.host || "localhost";
@@ -27,14 +28,17 @@ const routes = [
         options: authentication.oauthOptions
     },
     {
+        plugin: contentParser,
+        options: {}
+    },
+    {
         plugin: require("./routes/api/v1.0/auth"),
         options: { prefix: "/auth" }
     },
     {
         plugin: require("./routes/api/v1.0/questions"),
         options: { prefix: "/questions" }
-    }
-    ,
+    },
     {
         plugin: require("./routes/api/v1.0/user"),
         options: { prefix: "/user" }

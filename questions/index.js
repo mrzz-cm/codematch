@@ -26,12 +26,13 @@ class Question {
      * @param {string}      finalHelper
      * @param {string}      questionState
      * @param {number}      finalScore
+     * @param {string[]}    images
      */
     constructor(uuid, title, courseCode, questionText,
         seeker, creationTimestamp,
         optimalHelper, helperNotifiedTimestamp, helperAccepted,
         prevCheckedHelpers, finalHelper,
-        questionState, finalScore) {
+        questionState, finalScore, images) {
         
         this.uuid = uuid;
         this.title = title;
@@ -46,6 +47,7 @@ class Question {
         this.finalHelper = finalHelper;
         this.questionState = questionState;
         this.finalScore = finalScore;
+        this.images = images;
     }
 
     /**
@@ -55,10 +57,11 @@ class Question {
      * @param {string} title 
      * @param {string} courseCode 
      * @param {string} questionText
+     * @param {string[]} images
      */
-    static newQuestion(user, title, courseCode, questionText) {
-        return new Question(uuidv1(), title, courseCode, questionText, 
-            user, Date.now(), null, null, null, [], null, "Unmatched", null);
+    static newQuestion(user, title, courseCode, questionText, images) {
+        return new Question(uuidv1(), title, courseCode, questionText, user,
+            Date.now(), null, null, null, [], null, "Unmatched", null, images);
     }
 
     /**
@@ -72,7 +75,7 @@ class Question {
             jsonObj.optimalHelper, jsonObj.helperNotifiedTimestamp,
             jsonObj.helperAccepted, jsonObj.prevCheckedHelpers,
             jsonObj.finalHelper, jsonObj.questionState,
-            jsonObj.finalScore
+            jsonObj.finalScore, jsonObj.images
         );
     }
 
@@ -94,7 +97,8 @@ class Question {
             prevCheckedHelpers: this.prevCheckedHelpers,
             finalHelper: this.finalHelper,
             questionState: this.questionState,
-            finalScore: this.finalScore
+            finalScore: this.finalScore,
+            images: this.images
         };
     }
 
