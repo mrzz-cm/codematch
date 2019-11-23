@@ -18,14 +18,13 @@ function routes (fastify, opts, done) {
                 request, async (err, result) => {
 
                     if (ru.errCheck(reply, rc.BAD_REQUEST, err)) return;
-
-                    let authData;
+                    
                     try {
-                        authData = await auth.requestEmail(result.access_token);
+                        await auth.requestEmail(result.access_token);
                     } catch (e) {
                         if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
                     }
-                    reply.send(authData);
+                    reply.send(result);
                 });
         }});
 
