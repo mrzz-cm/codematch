@@ -1,4 +1,5 @@
 const questionsModule = require("../../../questions");
+const auth = require("../../../authentication");
 const matchingModule = require("../../../matching");
 const userModule = require("../../../user");
 const ru = require("../../../utils/router");
@@ -45,6 +46,11 @@ function routes (fastify, opts, done) {
             if (!userExists) {
                 reply.status(rc.BAD_REQUEST);
                 reply.send("Provided user doesn't exist.");
+                return;
+            }
+
+            if (!auth.verifyUserToken(fastify, request, request.body.userId)) {
+                ru.errCheck(reply, rc.UNAUTHORIZED, "Invalid credentials.");
                 return;
             }
 
@@ -261,6 +267,11 @@ function routes (fastify, opts, done) {
                 return;
             }
 
+            if (!auth.verifyUserToken(fastify, request, request.body.userId)) {
+                ru.errCheck(reply, rc.UNAUTHORIZED, "Invalid credentials.");
+                return;
+            }
+
             let qJson;
             try {
                 qJson = await qm.Question.retrieve(questionId);
@@ -357,7 +368,23 @@ function routes (fastify, opts, done) {
                 return;
             }
 
-            // TODO: If seeker matches
+            let userExists;
+            try {
+                userExists = await um.User.exists(seekerId);
+            } catch (e) {
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
+            }
+
+            if (!userExists) {
+                reply.status(rc.BAD_REQUEST);
+                reply.send("Provided user doesn't exist.");
+                return;
+            }
+
+            if (!auth.verifyUserToken(fastify, request, seekerId)) {
+                ru.errCheck(reply, rc.UNAUTHORIZED, "Invalid credentials.");
+                return;
+            }
 
             let uJson;
             try {

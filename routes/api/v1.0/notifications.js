@@ -1,4 +1,5 @@
 const userModule = require("../../../user");
+const auth = require("../../../authentication");
 const ru = require("../../../utils/router");
 const rc = ru.responseCodes;
 
@@ -25,6 +26,11 @@ function routes(fastify, opts, done) {
         preValidation: [ fastify.authenticate ],
         handler: async (request, reply) => {
             const um = userModule({ mongo: fastify.mongo });
+
+            if (!auth.verifyUserToken(fastify, request, request.body.userId)) {
+                ru.errCheck(reply, rc.UNAUTHORIZED, "Invalid credentials.");
+                return;
+            }
 
             try {
                 await um.User.registerForNotifications(

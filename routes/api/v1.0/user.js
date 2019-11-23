@@ -128,6 +128,13 @@ function routes (fastify, opts, done) {
             }
 
             const user = um.User.fromJson(uJson);
+
+            // check authentication token before modifying user data
+            if (!auth.verifyUserToken(fastify, request, user.userId)) {
+                ru.errCheck(reply, rc.UNAUTHORIZED, "Invalid credentials.");
+                return;
+            }
+
             user.courses.push(request.body.courseId);
 
             // update database
@@ -180,6 +187,11 @@ function routes (fastify, opts, done) {
 
             if (!exists) {
                 ru.errCheck(reply, rc.BAD_REQUEST, "No user found");
+                return;
+            }
+
+            if (!auth.verifyUserToken(fastify, request, request.params.userId)) {
+                ru.errCheck(reply, rc.UNAUTHORIZED, "Invalid credentials.");
                 return;
             }
 

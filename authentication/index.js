@@ -42,11 +42,28 @@ async function requestEmail(token) {
     }
 }
 
+// Verifies that the provided request contains an authorization header
+// with a token that belongs to the provided user (identified by their userId).
+function verifyUserToken(fastify, request, userId) {
+    // Dont require auth during testing
+    if (process.env.MODE === "test") return true;
+
+    const authHeader = request.headers.authorization;
+    if (!authHeader) {
+        return false;
+    }
+
+    const decodedToken = fastify.jwt.decode(authHeader.replace(/Bearer\s+/, ''));
+    
+    return (decodedToken == userId);
+}
+
 // https://github.com/fastify/fastify-oauth2
 module.exports = {
     plugin: jwtValdatorPlugin,
     options: {},
     requestEmail,
+    verifyUserToken,
     oauthPlugin,
     oauthOptions: {
         name: "googleOAuth2",

@@ -41,7 +41,7 @@ afterAll(() => {
     fastify.close();
 });
 
-describe("Basic test", () => {
+describe("Get user route test", () => {
 
     test("Responds with success on request /user/:userId", async (done) => {
         const response = await fastify.inject({
