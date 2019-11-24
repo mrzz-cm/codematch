@@ -50,7 +50,11 @@ function routes (fastify, opts, done) {
             const mm = matchingModule({ mongo: fastify.mongo });
 
             const body = request.body;
-            const images = request.files.questionImage || [];
+
+            let images = [];
+            if (!(request.files === undefined || (request.files === null))) {
+                images = request.files.questionImage || [];
+            }
 
             const imagePaths = images.map(i => i.path);
 
