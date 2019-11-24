@@ -38,7 +38,8 @@
             "error", {
                 "code": 100
             }
-        ]
+        ],
+        "camelcase": "error"
     },
     "overrides": [
         {

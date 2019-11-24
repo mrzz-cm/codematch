@@ -53,10 +53,10 @@ describe("Check user creation non-functional requirement", () => {
             method: "POST",
             url: "/user/register",
             body: {
-                test_email: testUser,
+                testEmail: testUser,
                 longitude: 100,
                 latitude: -100,
-                access_token: "NOT_A_TOKEN"
+                accessToken: "NOT_A_TOKEN"
             }
         });
 
