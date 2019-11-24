@@ -47,7 +47,7 @@ describe("Account creation test", () => {
 
         // check the user is in database
         um.User.retrieve(testUser)
-        /* eslint-disable-next-line */
+            /* eslint-disable-next-line */
             .then(() => expect(um.User.exists(testUser)).toBeTruthy())
             .then(() => done());
     });
