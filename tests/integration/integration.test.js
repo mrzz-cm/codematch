@@ -26,7 +26,7 @@ afterAll(() => {
 describe("Account creation test", () => {
     const testUser = "testuser0@example.com";
 
-    afterAll(async () => {
+    afterEach(async () => {
         const collection = await fastify.mongo.db.collection("users");
         await collection.deleteOne({ userId: testUser });
     });
@@ -56,12 +56,12 @@ describe("Account creation test", () => {
 describe("Account duplicate creation test", () => {
     const testUser = "testuser0@example.com";
 
-    afterAll(async () => {
+    afterEach(async () => {
         const collection = await fastify.mongo.db.collection("users");
-        await collection.deleteOne({ userId: testUser });
+        await collection.remove({ userId: testUser });
     });
 
-    beforeAll(async () => {
+    beforeEach(async () => {
         const user = um.User.newUser(testUser);
         await user.create();
     });
@@ -490,3 +490,63 @@ describe("Rating a helper test", () => {
     });
 });
 
+
+describe("Deleting a question test", () => {
+
+    let question;
+    const testSeeker = "testSeeker@example.com";
+    const testHelper = "testHelper@example.com";
+
+    afterAll(async () => {
+        const collection = await fastify.mongo.db.collection("questions");
+        const userCollection = await fastify.mongo.db.collection("users");
+        await collection.deleteOne({uuid: question.uuid});
+        await userCollection.deleteOne({ userId: testSeeker });
+        await userCollection.deleteOne({ userId: testHelper });
+    });
+
+    beforeAll(async () => {
+        const seekerUser = um.User.newUser(testSeeker);
+        await seekerUser.create();
+
+        const helperUser = um.User.newUser(testHelper);
+        await helperUser.create();
+    });
+
+    test("Deleting a question", async (done) => {
+        // step one: seeker posts the question
+        await fastify.inject({
+            method: "POST",
+            url: "/questions/create",
+            body: {
+                userId: testSeeker,
+                title: "Test Question",
+                courseCode: "CPEN 321",
+                questionText: "A test question."
+            }
+        });
+
+        // get the question ID
+        const preSeekerUser = await um.User.retrieve(testSeeker);
+        const preQuestion = await qm.Question.retrieve(
+            preSeekerUser.currentQuestion);
+
+        // step two: delete the question
+        const response = await fastify.inject({
+            method: "POST",
+            url: "/questions/delete/" + testSeeker
+        });
+
+        expect(response.statusCode).toBe(rc.OK);
+
+        // check the question is resolved
+        question = await qm.Question.retrieve(preQuestion.uuid);
+        expect(question.questionState).toBe("Resolved");
+
+        // check the user's current question is free
+        const seekerUser = await um.User.retrieve(testSeeker);
+        expect(seekerUser.currentQuestion).toBe(null);
+
+        done();
+    });
+});

@@ -262,6 +262,125 @@ function routes (fastify, opts, done) {
     });
 
     /**
+     * POST - delete a pending question as a seeker
+     */
+    fastify.route({
+        method: "POST",
+        url: "/delete/:seekerId",
+        preValidation: [ fastify.authenticate ],
+        async handler (request, reply) {
+            const um = userModule({ mongo: fastify.mongo });
+            const qm = questionsModule({ mongo: fastify.mongo });
+            const seekerId = request.params.seekerId;
+
+            let userExists;
+            try {
+                userExists = await um.User.exists(seekerId);
+            } catch (e) {
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
+            }
+
+            if (!userExists) {
+                reply.status(rc.BAD_REQUEST);
+                reply.send("Provided user doesn't exist.");
+                return;
+            }
+
+            if (!auth.verifyUserToken(fastify, request, seekerId)) {
+                ru.errCheck(reply, rc.UNAUTHORIZED, "Invalid credentials.");
+                return;
+            }
+
+            let uJson;
+            try {
+                uJson = await um.User.retrieve(seekerId);
+            } catch (e) {
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
+            }
+
+            const seeker = um.User.fromJson(uJson);
+
+            if (seeker.currentQuestion == null) {
+                reply.status(rc.BAD_REQUEST);
+                reply.send(
+                    `Seeker '${seeker.userId} doesn't` +
+                    " have an open question.");
+                return;
+            }
+
+            let qJson;
+            try {
+                qJson = await qm.Question.retrieve(seeker.currentQuestion);
+            } catch (e) {
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
+            }
+            const question = qm.Question.fromJson(qJson);
+
+            if (question.questionState != "Waiting" && question.questionState != "Unmatched") {
+                reply.status(rc.BAD_REQUEST);
+                reply.send('Cannot close this question.');
+            }
+
+            const helperWaiting = (question.questionState == "Waiting");
+
+            // close the question
+            question.questionState = "Resolved";
+            try {
+                await question.update(
+                    {
+                        $set: {
+                            questionState: "Resolved",
+                        }
+                    });
+            } catch (e) {
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
+            }
+
+            // free up seeker's currentQuestion
+            seeker.currentQuestion = null;
+            try {
+                await seeker.update(
+                    {
+                        $set: {
+                            currentQuestion: null,
+                        }
+                    }
+                );
+            } catch (e) {
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
+            }
+
+            reply.status(rc.OK);
+            reply.send("Closed question.");
+
+            if (helperWaiting) {
+                // signal the waiting helper
+                let hJson;
+                try {
+                    hJson = await um.User.retrieve(qJson.optimalHelper);
+                } catch (e) {
+                    if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
+                }
+
+                const helper = um.User.fromJson(hJson);
+
+                try {
+                    await um.User.sendNotification(
+                        helper.userId,
+                        `${seeker.userId} closed their question.`,
+                        "basic",
+                        {
+                            notificationType: "basic"
+                        });
+                } catch (e) {
+                    request.log.info("Warning: notifying helper " +
+                        "about a deleted question failed!");
+                }
+            }
+        }
+    });
+
+    /**
      * POST - Accept a question as a helper
      */
     fastify.route({
@@ -312,6 +431,11 @@ function routes (fastify, opts, done) {
             }
 
             if (qJson.optimalHelper != userId) {
+                reply.status(rc.UNAUTHORIZED);
+                reply.send("Not authorized to accept this question.");
+            }
+
+            if (qJson.questionState != "Waiting") {
                 reply.status(rc.UNAUTHORIZED);
                 reply.send("Not authorized to accept this question.");
             }
