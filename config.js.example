@@ -46,6 +46,5 @@ module.exports = {
     FCM_KEY,
     jwtSecret,
     logLevel,
-    redis,
     fileSettings
 };
