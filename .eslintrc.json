@@ -31,8 +31,8 @@
             "always"
         ],
         "curly": [
-            2,
-            "multi-line"
+            "error",
+            "all"
         ]
     },
     "overrides": [
