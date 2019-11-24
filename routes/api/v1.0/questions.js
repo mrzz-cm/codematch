@@ -254,7 +254,10 @@ function routes (fastify, opts, done) {
             );
 
             reply.status(rc.OK);
-            reply.send({msg: `Created question ${q.uuid}`});
+            reply.send({
+                msg: `Created question ${q.uuid}`,
+                uuid: q.uuid
+            });
         }
     });
 

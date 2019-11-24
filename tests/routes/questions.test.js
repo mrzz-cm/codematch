@@ -91,66 +91,9 @@ jest.mock("../../user", () => function() {
 
     User.sendNotification = jest.fn( async function () {} );
 
-    User.prototype.update = jest.fn(() => {});
+    User.prototype.update = jest.fn( async function () {} );
 
     const module = { User: User };
-
-    return module;
-});
-
-
-
-/* Questions module mock */
-
-
-jest.mock("../../questions", () => function() {
-    class Question {
-        constructor(uuid, title, courseCode, questionText,
-            seeker, creationTimestamp,
-            optimalHelper, helperNotifiedTimestamp, helperAccepted,
-            prevCheckedHelpers, finalHelper,
-            questionState, finalScore) {
-            
-            this.uuid = uuid;
-            this.title = title;
-            this.courseCode = courseCode;
-            this.questionText = questionText;
-            this.seeker = seeker;
-            this.creationTimestamp = creationTimestamp;
-            this.optimalHelper = optimalHelper;
-            this.helperNotifiedTimestamp = helperNotifiedTimestamp;
-            this.helperAccepted = helperAccepted;
-            this.prevCheckedHelpers = prevCheckedHelpers;
-            this.finalHelper = finalHelper;
-            this.questionState = questionState;
-            this.finalScore = finalScore;
-        }
-    }
-    
-    Question.newQuestion = jest.fn(function (user, title, courseCode, questionText) {
-        return new Question("question1", title, courseCode, questionText, 
-            user, 123456789, null, null, null, [], null, "Unmatched", null);
-    });
-    
-    Question.fromJson = jest.fn(function (jsonObj) {
-        return new Question(
-            jsonObj.uuid, jsonObj.title, jsonObj.courseCode, jsonObj.questionText,
-            jsonObj.seeker, jsonObj.creationTimestamp,
-            jsonObj.optimalHelper, jsonObj.helperNotifiedTimestamp,
-            jsonObj.helperAccepted, jsonObj.prevCheckedHelpers,
-            jsonObj.finalHelper, jsonObj.questionState,
-            jsonObj.finalScore
-        );
-    });
-
-    Question.retrieve = jest.fn(function () {
-        // TODO
-    });
-    
-    Question.prototype.create = jest.fn(() => {});
-    Question.prototype.update = jest.fn(() => {});
-
-    const module = { Question: Question };
 
     return module;
 });
@@ -166,11 +109,11 @@ jest.mock("../../matching", () => function() {
         }
     }
     
-    Match.optimalHelper = jest.fn(async function() {
+    Match.prototype.optimalHelper = jest.fn(async function() {
         // return the other user
         if (this.question.seeker == "user0@example.com") {
             return { userId: "user1@example.com", rating: 1 };
-        } else if (this.question.seeker == "user1@example.com") {
+        } else {
             return { userId: "user0@example.com", rating: 1 };
         }
     });
@@ -180,9 +123,12 @@ jest.mock("../../matching", () => function() {
     return module;
 });
 
+const questionsModule = require("../../questions");
+let qm;
 
 beforeAll(async () => {
     await fastify.ready();
+    qm = questionsModule({ mongo: fastify.mongo });
 });
 
 afterAll(() => {
@@ -190,6 +136,12 @@ afterAll(() => {
 });
 
 describe("Post question test", () => {
+    let questionId;
+
+    afterAll(async () => {
+        const collection = await fastify.mongo.db.collection("questions");
+        await collection.deleteOne({uuid: questionId});
+    });
 
     test("Post a new question successfully", async (done) => {
         const response = await fastify.inject({
@@ -204,6 +156,17 @@ describe("Post question test", () => {
         });
 
         expect(response.statusCode).toBe(200);
+
+        // check question is in database
+        questionId = JSON.parse(response.body).uuid;
+        expect(questionId).toBeTruthy();
+
+        const q = await qm.Question.retrieve(questionId);
+
+        console.log(q);
+
+        expect(q.seeker).toBe("user0@example.com");
+        expect(q.title).toBe("Test question");
 
         done();
     });
