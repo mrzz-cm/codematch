@@ -4,7 +4,6 @@
 const app = require("../../app");
 const fastify = app.fastify;
 
-
 /* User module mock */
 
 jest.mock("../../user", () => function() {
@@ -65,7 +64,9 @@ jest.mock("../../user", () => function() {
     }
 
     User.exists = jest.fn(async function (userId) {
-        return (userId == "user0@example.com") || (userId == "user1@example.com");
+        return (
+            userId === "user0@example.com") || (userId === "user1@example.com"
+        );
     });
 
     User.fromJson = jest.fn(function (jsonUser) {
@@ -80,9 +81,9 @@ jest.mock("../../user", () => function() {
     });
 
     User.retrieve = jest.fn(async function (userId) {
-        if (userId == "user0@example.com") {
+        if (userId === "user0@example.com") {
             return seekerUser;
-        } else if (userId == "user1@example.com") {
+        } else if (userId === "user1@example.com") {
             return helperUser;
         } else {
             throw Error("User not found in mock user module");
@@ -94,8 +95,6 @@ jest.mock("../../user", () => function() {
     User.prototype.update = jest.fn( async function () {} );
 
     return { User };
-
-    return module;
 });
 
 
@@ -111,7 +110,7 @@ jest.mock("../../matching", () => function() {
     
     Match.prototype.optimalHelper = jest.fn(async function() {
         // return the other user
-        if (this.question.seeker == "user0@example.com") {
+        if (this.question.seeker === "user0@example.com") {
             return { userId: "user1@example.com", rating: 1 };
         } else {
             return { userId: "user0@example.com", rating: 1 };
@@ -119,8 +118,6 @@ jest.mock("../../matching", () => function() {
     });
 
     return { Match };
-
-    return module;
 });
 
 const questionsModule = require("../../questions");

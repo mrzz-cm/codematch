@@ -43,8 +43,7 @@
     },
     "overrides": [
         {
-            "files": ["**/*.js", "bin/*"],
-            "excludedFiles": "*.test.js"
+            "files": ["**/*.js", "bin/*"]
         }
     ]
 }
