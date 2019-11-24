@@ -16,6 +16,10 @@ import android.app.Dialog;
 //import android.app.NotificationManager;
 import android.content.Intent;
 //import android.os.Build;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.media.Image;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -27,24 +31,26 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import org.jetbrains.annotations.NotNull;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.LinkedList;
 
 public class NotifyView extends AppCompatActivity implements NotifyViewAdapter.NotificationItemClickListener{
 
-
-
     private NotifyViewAdapter adapter;
     private LinkedList<String> notifications;
+    private Bitmap question_image;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -127,6 +133,7 @@ public class NotifyView extends AppCompatActivity implements NotifyViewAdapter.N
 
         final TextView questionText = (TextView) dialog.findViewById(R.id.question_text);
         final TextView titleText = (TextView) dialog.findViewById(R.id.question_title);
+        final ImageView questionImage = (ImageView) dialog.findViewById(R.id.question_image);
 
         // get the question data and update the fields
         final String questionID = notifications.get(position);
@@ -153,6 +160,9 @@ public class NotifyView extends AppCompatActivity implements NotifyViewAdapter.N
                     if (jsonObject.has("questionText")){
                         questionText.setText(jsonObject.get("questionText").toString());
                     }
+                    if (jsonObject.has("images")){
+                        setQuestionImage(questionImage, jsonObject.getJSONArray("images"));
+                    }
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -168,6 +178,30 @@ public class NotifyView extends AppCompatActivity implements NotifyViewAdapter.N
 
         setupClickListeners(close, yes, no, questionID, pressed_position, dialog);
         dialog.show();
+    }
+
+    private void setQuestionImage(final View view, final JSONArray imageArray) {
+
+        String image_url = null;
+        try {
+            Uri image_uri = Uri.parse(imageArray.get(0).toString());
+            image_url = GlobalUtils.BASE_URL.replace("/api", "") + "/uploads/" + image_uri.getLastPathSegment();;
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        try {
+            InputStream in = new java.net.URL(image_url).openStream();
+            question_image = BitmapFactory.decodeStream(in);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        new Handler(Looper.getMainLooper()).post(new Runnable(){
+            @Override
+            public void run() {
+                ((ImageView) view).setImageBitmap(question_image);
+            }
+        });
     }
 
     private void setupClickListeners(Button close, Button yes, Button no, String questionID_param, int pressed_position_param, Dialog dialog_param) {

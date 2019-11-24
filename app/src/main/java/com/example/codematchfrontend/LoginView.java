@@ -236,6 +236,7 @@ public class LoginView extends AppCompatActivity {
         try {
             jsonObject.put("userId", GlobalUtils.EMAIL);
             jsonObject.put("fcmToken", GlobalUtils.FIREBASE_TOKEN);
+            System.out.println("firebase token: " + GlobalUtils.FIREBASE_TOKEN);
         } catch (JSONException e) {
             e.printStackTrace();
         }

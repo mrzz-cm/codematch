@@ -166,6 +166,9 @@ public class ProfileView extends AppCompatActivity implements CoursesListAdapter
     }
 
     private void removeCourseAtPosition(int position) {
+        String courseID = this.courses.get(position);
+
+        // send request to server to remove course
         this.courses.remove(position);
         adapter.notifyItemRemoved(position);
     }

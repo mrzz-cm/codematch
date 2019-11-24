@@ -2,17 +2,29 @@ package com.example.codematchfrontend;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.MediaType;
+import okhttp3.MultipartBody;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
+import android.Manifest;
 import android.app.Activity;
 //import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.MediaStore;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -25,9 +37,14 @@ import org.jetbrains.annotations.NotNull;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 
 public class PostingView extends AppCompatActivity {
+
+    private File imageFile;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,6 +76,9 @@ public class PostingView extends AppCompatActivity {
                 pickImage();
             }
         });
+
+        ActivityCompat.requestPermissions(PostingView.this,
+                new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},1);
     }
 
     private void pickImage() {
@@ -75,20 +95,13 @@ public class PostingView extends AppCompatActivity {
             if (data == null) {
                 return;
             } else {
-//                Uri image = data.getData();
-//                InputStream imageStream = null;
-//                try{
-//                    imageStream = getContentResolver().openInputStream(image);
-//                } catch (FileNotFoundException e) {
-//                    e.printStackTrace();
-//                }
-
-                System.out.println("detected image");
-//                Bitmap bitmapedimage = BitmapFactory.decodeStream(imageStream);
-
+                Uri image = data.getData();
+                imageFile = new File(FileUtils.getRealPath(this, image));
             }
         }
     }
+
+
 
     private void postQuestion() {
         // get the question data
@@ -96,18 +109,17 @@ public class PostingView extends AppCompatActivity {
         String courseIDs = ((EditText) findViewById(R.id.coursesInput)).getText().toString();
         String questionTitle = ((EditText) findViewById(R.id.questionTitleText)).getText().toString();
 
-        JSONObject jsonObject = new JSONObject();
-        try {
-            jsonObject.put("userId", GlobalUtils.EMAIL);
-            jsonObject.put("title", questionTitle);
-            jsonObject.put("courseCode", courseIDs);
-            jsonObject.put("questionText", question);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
+        final MediaType MEDIA_TYPE_PNG = MediaType.parse("image/png");
 
-        MediaType JSON = MediaType.parse("application/json; charset=utf-8");
-        RequestBody body = RequestBody.create(jsonObject.toString(), JSON);
+        RequestBody body = new MultipartBody.Builder()
+                .setType(MultipartBody.FORM)
+                .addFormDataPart("userId", GlobalUtils.EMAIL)
+                .addFormDataPart("title", questionTitle)
+                .addFormDataPart("courseCode", courseIDs)
+                .addFormDataPart("questionText", question)
+                .addFormDataPart("questionImage", imageFile.getName(),
+                        RequestBody.create(MEDIA_TYPE_PNG, imageFile))
+                .build();
 
         Request notify_questions_create_request = new Request.Builder()
                 .url(GlobalUtils.BASE_URL + "/questions/create")
