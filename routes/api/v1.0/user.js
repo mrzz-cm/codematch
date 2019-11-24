@@ -46,7 +46,9 @@ function routes (fastify, opts, done) {
                         request.body.access_token
                     );
                 } catch (e) {
-                    if (ru.errCheck(reply, rc.INTERNAL_SERVER_ERROR, e)) {return;}
+                    if (ru.errCheck(reply, rc.INTERNAL_SERVER_ERROR, e)) {
+                        return;
+                    }
                 }
             }
 
@@ -58,6 +60,7 @@ function routes (fastify, opts, done) {
 
             let userExists;
             try {
+                /* eslint-disable-next-line */
                 userExists = await um.User.exists(emailJson.email);
             } catch (e) {
                 if (ru.errCheck(reply, rc.BAD_REQUEST, e)) {return;}
@@ -106,6 +109,7 @@ function routes (fastify, opts, done) {
 
             let userExists;
             try {
+                /* eslint-disable-next-line */
                 userExists = await um.User.exists(request.body.userId);
             } catch (e) {
                 if (ru.errCheck(reply, rc.BAD_REQUEST, e)) {return;}
@@ -181,6 +185,7 @@ function routes (fastify, opts, done) {
 
             let exists;
             try {
+                /* eslint-disable-next-line */
                 exists = await um.User.exists(request.params.userId);
             } catch (e) {
                 ru.errCheck(reply, rc.BAD_REQUEST, e);
@@ -241,9 +246,10 @@ function routes (fastify, opts, done) {
 
             let usersExist;
             try {
+                /* eslint-disable */
                 const userExists = await um.User.exists(body.userId);
                 const receiverExists = await um.User.exists(body.receiverId);
-
+                /* eslint-enable */
                 usersExist = userExists && receiverExists;
             } catch (e) {
                 if (ru.errCheck(reply, rc.BAD_REQUEST, e)) {return;}
