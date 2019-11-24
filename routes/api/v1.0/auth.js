@@ -18,7 +18,7 @@ function routes (fastify, opts, done) {
                 request, async (err, result) => {
 
                     if (ru.errCheck(reply, rc.BAD_REQUEST, err)) return;
-                    
+
                     try {
                         await auth.requestEmail(result.access_token);
                     } catch (e) {

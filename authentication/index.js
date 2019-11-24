@@ -78,6 +78,6 @@ module.exports = {
         // register a fastify url to start the redirect flow
         startRedirectPath: "/auth/google",
         // Google redirect here after the user login
-        callbackUri: `https://${config.domain}/auth/google/callback`
+        callbackUri: `https://${config.domain}/api/auth/google/callback`
     }
 };
