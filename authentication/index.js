@@ -16,7 +16,7 @@ const jwtValdatorPlugin = fastifyPlugin(async function(fastify) {
 
     fastify.decorate("authenticate", async (request, reply) => {
         // Dont require auth during testing
-        if (process.env.MODE === "test") return;
+        if (process.env.MODE === "test") {return;}
 
         try {
             await request.jwtVerify();
@@ -46,14 +46,14 @@ async function requestEmail(token) {
 // with a token that belongs to the provided user (identified by their userId).
 function verifyUserToken(fastify, request, userId) {
     // Dont require auth during testing
-    if (process.env.MODE === "test") return true;
+    if (process.env.MODE === "test") {return true;}
 
     const authHeader = request.headers.authorization;
     if (!authHeader) {
         return false;
     }
 
-    const decodedToken = fastify.jwt.decode(authHeader.replace(/Bearer\s+/, ''));
+    const decodedToken = fastify.jwt.decode(authHeader.replace(/Bearer\s+/, ""));
     
     return (decodedToken == userId);
 }

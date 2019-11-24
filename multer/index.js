@@ -10,10 +10,10 @@ function uploadname(file) {
 
 const storageHandler = multer.diskStorage({
     destination(req, file, cb) {
-        cb(null, config.fileSettings.uploadDirectory)
+        cb(null, config.fileSettings.uploadDirectory);
     },
     filename(req, file, cb) {
-        cb(null, uploadname(file))
+        cb(null, uploadname(file));
     }
 });
 

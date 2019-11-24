@@ -163,8 +163,6 @@ describe("Post question test", () => {
 
         const q = await qm.Question.retrieve(questionId);
 
-        console.log(q);
-
         expect(q.seeker).toBe("user0@example.com");
         expect(q.title).toBe("Test question");
 

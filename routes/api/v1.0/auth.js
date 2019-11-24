@@ -17,12 +17,12 @@ function routes (fastify, opts, done) {
             this.getAccessTokenFromAuthorizationCodeFlow(
                 request, async (err, result) => {
 
-                    if (ru.errCheck(reply, rc.BAD_REQUEST, err)) return;
+                    if (ru.errCheck(reply, rc.BAD_REQUEST, err)) {return;}
 
                     try {
                         await auth.requestEmail(result.access_token);
                     } catch (e) {
-                        if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
+                        if (ru.errCheck(reply, rc.BAD_REQUEST, e)) {return;}
                     }
                     reply.send(result);
                 });
@@ -60,7 +60,7 @@ function routes (fastify, opts, done) {
             try {
                 authData = await auth.requestEmail(request.query.access_token);
             } catch (e) {
-                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) {return;}
             }
 
             reply.send(fastify.jwt.sign(authData.email));

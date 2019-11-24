@@ -46,7 +46,7 @@ function routes (fastify, opts, done) {
                         request.body.access_token
                     );
                 } catch (e) {
-                    if (ru.errCheck(reply, rc.INTERNAL_SERVER_ERROR, e)) return;
+                    if (ru.errCheck(reply, rc.INTERNAL_SERVER_ERROR, e)) {return;}
                 }
             }
 
@@ -60,7 +60,7 @@ function routes (fastify, opts, done) {
             try {
                 userExists = await um.User.exists(emailJson.email);
             } catch (e) {
-                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) {return;}
             }
 
             if (userExists) {
@@ -74,7 +74,7 @@ function routes (fastify, opts, done) {
             try {
                 await newUser.create();
             } catch (e) {
-                if (ru.errCheck(reply, rc.INTERNAL_SERVER_ERROR, e)) return;
+                if (ru.errCheck(reply, rc.INTERNAL_SERVER_ERROR, e)) {return;}
             }
 
             // done
@@ -108,7 +108,7 @@ function routes (fastify, opts, done) {
             try {
                 userExists = await um.User.exists(request.body.userId);
             } catch (e) {
-                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) {return;}
             }
 
             if (!userExists) {
@@ -147,7 +147,7 @@ function routes (fastify, opts, done) {
                         }
                 });
             } catch (e) {
-                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) {return;}
             }
 
             reply.status(rc.OK);
@@ -241,12 +241,12 @@ function routes (fastify, opts, done) {
 
             let usersExist;
             try {
-                const userExists = await um.User.exists(request.body.userId);
+                const userExists = await um.User.exists(body.userId);
                 const receiverExists = await um.User.exists(body.receiverId);
 
                 usersExist = userExists && receiverExists;
             } catch (e) {
-                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) {return;}
             }
 
             if (!usersExist) {
@@ -255,15 +255,15 @@ function routes (fastify, opts, done) {
                 return;
             }
 
-            if (!auth.verifyUserToken(fastify, request, request.body.userId)) {
+            if (!auth.verifyUserToken(fastify, request, body.userId)) {
                 ru.errCheck(reply, rc.UNAUTHORIZED, "Invalid credentials.");
                 return;
             }
 
-            // actually send the message through a notification
+            /* Send the message through a notification */
             try {
                 await um.User.sendNotification(
-                    request.body.receiverId,
+                    body.receiverId,
                     body.message,
                     "message",
                     {
@@ -272,7 +272,7 @@ function routes (fastify, opts, done) {
 
             } catch (e) {
                 request.log.info(e);
-                if (ru.errCheck(reply, rc.INTERNAL_SERVER_ERROR, e)) return;
+                if (ru.errCheck(reply, rc.INTERNAL_SERVER_ERROR, e)) {return;}
             }
 
             reply.status(rc.OK);

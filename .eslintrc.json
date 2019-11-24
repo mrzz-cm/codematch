@@ -33,6 +33,11 @@
         "curly": [
             "error",
             "all"
+        ],
+        "max-len": [
+            "error", {
+                "code": 100
+            }
         ]
     },
     "overrides": [

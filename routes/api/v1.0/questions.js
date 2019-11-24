@@ -12,11 +12,11 @@ const upload = multerModule.multer({
 });
 
 const qUploadHandler = upload.fields([
-        {
-            name: 'questionImage',
-            maxCount: 2
-        }
-    ]
+    {
+        name: "questionImage",
+        maxCount: 2
+    }
+]
 );
 
 const rc = ru.responseCodes;
@@ -63,7 +63,7 @@ function routes (fastify, opts, done) {
                 /* eslint-disable-next-line */
                 userExists = await um.User.exists(request.body.userId);
             } catch (e) {
-                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) {return;}
             }
 
             if (!userExists) {
@@ -81,7 +81,7 @@ function routes (fastify, opts, done) {
             try {
                 uJson = await um.User.retrieve(request.body.userId);
             } catch (e) {
-                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) {return;}
             }
 
             if (!uJson) {
@@ -112,7 +112,7 @@ function routes (fastify, opts, done) {
                     imagePaths
                 );
             } catch (e) {
-                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) {return;}
             }
 
             if (!q) {
@@ -125,7 +125,7 @@ function routes (fastify, opts, done) {
             try {
                 await q.create();
             } catch (e) {
-                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) {return;}
             }
 
             // set the user's current question
@@ -142,14 +142,14 @@ function routes (fastify, opts, done) {
                         }
                 });
             } catch (e) {
-                if (ru.errCheck(reply, rc.INTERNAL_SERVER_ERROR, e)) return;
+                if (ru.errCheck(reply, rc.INTERNAL_SERVER_ERROR, e)) {return;}
             }
 
             let uQuestion;
             try {
                 uQuestion = await qm.Question.retrieve(user.currentQuestion);
             } catch (e) {
-                if (ru.errCheck(reply, rc.INTERNAL_SERVER_ERROR, e)) return;
+                if (ru.errCheck(reply, rc.INTERNAL_SERVER_ERROR, e)) {return;}
             }
 
             const question = qm.Question.fromJson(uQuestion);
@@ -183,7 +183,7 @@ function routes (fastify, opts, done) {
 
             } catch (e) {
                 request.log.info(e);
-                if (ru.errCheck(reply, rc.INTERNAL_SERVER_ERROR, e)) return;
+                if (ru.errCheck(reply, rc.INTERNAL_SERVER_ERROR, e)) {return;}
             }
 
             // send notification to helper
@@ -246,11 +246,11 @@ function routes (fastify, opts, done) {
                         currentQuestion: optimalHelper.currentQuestion
                     }
             }).catch((err) => {
-                    request.log.info(err);
-                    request.log.info(
-                        "Warning: Failed to set helper's fields " +
+                request.log.info(err);
+                request.log.info(
+                    "Warning: Failed to set helper's fields " +
                         "when they were selected for a question");
-                }
+            }
             );
 
             reply.status(rc.OK);
@@ -409,7 +409,7 @@ function routes (fastify, opts, done) {
                 /* eslint-disable-next-line */
                 userExists = await um.User.exists(request.body.userId);
             } catch (e) {
-                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) {return;}
             }
 
             if (!userExists) {
@@ -427,7 +427,7 @@ function routes (fastify, opts, done) {
             try {
                 qJson = await qm.Question.retrieve(questionId);
             } catch (e) {
-                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) {return;}
             }
 
             if (qJson.optimalHelper != userId) {
@@ -450,7 +450,7 @@ function routes (fastify, opts, done) {
                         }
                 });
             } catch (e) {
-                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) {return;}
             }
 
             try {
@@ -461,7 +461,7 @@ function routes (fastify, opts, done) {
                     "basic", {}
                 );
             } catch (e) {
-                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) {return;}
             }
 
             reply.status(rc.OK);
@@ -472,7 +472,7 @@ function routes (fastify, opts, done) {
             try {
                 helper = await um.User.retrieve(qJson.optimalHelper);
             } catch (e) {
-                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) {return;}
             }
 
             if (!helper) {
@@ -528,7 +528,7 @@ function routes (fastify, opts, done) {
             try {
                 userExists = await um.User.exists(seekerId);
             } catch (e) {
-                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) {return;}
             }
 
             if (!userExists) {
@@ -546,7 +546,7 @@ function routes (fastify, opts, done) {
             try {
                 uJson = await um.User.retrieve(seekerId);
             } catch (e) {
-                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) {return;}
             }
 
             const seeker = um.User.fromJson(uJson);
@@ -563,14 +563,14 @@ function routes (fastify, opts, done) {
             try {
                 qJson = await qm.Question.retrieve(seeker.currentQuestion);
             } catch (e) {
-                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) {return;}
             }
 
             let hJson;
             try {
                 hJson = await um.User.retrieve(qJson.finalHelper);
             } catch (e) {
-                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) {return;}
             }
 
             const helper = um.User.fromJson(hJson);
@@ -586,14 +586,14 @@ function routes (fastify, opts, done) {
                         }
                     });
             } catch (e) {
-                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) {return;}
             }
 
             // clear the seeker's question
             try {
                 await seeker.update({ $set: { currentQuestion: null }});
             } catch (e) {
-                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) {return;}
             }
 
             // set the status of the question to "Resolved"
@@ -608,7 +608,7 @@ function routes (fastify, opts, done) {
                     }
                 );
             } catch (e) {
-                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) {return;}
             }
 
             reply.status(rc.OK);
@@ -633,7 +633,7 @@ function routes (fastify, opts, done) {
             try {
                 q = await qm.Question.retrieve(request.params.questionId);
             } catch (e) {
-                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) {return;}
             }
 
             fastify.log.info(q);

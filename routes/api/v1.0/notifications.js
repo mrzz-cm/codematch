@@ -37,7 +37,7 @@ function routes(fastify, opts, done) {
                     request.body.userId, request.body.fcmToken
                 );
             } catch (e) {
-                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) {return;}
             }
 
             reply.status(rc.OK);

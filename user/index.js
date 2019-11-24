@@ -397,7 +397,7 @@ class User {
                 sender.send(message, {
                     registrationTokens: regTokens
                 }, (err, result) => {
-                    if (err) reject(err);
+                    if (err) {reject(err);}
                     resolve(result);
                 });
             }
