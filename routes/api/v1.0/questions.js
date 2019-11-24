@@ -311,9 +311,9 @@ function routes (fastify, opts, done) {
                 if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
             }
 
-            if (qJson.seeker === userId) {
-                reply.status(rc.BAD_REQUEST);
-                reply.send("Cannot accept your own question.");
+            if (qJson.optimalHelper != userId) {
+                reply.status(rc.UNAUTHORIZED);
+                reply.send("Not authorized to accept this question.");
             }
 
             try {
