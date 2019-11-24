@@ -46,6 +46,8 @@ class Match {
 
         const collection = await mongo.db.collection(userCollection);
 
+        const checkedHelpers = this._question.prevCheckedHelpers;
+
         let highestQuery;
         try {
             /* Calculate highest rated user with MongoDB query */
@@ -100,8 +102,11 @@ class Match {
                     totalCourses: {
                         $cond: {
                             if: {
+                                /* true when the first array is a subset of the
+                                second, including when the first array equals
+                                the second array, and false otherwise */
                                 $setIsSubset: [
-                                    seekerJson.courses, "$courses"
+                                    [ this._question.courseCode ], "$courses"
                                 ]
                             },
                             then: COURSE_CODE_WEIGHT,
@@ -192,7 +197,24 @@ class Match {
                         $filter: {
                             input: "$records",
                             as: "re",
-                            cond: {$eq: ["$$re.totalRating", "$$ROOT.finalRating"]}
+                            cond: {
+                                $and: [
+                                    {
+                                        $eq: [
+                                            "$$re.totalRating",
+                                            "$$ROOT.finalRating"
+                                        ]
+                                    },
+                                    {
+                                        $not: {
+                                            $setIsSubset: [
+                                                [ "$re.userId" ],
+                                                checkedHelpers
+                                            ]
+                                        }
+                                    }
+                                ]
+                            }
                         }
                     },
                     finalRating: "$$ROOT.finalRating"
