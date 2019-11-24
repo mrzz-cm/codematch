@@ -63,7 +63,7 @@ describe("User update test", () => {
         /* Make sure created properly */
         expect(user.toJson().userId).toBe(tu);
 
-        user.update({ $set: { courses: courses } })
+        user.update({ $set: { courses } })
             .then(() => um.User.retrieve(tu))
             .then((result) => (
                 expect(result.courses).toStrictEqual(courses)

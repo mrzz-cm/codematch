@@ -93,7 +93,7 @@ jest.mock("../../user", () => function() {
 
     User.prototype.update = jest.fn( async function () {} );
 
-    const module = { User: User };
+    return { User };
 
     return module;
 });
@@ -118,7 +118,7 @@ jest.mock("../../matching", () => function() {
         }
     });
 
-    const module = { Match: Match };
+    return { Match };
 
     return module;
 });
