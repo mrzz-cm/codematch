@@ -237,10 +237,12 @@ function routes (fastify, opts, done) {
         async handler (request, reply) {
             const um = userModule({ mongo: fastify.mongo });
 
+            const body = request.body;
+
             let usersExist;
             try {
                 const userExists = await um.User.exists(request.body.userId);
-                const receiverExists = await um.User.exists(requests.body.receiverId);
+                const receiverExists = await um.User.exists(body.receiverId);
 
                 usersExist = userExists && receiverExists;
             } catch (e) {
@@ -262,7 +264,7 @@ function routes (fastify, opts, done) {
             try {
                 await um.User.sendNotification(
                     request.body.receiverId,
-                    message,
+                    body.message,
                     "message",
                     {
                         notificationType: "message"
