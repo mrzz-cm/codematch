@@ -218,6 +218,66 @@ function routes (fastify, opts, done) {
         }
     });
 
+    /**
+     * Send a message to a user
+     */
+    fastify.route({
+        method: "POST",
+        url: "/sendMessage",
+        preValidation: [ fastify.authenticate ],
+        body: {
+            type: "object",
+            required: ["userId", "receiverId", "message"],
+            properties: {
+                userId: { type: "string" },
+                receiverId: { type: "string" },
+                message: { type: "string" }
+            }
+        },
+        async handler (request, reply) {
+            const um = userModule({ mongo: fastify.mongo });
+
+            let usersExist;
+            try {
+                const userExists = await um.User.exists(request.body.userId);
+                const receiverExists = await um.User.exists(requests.body.receiverId);
+
+                usersExist = userExists && receiverExists;
+            } catch (e) {
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
+            }
+
+            if (!usersExist) {
+                reply.status(rc.BAD_REQUEST);
+                reply.send("Provided user(s) doesn't exist.");
+                return;
+            }
+
+            if (!auth.verifyUserToken(fastify, request, request.body.userId)) {
+                ru.errCheck(reply, rc.UNAUTHORIZED, "Invalid credentials.");
+                return;
+            }
+
+            // actually send the message through a notification
+            try {
+                await um.User.sendNotification(
+                    request.body.receiverId,
+                    message,
+                    "message",
+                    {
+                        notificationType: "message"
+                    });
+
+            } catch (e) {
+                request.log.info(e);
+                if (ru.errCheck(reply, rc.INTERNAL_SERVER_ERROR, e)) return;
+            }
+
+            reply.status(rc.OK);
+            reply.send({msg: "Sent message."});
+        }
+    });
+
     /* GET Requests */
 
     /**
