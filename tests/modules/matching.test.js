@@ -96,7 +96,8 @@ describe("Optimal match test", () => {
     test("Optimal match test", async (done) => {
         // create a new match
         const match = new mm.Match({
-            seeker: testSeeker
+            seeker: testSeeker,
+            prevCheckedHelpers: []
         });
 
         const optimalHelper = await match.optimalHelper();
