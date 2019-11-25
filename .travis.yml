@@ -1,7 +1,14 @@
 language: node_js
 node_js: "12"
 
-services: mongodb
+services: mongod
+addons:
+  apt:
+    sources:
+      - sourceline: 'deb http://repo.mongodb.org/apt/ubuntu bionic/mongodb-org/4.2 multiverse'
+        key_url: 'https://www.mongodb.org/static/pgp/server-4.2.asc'
+    packages:
+      - mongodb-org
 
 env:
   - MODE=test
