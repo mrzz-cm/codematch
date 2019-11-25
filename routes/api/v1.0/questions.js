@@ -45,7 +45,7 @@ async function matchQuestion(request, reply, fastify, question, seeker) {
 
     request.log.info(`match: ${match.userId}`);
 
-    console.log("Sending the notification to ", seeker.userId);
+    request.log.info("Sending the notification to ", seeker.userId);
 
     // send notification to seeker
     try {
@@ -62,7 +62,7 @@ async function matchQuestion(request, reply, fastify, question, seeker) {
         if (ru.errCheck(reply, rc.INTERNAL_SERVER_ERROR, e)) {return false;}
     }
 
-    console.log("Sending the notification to ", match.userId);
+    request.log.info("Sending the notification to ", match.userId);
 
     // send notification to helper
     try {
@@ -86,7 +86,7 @@ async function matchQuestion(request, reply, fastify, question, seeker) {
     question.prevCheckedHelpers.push(match.userId);
     question.questionState = "Waiting";
 
-    console.log("Updating question");
+    request.log.info("Updating question");
 
     try {
         await question.update(
@@ -100,12 +100,12 @@ async function matchQuestion(request, reply, fastify, question, seeker) {
             });
     } catch (e) {
         request.log.info(e);
-        console.log("Warning: Failed to update question " +
+        request.log.info("Warning: Failed to update question " +
             "state in database after match was found!");
     }
 
     // update matched helper fields
-    console.log("Fetching matched helper ", match.userId);
+    request.log.info("Fetching matched helper ", match.userId);
 
     let helper;
     try {
@@ -129,7 +129,7 @@ async function matchQuestion(request, reply, fastify, question, seeker) {
 
     helperUser = um.User.fromJson(helper);
 
-    console.log("Updating matched helper data");
+    request.log.info("Updating matched helper data");
 
     try {
         await helperUser.update({
@@ -277,14 +277,14 @@ function routes (fastify, opts, done) {
 
             const question = qm.Question.fromJson(uQuestion);
 
-            console.log(question);
+            request.log.info(question);
 
             // run matching algorithm
             const matchSuccess = await matchQuestion(
                 request, reply, fastify, question, user);
             if (!matchSuccess) { return; }
 
-            console.log("New question matched: ", question);
+            request.log.info("New question matched: ", question);
 
             reply.status(rc.OK);
             reply.send({
