@@ -219,9 +219,21 @@ class Match {
                             input: "$records",
                             as: "re",
                             cond: {
-                                $eq: [
-                                    "$$re.totalRating",
-                                    "$$ROOT.finalRating"
+                                $and: [
+                                    {
+                                        $eq: [
+                                            "$$re.totalRating",
+                                            "$$ROOT.finalRating"
+                                        ]
+                                    },
+                                    {
+                                        $not: {
+                                            $setIsSubset: [
+                                                [ "$$re.userId" ],
+                                                checkedHelpers
+                                            ]
+                                        }
+                                    }
                                 ]
                             }
                         }
