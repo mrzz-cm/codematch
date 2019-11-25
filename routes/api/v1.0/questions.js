@@ -45,6 +45,8 @@ async function matchQuestion(request, reply, fastify, question, seeker) {
 
     request.log.info(`match: ${match.userId}`);
 
+    console.log("Sending the notification to ", seeker.userId);
+
     // send notification to seeker
     try {
         await um.User.sendNotification(
@@ -59,6 +61,8 @@ async function matchQuestion(request, reply, fastify, question, seeker) {
         request.log.info(e);
         if (ru.errCheck(reply, rc.INTERNAL_SERVER_ERROR, e)) {return false;}
     }
+
+    console.log("Sending the notification to ", match.userId);
 
     // send notification to helper
     try {
@@ -82,6 +86,8 @@ async function matchQuestion(request, reply, fastify, question, seeker) {
     question.prevCheckedHelpers.push(match.userId);
     question.questionState = "Waiting";
 
+    console.log("Updating question");
+
     try {
         await question.update(
             {
@@ -94,11 +100,13 @@ async function matchQuestion(request, reply, fastify, question, seeker) {
             });
     } catch (e) {
         request.log.info(e);
-        request.log.info("Warning: Failed to update question " +
+        console.log("Warning: Failed to update question " +
             "state in database after match was found!");
     }
 
     // update matched helper fields
+    console.log("Fetching matched helper ", match.userId);
+
     let helper;
     try {
         helper = await um.User.retrieve(match.userId);
@@ -120,6 +128,8 @@ async function matchQuestion(request, reply, fastify, question, seeker) {
     }
 
     helperUser = um.User.fromJson(helper);
+
+    console.log("Updating matched helper data");
 
     try {
         await helperUser.update({
