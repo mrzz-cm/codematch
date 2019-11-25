@@ -490,11 +490,13 @@ function routes (fastify, opts, done) {
             if (qJson.optimalHelper !== userId) {
                 reply.status(rc.UNAUTHORIZED);
                 reply.send("Not authorized to accept this question.");
+                return;
             }
 
             if (qJson.questionState !== "Waiting") {
                 reply.status(rc.UNAUTHORIZED);
                 reply.send("Not authorized to accept this question.");
+                return;
             }
 
             let helperJson;
@@ -626,6 +628,7 @@ function routes (fastify, opts, done) {
                     optimalHelper: qJson.optimalHelper,
                     questionState: qJson.questionState,
                 });
+                return;
             }
 
             // update question fields
