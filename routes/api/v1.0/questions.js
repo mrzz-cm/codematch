@@ -128,16 +128,15 @@ function routes (fastify, opts, done) {
         async handler(request, reply) {
             const qm = questionsModule({ mongo: fastify.mongo });
             const um = userModule({ mongo: fastify.mongo });
-            const mm = matchingModule({ mongo: fastify.mongo });
 
             const body = request.body;
 
             let images = [];
-            if (!(request.files === undefined || (request.files === null))) {
+            if (!(typeof request.files === "undefined" || (request.files === null))) {
                 images = request.files.questionImage || [];
             }
 
-            const imagePaths = images.map(i => i.path);
+            const imagePaths = images.map((i) => i.path);
 
             let userExists;
             try {
@@ -302,12 +301,14 @@ function routes (fastify, opts, done) {
             }
             const question = qm.Question.fromJson(qJson);
 
-            if (question.questionState != "Waiting" && question.questionState != "Unmatched") {
+            const qState = question.questionState;
+
+            if ((qState !== "Waiting") && (qState !== "Unmatched")) {
                 reply.status(rc.BAD_REQUEST);
-                reply.send('Cannot close this question.');
+                reply.send("Cannot close this question.");
             }
 
-            const helperWaiting = (question.questionState == "Waiting");
+            const helperWaiting = (question.questionState === "Waiting");
 
             // close the question
             question.questionState = "Resolved";
@@ -345,7 +346,7 @@ function routes (fastify, opts, done) {
                 try {
                     hJson = await um.User.retrieve(qJson.optimalHelper);
                 } catch (e) {
-                    if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
+                    if (ru.errCheck(reply, rc.BAD_REQUEST, e)) {return;}
                 }
 
                 const helper = um.User.fromJson(hJson);
@@ -638,6 +639,7 @@ function routes (fastify, opts, done) {
 
             let userExists;
             try {
+                /* eslint-disable-next-line */
                 userExists = await um.User.exists(seekerId);
             } catch (e) {
                 if (ru.errCheck(reply, rc.BAD_REQUEST, e)) {return;}

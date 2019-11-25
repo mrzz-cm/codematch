@@ -2,7 +2,6 @@ const userModule = require("../../../user");
 const auth = require("../../../authentication");
 const ru = require("../../../utils/router");
 const rc = ru.responseCodes;
-
 function routes(fastify, opts, done) {
 
     /* POST Requests */
