@@ -270,7 +270,7 @@ public class NotifyView extends AppCompatActivity implements NotifyViewAdapter.N
                     }
                 });
 
-                removeNotificationAtPosition(pressed_position);
+//                removeNotificationAtPosition(pressed_position);
                 dialog.cancel();
             }
         });
