@@ -120,42 +120,31 @@ class Match {
             {
                 $addFields: {
                     totalRating: {
-                        $add: [{
-                            $add: [
-                                "$totalPoints",
-                                {
-                                    $add: [{
-                                        $add: [
-                                            "$totalLastOnline", "$totalCourses"
-                                        ]
-                                    },
-                                    {
-                                        $add: [{
-                                            $multiply: [{
-                                                $sin: {
-                                                    $divide: ["$dLat", 2]
-                                                }
+                        $cond: {
+                            if: {
+                                $setIsSubset: [
+                                    [ "$userId" ], checkedHelpers
+                                ]
+                            },
+                            /* Null if user already checked so $max ignores */
+                            then: null,
+                            else: {
+                                $add: [{
+                                    $add: [
+                                        "$totalPoints",
+                                        {
+                                            $add: [{
+                                                $add: [
+                                                    "$totalLastOnline",
+                                                    "$totalCourses"
+                                                ]
                                             },
                                             {
-                                                $sin: {
-                                                    $divide: ["$dLong", 2]
-                                                }
-                                            }
-                                            ]
-                                        },
-                                        {
-                                            $multiply: [
-                                                {
+                                                $add: [{
                                                     $multiply: [{
-                                                        $cos: "$lat1"
-                                                    },
-                                                    {
-                                                        $cos: "$lat2"
-                                                    },
-                                                    {
                                                         $sin: {
                                                             $divide: [
-                                                                "$dLong", 2
+                                                                "$dLat", 2
                                                             ]
                                                         }
                                                     },
@@ -168,15 +157,42 @@ class Match {
                                                     }
                                                     ]
                                                 },
-                                                EARTH_RADIUS * -LOCATION_WEIGHT
+                                                {
+                                                    $multiply: [
+                                                        {
+                                                            $multiply: [{
+                                                                $cos: "$lat1"
+                                                            },
+                                                            {
+                                                                $cos: "$lat2"
+                                                            },
+                                                            {
+                                                                $sin: {
+                                                                    $divide: [
+                                                                        "$dLong", 2
+                                                                    ]
+                                                                }
+                                                            },
+                                                            {
+                                                                $sin: {
+                                                                    $divide: [
+                                                                        "$dLong", 2
+                                                                    ]
+                                                                }
+                                                            }
+                                                            ]
+                                                        },
+                                                        EARTH_RADIUS * -LOCATION_WEIGHT
+                                                    ]
+                                                }
+                                                ]
+                                            }
                                             ]
                                         }
-                                        ]
-                                    }
                                     ]
-                                }
-                            ]
-                        }]
+                                }]
+                            }
+                        }
                     }
                 },
             },
@@ -200,21 +216,9 @@ class Match {
                             input: "$records",
                             as: "re",
                             cond: {
-                                $and: [
-                                    {
-                                        $eq: [
-                                            "$$re.totalRating",
-                                            "$$ROOT.finalRating"
-                                        ]
-                                    },
-                                    {
-                                        $not: {
-                                            $setIsSubset: [
-                                                [ "$$re.userId" ],
-                                                checkedHelpers
-                                            ]
-                                        }
-                                    }
+                                $eq: [
+                                    "$$re.totalRating",
+                                    "$$ROOT.finalRating"
                                 ]
                             }
                         }

@@ -543,14 +543,15 @@ function routes (fastify, opts, done) {
                 if (ru.errCheck(reply, rc.BAD_REQUEST, e)) {return;}
             }
 
-            if (qJson.optimalHelper !== userId) {
+            if ((qJson.optimalHelper !== userId) ||
+                (qJson.questionState !== "Waiting")) {
                 reply.status(rc.UNAUTHORIZED);
-                reply.send("Not authorized to decline this question.");
-            }
-
-            if (qJson.questionState !== "Waiting") {
-                reply.status(rc.UNAUTHORIZED);
-                reply.send("Not authorized to decline this question.");
+                reply.send({
+                    msg: "Not authorized to decline this question.",
+                    userId,
+                    optimalHelper: qJson.optimalHelper,
+                    questionState: qJson.questionState,
+                });
             }
 
             // update question fields

@@ -470,6 +470,11 @@ describe("Declining a question test", () => {
             }
         });
 
+        const responseBody = JSON.parse(helpResponse.body);
+        expect(responseBody).toEqual({
+            msg: `${testHelper1} declined ${seekerQuestion.uuid}`
+        });
+
         expect(helpResponse.statusCode).toBe(rc.OK);
 
         // check the seeker and helper status
