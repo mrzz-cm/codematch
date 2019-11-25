@@ -334,6 +334,12 @@ class User {
         return userJson;
     }
 
+    /**
+     * Registers the user for FCM notifications.
+     * 
+     * @param {string} userId 
+     * @param {string} fcmToken 
+     */
     static async registerForNotifications(userId, fcmToken) {
         let userJson;
         try {
@@ -358,6 +364,14 @@ class User {
         }
     }
 
+    /**
+     * Sends a notification to the user.
+     * 
+     * @param {string} userId 
+     * @param {string} title 
+     * @param {string} body 
+     * @param {Object} data 
+     */
     static async sendNotification(userId, title, body, data) {
 
         // create message
