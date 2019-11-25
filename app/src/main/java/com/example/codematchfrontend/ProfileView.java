@@ -72,7 +72,6 @@ public class ProfileView extends AppCompatActivity implements CoursesListAdapter
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-
         coursesView = (RecyclerView) findViewById(R.id.courseList);
 
         layoutManager = new LinearLayoutManager(this);
@@ -227,26 +226,17 @@ public class ProfileView extends AppCompatActivity implements CoursesListAdapter
      public boolean onOptionsItemSelected(MenuItem item) {
         switch(item.getItemId()) {
             case R.id.postingViewButton:
-                Toast.makeText(this, "Posting View selected!!", Toast.LENGTH_SHORT).show();
                 switchTabToPostingView();
                 break;
             case R.id.notifyViewButton:
-                Toast.makeText(this, "Notification View selected!!", Toast.LENGTH_SHORT).show();
                 switchTabToNotifyView();
                 break;
             case R.id.profileViewButton:
-                Toast.makeText(this, "Profile View selected!!", Toast.LENGTH_SHORT).show();
                 switchTabToProfileView();
                 break;
             default: return super.onOptionsItemSelected(item);
         }
         return true;
-    }
-
-    public void deleteProfile() {
-        /* This method is to enable the user to delete their profile from codematch and all associated data
-
-         */
     }
 
 }

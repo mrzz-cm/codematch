@@ -136,6 +136,7 @@ public class PostingView extends AppCompatActivity {
              @Override
              public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
                 System.out.println("Question create request returned code " + response.code());
+                System.out.println(response.body().string());
              }
          });
     }

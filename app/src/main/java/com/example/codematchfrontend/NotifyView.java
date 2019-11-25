@@ -1,12 +1,14 @@
 package com.example.codematchfrontend;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.MediaType;
+import okhttp3.MultipartBody;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
@@ -51,6 +53,7 @@ public class NotifyView extends AppCompatActivity implements NotifyViewAdapter.N
     private NotifyViewAdapter adapter;
     private LinkedList<String> notifications;
     private Bitmap question_image;
+    private String current_question_id;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,6 +61,9 @@ public class NotifyView extends AppCompatActivity implements NotifyViewAdapter.N
         RecyclerView.LayoutManager layoutManager;
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_notify_view);
+
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
 
         setTitle("Questions matched for you");
 
@@ -71,19 +77,18 @@ public class NotifyView extends AppCompatActivity implements NotifyViewAdapter.N
         newQuestionsView.addItemDecoration(dividerItemDecoration);
 
         notifications = new LinkedList<String>();
-        updateAllQuestions();
 
         adapter = new NotifyViewAdapter(this, this.notifications);
         newQuestionsView.setAdapter(adapter);
 
-        FloatingActionButton postNewQuestionFAB = (FloatingActionButton) findViewById(R.id.postQuestionFAB);
-
-        postNewQuestionFAB.setOnClickListener(new View.OnClickListener() {
+        Button viewOnQuestionButton = (Button) findViewById(R.id.view_my_question);
+        viewOnQuestionButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                goToQuestionView();
+                displayOwnQuestion();
             }
         });
+        updateAllQuestions();
     }
 
     private void updateAllQuestions() {
@@ -105,8 +110,8 @@ public class NotifyView extends AppCompatActivity implements NotifyViewAdapter.N
                 System.out.println("Get all questions returned code " + response.code());
                 try {
                     JSONObject jsonObject = new JSONObject(response.body().string());
-                    if (jsonObject.has("currentQuestion") && !jsonObject.isNull("currentQuestion")){
-                        final String question_id = jsonObject.get("currentQuestion").toString();
+                    if (jsonObject.has("currentMatchedQuestion") && !jsonObject.isNull("currentMatchedQuestion")){
+                        final String question_id = jsonObject.get("currentMatchedQuestion").toString();
                         new Handler(Looper.getMainLooper()).post(new Runnable(){
                             @Override
                             public void run() {
@@ -120,7 +125,6 @@ public class NotifyView extends AppCompatActivity implements NotifyViewAdapter.N
             }
         });
     }
-
 
     @Override
     public void onItemClick(View view, int position) {
@@ -150,22 +154,33 @@ public class NotifyView extends AppCompatActivity implements NotifyViewAdapter.N
             }
 
             @Override
-            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+            public void onResponse(@NotNull Call call, @NotNull final Response response) throws IOException {
                 System.out.println("Get question data returned code " + response.code());
-                try {
-                    final JSONObject jsonObject = new JSONObject(response.body().string());
-                    if (jsonObject.has("title")){
-                        titleText.setText(jsonObject.get("title").toString());
-                    }
-                    if (jsonObject.has("questionText")){
-                        questionText.setText(jsonObject.get("questionText").toString());
-                    }
-                    if (jsonObject.has("images")){
-                        setQuestionImage(questionImage, jsonObject.getJSONArray("images"));
-                    }
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
+                new Handler(Looper.getMainLooper()).post(new Runnable(){
+                        @Override
+                        public void run() {
+                            try {
+                                JSONObject jsonObject = null;
+                                try {
+                                    jsonObject = new JSONObject(response.body().string());
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+
+                                if (jsonObject.has("title")){
+                                    titleText.setText(jsonObject.get("title").toString());
+                                }
+                                if (jsonObject.has("questionText")){
+                                    questionText.setText(jsonObject.get("questionText").toString());
+                                }
+                                if (jsonObject.has("images")){
+                                    setQuestionImage(questionImage, jsonObject.getJSONArray("images"));
+                                }
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                });
             }
         });
 
@@ -182,16 +197,27 @@ public class NotifyView extends AppCompatActivity implements NotifyViewAdapter.N
 
     private void setQuestionImage(final View view, final JSONArray imageArray) {
 
-        String image_url = null;
+        Uri image_uri = null;
         try {
-            Uri image_uri = Uri.parse(imageArray.get(0).toString());
-            image_url = GlobalUtils.BASE_URL.replace("/api", "") + "/uploads/" + image_uri.getLastPathSegment();;
+            image_uri = Uri.parse(imageArray.get(0).toString());
         } catch (JSONException e) {
             e.printStackTrace();
         }
+        final String image_url = GlobalUtils.BASE_URL.replace("/api", "") + "/uploads/" + image_uri.getLastPathSegment();
+
         try {
-            InputStream in = new java.net.URL(image_url).openStream();
-            question_image = BitmapFactory.decodeStream(in);
+            new Thread() {
+                @Override
+                public void run() {
+                    InputStream in = null;
+                    try {
+                        in = new java.net.URL(image_url).openStream();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    question_image = BitmapFactory.decodeStream(in);
+                }
+            }.start();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -250,9 +276,37 @@ public class NotifyView extends AppCompatActivity implements NotifyViewAdapter.N
         no.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                JSONObject jsonObject = new JSONObject();
+                try {
+                    jsonObject.put("userId", GlobalUtils.EMAIL);
+                    jsonObject.put("questionId", questionID);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+                MediaType JSON = MediaType.parse("application/json; charset=utf-8");
+                RequestBody body = RequestBody.create(jsonObject.toString(), JSON);
+
+                Request notify_question_accepted = new Request.Builder()
+                        .url(GlobalUtils.BASE_URL + "/questions/decline")
+                        .addHeader("Authorization", "Bearer " + GlobalUtils.API_KEY)
+                        .post(body)
+                        .build();
+
+                GlobalUtils.HTTP_CLIENT.newCall(notify_question_accepted).enqueue(new Callback() {
+                    @Override
+                    public void onFailure(@NotNull Call call, @NotNull IOException e) {
+                        System.out.println("Notify question accepted failed");
+                    }
+
+                    @Override
+                    public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+                        int statuscode = response.code();
+                        System.out.println("Accept question return " + statuscode + "\n");
+                    }
+                });
                 removeNotificationAtPosition(pressed_position);
                 dialog.cancel();
-                //code the functionality when NO button is clicked
             }
         });
 
@@ -261,6 +315,130 @@ public class NotifyView extends AppCompatActivity implements NotifyViewAdapter.N
             @Override
             public void onClick(View view) {
                 dialog.cancel();
+            }
+        });
+    }
+
+    private void displayOwnQuestion() {
+        final Dialog dialog = new Dialog(this);
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialog.setContentView(R.layout.view_own_question_popup);
+        dialog.setCanceledOnTouchOutside(true);
+
+        final TextView questionText = (TextView) dialog.findViewById(R.id.question_text);
+        final TextView titleText = (TextView) dialog.findViewById(R.id.question_title);
+        final ImageView questionImage = (ImageView) dialog.findViewById(R.id.question_image);
+
+        // first get the question ID of the current user
+        Request get_question_id_request = new Request.Builder()
+                .url(GlobalUtils.BASE_URL + "/user/" + GlobalUtils.EMAIL)
+                .addHeader("Authorization", "Bearer " + GlobalUtils.API_KEY)
+                .build();
+
+        GlobalUtils.HTTP_CLIENT.newCall(get_question_id_request).enqueue(new Callback() {
+            @Override
+            public void onFailure(@NotNull Call call, @NotNull IOException e) {
+                System.out.println("Error: "+ e.toString());
+            }
+
+            @Override
+            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+                try {
+                    JSONObject jsonObject = new JSONObject(response.body().string());
+                    if (jsonObject.has("currentQuestion") && !jsonObject.isNull("currentQuestion")){
+                        current_question_id = jsonObject.get("currentQuestion").toString();
+
+                        Request get_question_data_request = new Request.Builder()
+                                .url(GlobalUtils.BASE_URL + "/questions/" + current_question_id)
+                                .addHeader("Authorization", "Bearer " + GlobalUtils.API_KEY)
+                                .build();
+
+                        GlobalUtils.HTTP_CLIENT.newCall(get_question_data_request).enqueue(new Callback() {
+                            @Override
+                            public void onFailure(@NotNull Call call, @NotNull IOException e) {
+                                System.out.println("Error: "+ e.toString());
+                            }
+
+                            @Override
+                            public void onResponse(@NotNull Call call, @NotNull final Response response) throws IOException {
+                                System.out.println("Get question data returned code " + response.code());
+                                new Handler(Looper.getMainLooper()).post(new Runnable(){
+                                    @Override
+                                    public void run() {
+                                        try {
+                                            JSONObject jsonObject = null;
+                                            try {
+                                                jsonObject = new JSONObject(response.body().string());
+                                            } catch (Exception e) {
+                                                e.printStackTrace();
+                                            }
+                                            if (jsonObject.has("title")){
+                                                titleText.setText(jsonObject.get("title").toString());
+                                            }
+                                            if (jsonObject.has("questionText")){
+                                                questionText.setText(jsonObject.get("questionText").toString());
+                                            }
+                                            if (jsonObject.has("images")){
+                                                setQuestionImage(questionImage, jsonObject.getJSONArray("images"));
+                                            }
+                                        } catch (JSONException e) {
+                                            e.printStackTrace();
+                                        }
+                                    }
+                                });
+                            }
+                        });
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
+        questionText.setMovementMethod(new ScrollingMovementMethod());
+        dialog.show();
+
+        final Button closeQuestionButton = dialog.findViewById(R.id.close_dialog);
+        closeQuestionButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                dialog.cancel();
+            }
+        });
+
+        final Button deleteQuestionButton = dialog.findViewById(R.id.delete_question);
+        setupDeleteQuestionListener(deleteQuestionButton, dialog);
+    }
+
+    private void setupDeleteQuestionListener(Button deleteQuestionButton, final Dialog dialog) {
+        deleteQuestionButton.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View view) {
+                dialog.cancel();
+
+                RequestBody body = new MultipartBody.Builder()
+                        .setType(MultipartBody.FORM)
+                        .addFormDataPart("userId", GlobalUtils.EMAIL)
+                        .build();
+
+                Request delete_question_request = new Request.Builder()
+                        .url(GlobalUtils.BASE_URL + "/questions/delete/" + GlobalUtils.EMAIL)
+                        .addHeader("Authorization", "Bearer " + GlobalUtils.API_KEY)
+                        .post(body)
+                        .build();
+
+                GlobalUtils.HTTP_CLIENT.newCall(delete_question_request).enqueue(new Callback() {
+                    @Override
+                    public void onFailure(@NotNull Call call, @NotNull IOException e) {
+                        System.out.println("Error: "+ e.toString());
+                    }
+
+                    @Override
+                    public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+                        System.out.println("Sucess code: " + response.toString());
+                        System.out.println(response.body().string());
+                    }
+                });
             }
         });
     }
@@ -318,19 +496,17 @@ public class NotifyView extends AppCompatActivity implements NotifyViewAdapter.N
         Intent intent = new Intent (this, RatingView.class);
         startActivity(intent);
     }
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch(item.getItemId()) {
             case R.id.postingViewButton:
-                Toast.makeText(this, "Posting View selected!!", Toast.LENGTH_SHORT).show();
                 switchTabToPostingView();
                 break;
             case R.id.notifyViewButton:
-                Toast.makeText(this, "Notification View selected!!", Toast.LENGTH_SHORT).show();
                 switchTabToNotifyView();
                 break;
             case R.id.profileViewButton:
-                Toast.makeText(this, "Profile View selected!!", Toast.LENGTH_SHORT).show();
                 switchTabToProfileView();
                 break;
             default: return super.onOptionsItemSelected(item);
