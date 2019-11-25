@@ -329,8 +329,8 @@ describe("Posting new question test", () => {
 
 describe("Helping a question test", () => {
 
-    const testSeeker = "testSeeker@example.com";
-    const testHelper = "testHelper@example.com";
+    const testSeeker = "testSeekerHelpTest@example.com";
+    const testHelper = "testHelperHelpTest@example.com";
 
     afterAll(async () => {
         const collection = await fastify.mongo.db.collection("questions");
@@ -400,6 +400,102 @@ describe("Helping a question test", () => {
         const helpResponse = await fastify.inject({
             method: "POST",
             url: "/questions/accept",
+            body: {
+                userId: "idontexist",
+                questionId: "idontexist",
+            }
+        });
+
+        expect(helpResponse.statusCode).toBe(rc.BAD_REQUEST);
+
+        done();
+    });
+});
+
+
+describe("Declining a question test", () => {
+
+    const testSeeker = "testSeeker@example.com";
+    const testHelper1 = "testHelper1@example.com";
+    const testHelper2 = "testHelper2@example.com";
+
+    afterAll(async () => {
+        const collection = await fastify.mongo.db.collection("questions");
+        const userCollection = await fastify.mongo.db.collection("users");
+        await collection.deleteOne({uuid: question.uuid});
+        await userCollection.deleteOne({ userId: testSeeker });
+        await userCollection.deleteOne({ userId: testHelper1 });
+        await userCollection.deleteOne({ userId: testHelper2 });
+    });
+
+    beforeAll(async () => {
+        const seekerUser = um.User.newUser(testSeeker);
+        await seekerUser.create();
+
+        const helperUser1 = um.User.newUser(testHelper1);
+        helperUser1.points = 100;
+        await helperUser1.create();
+
+        const helperUser2 = um.User.newUser(testHelper2);
+        helperUser2.points = 0;
+        await helperUser2.create();
+    });
+
+    test("Declining help to a question test", async (done) => {
+        // step one: seeker posts the question
+        await fastify.inject({
+            method: "POST",
+            url: "/questions/create",
+            body: {
+                userId: testSeeker,
+                title: "Test Question",
+                courseCode: "CPEN 321",
+                questionText: "A test question."
+            }
+        });
+
+        // get the question ID
+        const preSeekerUser = await um.User.retrieve(testSeeker);
+        const seekerQuestion = await qm.Question.retrieve(
+            preSeekerUser.currentQuestion);
+
+        // step two: helper declines to give help
+        const helpResponse = await fastify.inject({
+            method: "POST",
+            url: "/questions/decline",
+            body: {
+                userId: testHelper1,
+                questionId: seekerQuestion.uuid,
+            }
+        });
+
+        expect(helpResponse.statusCode).toBe(rc.OK);
+
+        // check the seeker and helper status
+        const seekerUser = await um.User.retrieve(testSeeker);
+        const helperUser1 = await um.User.retrieve(testHelper1);
+        const helperUser2 = await um.User.retrieve(testHelper2);
+
+        expect(seekerUser.currentQuestion).toBe(seekerQuestion.uuid);
+        expect(helperUser1.currentQuestion).toBe(null);
+        expect(helperUser2.currentQuestion).toBe(null);
+        
+        // check the question data
+        const question = await qm.Question.retrieve(seekerQuestion.uuid);
+
+        expect(question.seeker).toBe(testSeeker);
+        expect(question.optimalHelper).toBe(testHelper2);
+        expect(question.helperAccepted).toBe(false);
+        expect(question.finalHelper).toBe(null);
+        expect(question.questionState).toBe("Waiting");
+
+        done();
+    });
+
+    test("Declining help a question non-existent parameters test", async (done) => {
+        const helpResponse = await fastify.inject({
+            method: "POST",
+            url: "/questions/decline",
             body: {
                 userId: "idontexist",
                 questionId: "idontexist",

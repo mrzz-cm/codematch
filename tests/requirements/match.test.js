@@ -17,6 +17,11 @@ afterAll(() => {
 
 describe("Check matching functional requirements", () => {
 
+    afterAll(async () => {
+        const userCollection = await fastify.mongo.db.collection("users");
+        await userCollection.deleteMany({});
+    });
+
     test("Run matching in under 100 ms", async (done) => {
         const t0 = performance.now();
 
@@ -45,6 +50,11 @@ describe("Check matching functional requirements", () => {
 
 describe("Check user creation non-functional requirement", () => {
 
+    afterAll(async () => {
+        const userCollection = await fastify.mongo.db.collection("users");
+        await userCollection.deleteMany({});
+    });
+    
     test("Run user creation in under 30 ms", async (done) => {
         const t0 = performance.now();
         const testUser = "nfrusertestuser@example.com";
