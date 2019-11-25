@@ -89,6 +89,7 @@ public class NotifyView extends AppCompatActivity implements NotifyViewAdapter.N
             }
         });
         updateAllQuestions();
+        checkIfMatched();
     }
 
     private void updateAllQuestions() {
@@ -225,6 +226,7 @@ public class NotifyView extends AppCompatActivity implements NotifyViewAdapter.N
         new Handler(Looper.getMainLooper()).post(new Runnable(){
             @Override
             public void run() {
+                System.out.println("setting image");
                 ((ImageView) view).setImageBitmap(question_image);
             }
         });
@@ -315,6 +317,50 @@ public class NotifyView extends AppCompatActivity implements NotifyViewAdapter.N
             @Override
             public void onClick(View view) {
                 dialog.cancel();
+            }
+        });
+    }
+
+    private void checkIfMatched() {
+        final Button view_my_question_button = findViewById(R.id.view_my_question);
+
+        Request get_question_id_request = new Request.Builder()
+                .url(GlobalUtils.BASE_URL + "/user/" + GlobalUtils.EMAIL)
+                .addHeader("Authorization", "Bearer " + GlobalUtils.API_KEY)
+                .build();
+
+        GlobalUtils.HTTP_CLIENT.newCall(get_question_id_request).enqueue(new Callback() {
+            @Override
+            public void onFailure(@NotNull Call call, @NotNull IOException e) {
+                System.out.println("Error: "+ e.toString());
+            }
+
+            @Override
+            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+                try {
+                    JSONObject jsonObject = new JSONObject(response.body().string());
+                    if (jsonObject.has("currentMatchedQuestion") && !jsonObject.isNull("currentMatchedQuestion")
+                        || (jsonObject.has("currentQuestion") && jsonObject.isNull("currentQuestion"))){
+                        new Handler(Looper.getMainLooper()).post(new Runnable(){
+                            @Override
+                            public void run() {
+                                view_my_question_button.setAlpha(0);
+                                view_my_question_button.setClickable(false);
+                            }
+                        });
+                    }
+                    if (jsonObject.has("currentQuestion") && !jsonObject.isNull("currentQuestion")){
+                        new Handler(Looper.getMainLooper()).post(new Runnable(){
+                            @Override
+                            public void run() {
+                                view_my_question_button.setAlpha(1);
+                                view_my_question_button.setClickable(true);
+                            }
+                        });
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
             }
         });
     }
@@ -415,6 +461,9 @@ public class NotifyView extends AppCompatActivity implements NotifyViewAdapter.N
             @Override
             public void onClick(View view) {
                 dialog.cancel();
+                final Button view_my_question_button = findViewById(R.id.view_my_question);
+                view_my_question_button.setClickable(false);
+                view_my_question_button.setAlpha(0);
 
                 RequestBody body = new MultipartBody.Builder()
                         .setType(MultipartBody.FORM)
@@ -447,6 +496,7 @@ public class NotifyView extends AppCompatActivity implements NotifyViewAdapter.N
     protected void onResume() {
         super.onResume();
         updateAllQuestions();
+        checkIfMatched();
     }
 
     private void removeNotificationAtPosition(int position) {
