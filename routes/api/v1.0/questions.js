@@ -44,7 +44,7 @@ async function matchQuestion(request, reply, fastify, question, seeker) {
         return false;
     }
 
-    console.log(match.userId);
+    request.log.info(`match: ${match.userId}`);
 
     // send notification to seeker
     try {
@@ -65,7 +65,7 @@ async function matchQuestion(request, reply, fastify, question, seeker) {
     try {
         await um.User.sendNotification(
             match.userId,
-            `You have a new question from ${user.userId}`,
+            `You have a new question from ${seeker.userId}`,
             `helperMatch ${question.uuid}`,
             {
                 notificationType: "helperMatch",
@@ -235,7 +235,8 @@ function routes (fastify, opts, done) {
             const question = qm.Question.fromJson(uQuestion);
 
             // run matching algorithm
-            const matchSuccess = await matchQuestion(request, reply, fastify, question, user);
+            const matchSuccess = await matchQuestion(
+                request, reply, fastify, question, user);
             if (!matchSuccess) { return; }
 
             reply.status(rc.OK);
@@ -262,7 +263,7 @@ function routes (fastify, opts, done) {
             try {
                 userExists = await um.User.exists(seekerId);
             } catch (e) {
-                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) {return;}
             }
 
             if (!userExists) {
@@ -280,7 +281,7 @@ function routes (fastify, opts, done) {
             try {
                 uJson = await um.User.retrieve(seekerId);
             } catch (e) {
-                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) {return;}
             }
 
             const seeker = um.User.fromJson(uJson);
@@ -297,7 +298,7 @@ function routes (fastify, opts, done) {
             try {
                 qJson = await qm.Question.retrieve(seeker.currentQuestion);
             } catch (e) {
-                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) {return;}
             }
             const question = qm.Question.fromJson(qJson);
 
@@ -320,7 +321,7 @@ function routes (fastify, opts, done) {
                         }
                     });
             } catch (e) {
-                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) {return;}
             }
 
             // free up seeker's currentQuestion
@@ -334,7 +335,7 @@ function routes (fastify, opts, done) {
                     }
                 );
             } catch (e) {
-                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) {return;}
             }
 
             reply.status(rc.OK);
@@ -510,7 +511,6 @@ function routes (fastify, opts, done) {
         async handler(request, reply) {
             const qm = questionsModule({ mongo: fastify.mongo });
             const um = userModule({ mongo: fastify.mongo });
-            const mm = matchingModule({ mongo: fastify.mongo });
 
             const userId = request.body.userId;
             const questionId = request.body.questionId;
@@ -599,13 +599,13 @@ function routes (fastify, opts, done) {
             }
 
             // run matching algorithm again
-            const matchSuccess = await matchQuestion(request, reply, fastify, question, seeker)
+            const matchSuccess = await matchQuestion(request, reply, fastify, question, seeker);
             if (!matchSuccess) { return; }
 
             reply.status(rc.OK);
             reply.send({ msg: `${userId} declined ${questionId}` });
         }
-    })
+    });
 
     /**
      * POST - Close a question as a seeker
