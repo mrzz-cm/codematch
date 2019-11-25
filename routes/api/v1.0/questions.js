@@ -261,6 +261,7 @@ function routes (fastify, opts, done) {
 
             let userExists;
             try {
+                /* eslint-disable-next-line */
                 userExists = await um.User.exists(seekerId);
             } catch (e) {
                 if (ru.errCheck(reply, rc.BAD_REQUEST, e)) {return;}
@@ -518,6 +519,7 @@ function routes (fastify, opts, done) {
             // check provided user exists and provided valid credentials
             let userExists;
             try {
+                /* eslint-disable-next-line */
                 userExists = await um.User.exists(userId);
             } catch (e) {
                 if (ru.errCheck(reply, rc.BAD_REQUEST, e)) {return;}
@@ -542,12 +544,12 @@ function routes (fastify, opts, done) {
                 if (ru.errCheck(reply, rc.BAD_REQUEST, e)) {return;}
             }
 
-            if (qJson.optimalHelper != userId) {
+            if (qJson.optimalHelper !== userId) {
                 reply.status(rc.UNAUTHORIZED);
                 reply.send("Not authorized to decline this question.");
             }
 
-            if (qJson.questionState != "Waiting") {
+            if (qJson.questionState !== "Waiting") {
                 reply.status(rc.UNAUTHORIZED);
                 reply.send("Not authorized to decline this question.");
             }
