@@ -16,12 +16,10 @@ function routes (fastify, opts, done) {
         schema: {
             body: {
                 type: "object",
-                required: ["access_token"],
+                required: ["accessToken"],
                 properties: {
-                    /* eslint-disable camelcase */
-                    access_token: { type: "string" },
-                    test_email:  { type: "string" },
-                    /* eslint-enable camelcase */
+                    accessToken: { type: "string" },
+                    testEmail:  { type: "string" },
                     longitude: { type: "number" },
                     latitude: { type: "number" },
                 }
