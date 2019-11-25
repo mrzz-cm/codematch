@@ -37,7 +37,7 @@ function routes (fastify, opts, done) {
         schema: {
             querystring: {
                 properties: {
-                    access_token: {type: "string"}
+                    accessToken: {type: "string"}
                 }
             },
             response: {

@@ -38,12 +38,12 @@
             "error", {
                 "code": 100
             }
-        ]
+        ],
+        "camelcase": "error"
     },
     "overrides": [
         {
-            "files": ["**/*.js", "bin/*"],
-            "excludedFiles": "*.test.js"
+            "files": ["**/*.js", "bin/*"]
         }
     ]
 }

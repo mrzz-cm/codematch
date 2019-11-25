@@ -36,10 +36,10 @@ describe("Account creation test", () => {
             method: "POST",
             url: "/user/register",
             body: {
-                test_email: testUser,
+                testEmail: testUser,
                 longitude: 100,
                 latitude: -100,
-                access_token: "NOT_A_TOKEN"
+                accessToken: "NOT_A_TOKEN"
             }
         });
 
@@ -47,6 +47,7 @@ describe("Account creation test", () => {
 
         // check the user is in database
         um.User.retrieve(testUser)
+            /* eslint-disable-next-line */
             .then(() => expect(um.User.exists(testUser)).toBeTruthy())
             .then(() => done());
     });
@@ -71,10 +72,10 @@ describe("Account duplicate creation test", () => {
             method: "POST",
             url: "/user/register",
             body: {
-                test_email: testUser,
+                testEmail: testUser,
                 longitude: 100,
                 latitude: -100,
-                access_token: "NOT_A_TOKEN"
+                accessToken: "NOT_A_TOKEN"
             }
         });
 
