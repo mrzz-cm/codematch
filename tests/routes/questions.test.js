@@ -12,6 +12,7 @@ jest.mock("../../user", () => function() {
         "_id": "5dd0c159655e815a5740e06b",
         "courses": [],
         "currentQuestion": null,
+        "currentMatchedQuestion": null,
         "fcmToken": null,
         "lastOnline": 1573962073665,
         "location": {
@@ -29,6 +30,7 @@ jest.mock("../../user", () => function() {
         "_id": "abcd",
         "courses": [],
         "currentQuestion": null,
+        "currentMatchedQuestion": null,
         "fcmToken": null,
         "lastOnline": 123,
         "location": {
@@ -46,7 +48,7 @@ jest.mock("../../user", () => function() {
     /* mock User class */
     class User {
         constructor(userId, points, courses, questionsPosted, questionsHelped,
-            lastOnline, currentQuestion, token, location, fcmToken) {
+            lastOnline, currentQuestion, currentMatchedQuestion, token, location, fcmToken) {
             this.userId = userId;
             this.points = points;
             this.courses = courses;
@@ -56,6 +58,7 @@ jest.mock("../../user", () => function() {
 
             this.lastOnline = lastOnline;
             this.currentQuestion = currentQuestion;
+            this.currentMatchedQuestion = currentMatchedQuestion;
             this.token = token;
 
             this.location = location;
@@ -73,7 +76,7 @@ jest.mock("../../user", () => function() {
         return new User(
             jsonUser.userId, jsonUser.points, jsonUser.courses,
             jsonUser.questionsPosted, jsonUser.questionsHelped,
-            jsonUser.lastOnline, jsonUser.currentQuestion,
+            jsonUser.lastOnline, jsonUser.currentQuestion, jsonUser.currentMatchedQuestion,
             jsonUser.token,
             jsonUser.location,
             jsonUser.fcmToken

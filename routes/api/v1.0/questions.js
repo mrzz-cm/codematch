@@ -98,6 +98,40 @@ async function matchQuestion(request, reply, fastify, question, seeker) {
             "state in database after match was found!");
     }
 
+    // update matched helper fields
+    let helper;
+    try {
+        helper = await um.User.retrieve(match.userId);
+    } catch (e) {
+        request.log.info(e);
+        request.log.info("Couldn't find the helper!");
+
+        reply.status(rc.INTERNAL_SERVER_ERROR);
+        reply.send();
+
+        return false;
+    }
+
+    if (!helper) {
+        reply.status(rc.INTERNAL_SERVER_ERROR);
+        reply.send();
+
+        return false;
+    }
+
+    helperUser = um.User.fromJson(helper);
+
+    try {
+        await helperUser.update({
+            $set:
+                {
+                    currentMatchedQuestion: question.uuid
+                }
+        });
+    } catch (e) {
+        if (ru.errCheck(reply, rc.INTERNAL_SERVER_ERROR, e)) {return false;}
+    }
+
     return true;
 }
 
@@ -172,8 +206,8 @@ function routes (fastify, opts, done) {
             // check that the user can post the question
             const user = um.User.fromJson(uJson);
 
-            if (user.currentQuestion) {
-                reply.status(401);
+            if (user.currentQuestion !== null || user.currentMatchedQuestion !== null) {
+                reply.status(rc.UNAUTHORIZED);
                 reply.send(
                     "Cannot post a question when you are already " +
                     "registered to another question!");
@@ -348,7 +382,7 @@ function routes (fastify, opts, done) {
             reply.send("Closed question.");
 
             if (helperWaiting) {
-                // signal the waiting helper
+                // update the helper we are waiting for a response from
                 let hJson;
                 try {
                     hJson = await um.User.retrieve(qJson.optimalHelper);
@@ -357,6 +391,19 @@ function routes (fastify, opts, done) {
                 }
 
                 const helper = um.User.fromJson(hJson);
+
+                // free up the helper's matched question
+                try {
+                    await helper.update({
+                        $set:
+                            {
+                                currentMatchedQuestion: null
+                            }
+                    });
+                } catch (e) {
+                    request.log.info("Warning: unable to clear helper's " + 
+                        "current matched question!");
+                }
 
                 try {
                     await um.User.sendNotification(
@@ -451,6 +498,13 @@ function routes (fastify, opts, done) {
             if (helperJson.currentQuestion !== null) {
                 reply.status(rc.UNAUTHORIZED);
                 reply.send("Cannot accept a question when you already have an active one.");
+                return;
+            }
+
+            if (helperJson.currentMatchedQuestion !== qJson.uuid ) {
+                reply.status(rc.UNAUTHORIZED);
+                reply.send("Not authorized to accept this question.");
+                return;
             }
 
             const helper = um.User.fromJson(helperJson);
@@ -484,12 +538,12 @@ function routes (fastify, opts, done) {
             reply.send({ msg: `${userId} accepted ${questionId}` });
 
             // update the helper
-            helper.currentQuestion = questionId;
+            helper.currentMatchedQuestion = questionId;
             helper.questionsHelped.push(questionId);
 
             helper.update( {
                 $set: {
-                    currentQuestion: questionId,
+                    currentMatchedQuestion: questionId,
                     questionsHelped: helper.questionsHelped
                 }
             })
@@ -577,6 +631,38 @@ function routes (fastify, opts, done) {
                 });
             } catch (e) {
                 if (ru.errCheck(reply, rc.BAD_REQUEST, e)) {return;}
+            }
+
+            // retrieve helper (sender of this request) user
+            let helperJson;
+            try {
+                helperJson = await um.User.retrieve(userId);
+            } catch (e) {
+                if (ru.errCheck(reply, rc.INTERNAL_SERVER_ERROR, e)) { return; }
+            }
+
+            if (!helperJson) {
+                reply.status(rc.INTERNAL_SERVER_ERROR);
+                reply.send(`No user ${userId} found`);
+                return;
+            }
+
+            const helperUser = um.User.fromJson(helperJson);
+
+            // free up the helper's matched question
+            try {
+                await helperUser.update({
+                    $set:
+                        {
+                            currentMatchedQuestion: null
+                        }
+                });
+            } catch (e) {
+                request.log.info("Warning: unable to clear helper's " + 
+                    "current matched question!");
+                reply.status(rc.INTERNAL_SERVER_ERROR);
+                reply.send();
+                return;
             }
 
             // retrieve seeker (poster of question) information
@@ -698,13 +784,13 @@ function routes (fastify, opts, done) {
             const helper = um.User.fromJson(hJson);
             fastify.log.info(uJson);
 
-            // update helper's points
+            // update helper's points and clear their question
             try {
                 await helper.update(
                     {
                         $set: {
                             points: (helper.points + rating),
-                            currentQuestion: null
+                            currentMatchedQuestion: null
                         }
                     });
             } catch (e) {

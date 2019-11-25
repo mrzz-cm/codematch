@@ -60,6 +60,9 @@ class Match {
                     },
                     currentQuestion: {
                         $eq: null
+                    },
+                    currentMatchedQuestion: {
+                        $eq: null
                     }
                 }
             },

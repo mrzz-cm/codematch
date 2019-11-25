@@ -28,7 +28,7 @@ describe("Account creation test", () => {
 
     afterEach(async () => {
         const collection = await fastify.mongo.db.collection("users");
-        await collection.deleteOne({ userId: testUser });
+        await collection.deleteMany({});
     });
 
     test("Account creation success", async (done) => {
@@ -59,7 +59,7 @@ describe("Account duplicate creation test", () => {
 
     afterEach(async () => {
         const collection = await fastify.mongo.db.collection("users");
-        await collection.remove({ userId: testUser });
+        await collection.deleteMany({});
     });
 
     beforeEach(async () => {
@@ -91,7 +91,7 @@ describe("Account modification test", () => {
 
     afterAll(async () => {
         const userCollection = await fastify.mongo.db.collection("users");
-        await userCollection.deleteOne({ userId: testUser });
+        await userCollection.deleteMany({});
     });
 
     beforeAll(async () => {
@@ -175,7 +175,7 @@ describe("Getting user data", () => {
 
     afterAll(async () => {
         const userCollection = await fastify.mongo.db.collection("users");
-        await userCollection.deleteOne({ userId: testUser });
+        await userCollection.deleteMany({});
     });
 
     beforeAll(async () => {
@@ -228,7 +228,7 @@ describe("Getting question data", () => {
 
     afterAll(async () => {
         const collection = await fastify.mongo.db.collection("questions");
-        await collection.deleteOne({uuid: questionId});
+        await collection.deleteMany({});
     });
 
     beforeAll(async () => {
@@ -270,9 +270,8 @@ describe("Posting new question test", () => {
     afterAll(async () => {
         const collection = await fastify.mongo.db.collection("questions");
         const userCollection = await fastify.mongo.db.collection("users");
-        await collection.deleteOne({uuid: question.uuid});
-        await userCollection.deleteOne({ userId: testUser });
-        await userCollection.deleteOne({ userId: testUser2 });
+        await collection.deleteMany({});
+        await userCollection.deleteMany({});
     });
 
     beforeAll(async () => {
@@ -336,9 +335,8 @@ describe("Helping a question test", () => {
     afterAll(async () => {
         const collection = await fastify.mongo.db.collection("questions");
         const userCollection = await fastify.mongo.db.collection("users");
-        await collection.deleteOne({uuid: question.uuid});
-        await userCollection.deleteOne({ userId: testSeeker });
-        await userCollection.deleteOne({ userId: testHelper });
+        await collection.deleteMany({});
+        await userCollection.deleteMany({});
     });
 
     beforeAll(async () => {
@@ -384,7 +382,9 @@ describe("Helping a question test", () => {
         const helperUser = await um.User.retrieve(testHelper);
 
         expect(seekerUser.currentQuestion).toBe(seekerQuestion.uuid);
-        expect(helperUser.currentQuestion).toBe(seekerQuestion.uuid);
+        expect(seekerUser.currentMatchedQuestion).toBe(null);
+        expect(helperUser.currentQuestion).toBe(null);
+        expect(helperUser.currentMatchedQuestion).toBe(seekerQuestion.uuid);
         
         // check the question data
         const question = await qm.Question.retrieve(seekerQuestion.uuid);
@@ -423,10 +423,8 @@ describe("Declining a question test", () => {
     afterAll(async () => {
         const collection = await fastify.mongo.db.collection("questions");
         const userCollection = await fastify.mongo.db.collection("users");
-        await collection.deleteOne({uuid: question.uuid});
-        await userCollection.deleteOne({ userId: testSeeker });
-        await userCollection.deleteOne({ userId: testHelper1 });
-        await userCollection.deleteOne({ userId: testHelper2 });
+        await collection.deleteMany({});
+        await userCollection.deleteMany({});
     });
 
     beforeAll(async () => {
@@ -484,7 +482,9 @@ describe("Declining a question test", () => {
 
         expect(seekerUser.currentQuestion).toBe(seekerQuestion.uuid);
         expect(helperUser1.currentQuestion).toBe(null);
+        expect(helperUser1.currentMatchedQuestion).toBe(null);
         expect(helperUser2.currentQuestion).toBe(null);
+        expect(helperUser2.currentMatchedQuestion).toBe(seekerQuestion.uuid);
         
         // check the question data
         const question = await qm.Question.retrieve(seekerQuestion.uuid);
@@ -518,15 +518,14 @@ describe("Declining a question test", () => {
 describe("Rating a helper test", () => {
 
     let question;
-    const testSeeker = "testSeeker@example.com";
-    const testHelper = "testHelper@example.com";
+    const testSeeker = "testSeekerRateTest@example.com";
+    const testHelper = "testHelperRateTest@example.com";
 
     afterAll(async () => {
         const collection = await fastify.mongo.db.collection("questions");
         const userCollection = await fastify.mongo.db.collection("users");
-        await collection.deleteOne({uuid: question.uuid});
-        await userCollection.deleteOne({ userId: testSeeker });
-        await userCollection.deleteOne({ userId: testHelper });
+        await collection.deleteMany({});
+        await userCollection.deleteMany({});
     });
 
     beforeAll(async () => {
@@ -552,11 +551,13 @@ describe("Rating a helper test", () => {
 
         // get the question ID
         const preSeekerUser = await um.User.retrieve(testSeeker);
-        const preQuestion = await qm.Question.retrieve(
+        var preQuestion = await qm.Question.retrieve(
             preSeekerUser.currentQuestion);
 
+        expect(preSeekerUser.currentQuestion).toBe(preQuestion.uuid);
+
         // step two: helper accepts to give help
-        await fastify.inject({
+        const acceptResponse = await fastify.inject({
             method: "POST",
             url: "/questions/accept",
             body: {
@@ -564,6 +565,8 @@ describe("Rating a helper test", () => {
                 questionId: preQuestion.uuid,
             }
         });
+
+        expect(acceptResponse.statusCode).toBe(rc.OK);
 
         // step three: seeker rates the helper
         const rating = 8;
@@ -582,7 +585,9 @@ describe("Rating a helper test", () => {
 
         // check rating wrote through
         expect(seekerUser.currentQuestion).toBe(null);
+        expect(seekerUser.currentMatchedQuestion).toBe(null);
         expect(helperUser.currentQuestion).toBe(null);
+        expect(helperUser.currentMatchedQuestion).toBe(null);
 
         question = await qm.Question.retrieve(preQuestion.uuid);
         expect(question.questionState).toBe("Resolved");
@@ -602,9 +607,8 @@ describe("Deleting a question test", () => {
     afterAll(async () => {
         const collection = await fastify.mongo.db.collection("questions");
         const userCollection = await fastify.mongo.db.collection("users");
-        await collection.deleteOne({uuid: question.uuid});
-        await userCollection.deleteOne({ userId: testSeeker });
-        await userCollection.deleteOne({ userId: testHelper });
+        await collection.deleteMany({});
+        await userCollection.deleteMany({});
     });
 
     beforeAll(async () => {
@@ -648,6 +652,12 @@ describe("Deleting a question test", () => {
         // check the user's current question is free
         const seekerUser = await um.User.retrieve(testSeeker);
         expect(seekerUser.currentQuestion).toBe(null);
+        expect(seekerUser.currentMatchedQuestion).toBe(null);
+
+        // check the helper's current question is free
+        const helperUser = await um.User.retrieve(testHelper);
+        expect(helperUser.currentQuestion).toBe(null);
+        expect(helperUser.currentMatchedQuestion).toBe(null);
 
         done();
     });

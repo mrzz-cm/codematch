@@ -22,12 +22,13 @@ class User {
      * @param {string[]}    questionsHelped
      * @param {number}      lastOnline
      * @param {string}      currentQuestion
+     * @param {string}      currentMatchedQuestion
      * @param {string}      token
      * @param {Object}      location
      * @param {string}      fcmToken
      */
     constructor(userId, points, courses, questionsPosted, questionsHelped,
-        lastOnline, currentQuestion, token, location, fcmToken) {
+        lastOnline, currentQuestion, currentMatchedQuestion, token, location, fcmToken) {
         this._userId = userId;
         this._points = points;
         this._courses = courses;
@@ -37,6 +38,7 @@ class User {
 
         this._lastOnline = lastOnline;
         this._currentQuestion = currentQuestion;
+        this._currentMatchedQuestion = currentMatchedQuestion;
         this._token = token;
 
         this._location = location;
@@ -50,7 +52,7 @@ class User {
     static newUser(email) {
         return new User(email, 0, [],
             [], [], Date.now(),
-            null, null,
+            null, null, null,
             { longitude: 0, latitude: 0}, null);
     }
 
@@ -62,7 +64,7 @@ class User {
         return new User(
             jsonUser.userId, jsonUser.points, jsonUser.courses,
             jsonUser.questionsPosted, jsonUser.questionsHelped,
-            jsonUser.lastOnline, jsonUser.currentQuestion,
+            jsonUser.lastOnline, jsonUser.currentQuestion, jsonUser.currentMatchedQuestion,
             jsonUser.token,
             jsonUser.location,
             jsonUser.fcmToken
@@ -184,6 +186,14 @@ class User {
         this._currentQuestion = questionId;
     }
 
+    get currentMatchedQuestion() {
+        return this._currentMatchedQuestion;
+    }
+
+    set currentMatchedQuestion(currentMatchedQuestion) {
+        this._currentMatchedQuestion = currentMatchedQuestion;
+    }
+
     get token() {
         return this._token;
     }
@@ -213,6 +223,7 @@ class User {
             questionsHelped: this._questionsHelped,
             lastOnline: this._lastOnline,
             currentQuestion: this._currentQuestion,
+            currentMatchedQuestion: this._currentMatchedQuestion,
             token: this._token,
             location: this._location,
             fcmToken: this._fcmToken
