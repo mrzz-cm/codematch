@@ -14,6 +14,8 @@ env:
   - MODE=test
 
 before_install:
+  - mongo --version
+  - mongod --version
   - |
     mongo admin --eval 'db.createUser(
         {
