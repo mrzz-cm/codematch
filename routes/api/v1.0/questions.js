@@ -12,11 +12,11 @@ const upload = multerModule.multer({
 });
 
 const qUploadHandler = upload.fields([
-    {
-        name: "questionImage",
-        maxCount: 2
-    }
-]
+        {
+            name: "questionImage",
+            maxCount: 2
+        }
+    ]
 );
 
 const rc = ru.responseCodes;

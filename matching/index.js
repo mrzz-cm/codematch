@@ -2,6 +2,8 @@ const user = require("../user");
 const config = require("../config");
 const logger = require("../logger").logger;
 
+/* eslint complexity: ["error", 20] */
+
 const userCollection = config.collections.users;
 const EARTH_RADIUS = 6371; // Earth's radius (KM)
 

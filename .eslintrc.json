@@ -39,7 +39,10 @@
                 "code": 100
             }
         ],
-        "camelcase": "error"
+        "camelcase": "error",
+        "complexity": [
+            "error", 20
+        ]
     },
     "overrides": [
         {
