@@ -210,7 +210,7 @@ class Match {
                                     {
                                         $not: {
                                             $setIsSubset: [
-                                                [ "$re.userId" ],
+                                                [ "$$re.userId" ],
                                                 checkedHelpers
                                             ]
                                         }
