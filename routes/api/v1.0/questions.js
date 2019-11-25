@@ -267,10 +267,14 @@ function routes (fastify, opts, done) {
 
             const question = qm.Question.fromJson(uQuestion);
 
+            console.log(question);
+
             // run matching algorithm
             const matchSuccess = await matchQuestion(
                 request, reply, fastify, question, user);
             if (!matchSuccess) { return; }
+
+            console.log("New question matched: ", question);
 
             reply.status(rc.OK);
             reply.send({
