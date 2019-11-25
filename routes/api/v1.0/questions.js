@@ -216,7 +216,7 @@ function routes (fastify, opts, done) {
             // check that the user can post the question
             const user = um.User.fromJson(uJson);
 
-            if (user.currentQuestion !== null || user.currentMatchedQuestion !== null) {
+            if (user.currentQuestion != null || user.currentMatchedQuestion !== null) {
                 reply.status(rc.UNAUTHORIZED);
                 reply.send(
                     "Cannot post a question when you are already " +
