@@ -37,11 +37,11 @@ function routes (fastify, opts, done) {
 
             let emailJson;
             if (process.env.MODE === "test") {
-                emailJson = { email: request.body.test_email };
+                emailJson = { email: request.body.testEmail };
             } else {
                 try {
                     emailJson = await auth.requestEmail(
-                        request.body.access_token
+                        request.body.accessToken
                     );
                 } catch (e) {
                     if (ru.errCheck(reply, rc.INTERNAL_SERVER_ERROR, e)) {

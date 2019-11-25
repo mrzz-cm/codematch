@@ -58,7 +58,7 @@ function routes (fastify, opts, done) {
 
             let authData;
             try {
-                authData = await auth.requestEmail(request.query.access_token);
+                authData = await auth.requestEmail(request.query.accessToken);
             } catch (e) {
                 if (ru.errCheck(reply, rc.BAD_REQUEST, e)) {return;}
             }
