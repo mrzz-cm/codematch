@@ -6,6 +6,8 @@ const userModule = require("../../../user");
 const ru = require("../../../utils/router");
 const config = require("../../../config");
 
+const rc = ru.responseCodes;
+
 const upload = multerModule.multer({
     limits: { fileSize:  config.fileSettings.maxFileSize },
     storage: multerModule.storageHandler
@@ -18,7 +20,28 @@ const qUploadHandler = upload.fields([
     }
 ]);
 
-const rc = ru.responseCodes;
+async function validateUser(userModule, request, reply) {
+    let userExists;
+    try {
+        /* eslint-disable-next-line */
+        userExists = await userModule.User.exists(request.body.userId);
+    } catch (e) {
+        if (ru.errCheck(reply, rc.BAD_REQUEST, e)) {
+            return false;
+        }
+    }
+
+    if (!userExists) {
+        reply.status(rc.BAD_REQUEST);
+        reply.send("Provided user doesn't exist.");
+        return false;
+    }
+
+    if (!auth.verifyUserToken(fastify, request, request.body.userId)) {
+        ru.errCheck(reply, rc.UNAUTHORIZED, "Invalid credentials.");
+        return false;
+    }
+}
 
 async function matchQuestion(request, reply, fastify, question, seeker) {
     const um = userModule({ mongo: fastify.mongo });
@@ -181,24 +204,7 @@ function routes (fastify, opts, done) {
 
             const imagePaths = images.map((i) => i.path);
 
-            let userExists;
-            try {
-                /* eslint-disable-next-line */
-                userExists = await um.User.exists(request.body.userId);
-            } catch (e) {
-                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) {return;}
-            }
-
-            if (!userExists) {
-                reply.status(rc.BAD_REQUEST);
-                reply.send("Provided user doesn't exist.");
-                return;
-            }
-
-            if (!auth.verifyUserToken(fastify, request, request.body.userId)) {
-                ru.errCheck(reply, rc.UNAUTHORIZED, "Invalid credentials.");
-                return;
-            }
+            if (!await validateUser(um, request, reply)) { return; }
 
             let uJson;
             try {
@@ -306,24 +312,7 @@ function routes (fastify, opts, done) {
             const qm = questionsModule({ mongo: fastify.mongo });
             const seekerId = request.params.seekerId;
 
-            let userExists;
-            try {
-                /* eslint-disable-next-line */
-                userExists = await um.User.exists(seekerId);
-            } catch (e) {
-                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) {return;}
-            }
-
-            if (!userExists) {
-                reply.status(rc.BAD_REQUEST);
-                reply.send("Provided user doesn't exist.");
-                return;
-            }
-
-            if (!auth.verifyUserToken(fastify, request, seekerId)) {
-                ru.errCheck(reply, rc.UNAUTHORIZED, "Invalid credentials.");
-                return;
-            }
+            if (!await validateUser(um, request, reply)) { return; }
 
             let uJson;
             try {
@@ -748,24 +737,7 @@ function routes (fastify, opts, done) {
                 return;
             }
 
-            let userExists;
-            try {
-                /* eslint-disable-next-line */
-                userExists = await um.User.exists(seekerId);
-            } catch (e) {
-                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) {return;}
-            }
-
-            if (!userExists) {
-                reply.status(rc.BAD_REQUEST);
-                reply.send("Provided user doesn't exist.");
-                return;
-            }
-
-            if (!auth.verifyUserToken(fastify, request, seekerId)) {
-                ru.errCheck(reply, rc.UNAUTHORIZED, "Invalid credentials.");
-                return;
-            }
+            if (!await validateUser(um, request, reply)) { return; }
 
             let uJson;
             try {
