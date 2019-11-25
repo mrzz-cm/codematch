@@ -127,7 +127,7 @@ async function matchQuestion(request, reply, fastify, question, seeker) {
         return false;
     }
 
-    helperUser = um.User.fromJson(helper);
+    const helperUser = um.User.fromJson(helper);
 
     request.log.info("Updating matched helper data");
 
