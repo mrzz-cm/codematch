@@ -302,6 +302,12 @@ function routes (fastify, opts, done) {
             }
             const question = qm.Question.fromJson(qJson);
 
+            if (question.seeker !== seekerId) {
+                reply.status(rc.UNAUTHORIZED);
+                reply.send("Unauthorized to delete this question.");
+                return;
+            }
+
             const qState = question.questionState;
 
             if ((qState !== "Waiting") && (qState !== "Unmatched")) {
