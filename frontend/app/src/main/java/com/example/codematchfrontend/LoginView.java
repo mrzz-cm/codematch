@@ -1,6 +1,7 @@
 package com.example.codematchfrontend;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.FormBody;
@@ -12,9 +13,15 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 
 //import android.accounts.AccountManager;
+import android.Manifest;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.content.Context;
 import android.content.Intent;
+import android.content.res.Resources;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
 //import android.os.Handler;
@@ -39,21 +46,37 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 
-
-
-public class LoginView extends AppCompatActivity {
+public class LoginView extends AppCompatActivity implements LocationListener {
     private String CHANNEL_ID = "1";
     private GoogleSignInClient mGoogleSignInClient;
-
+    private LocationManager locationManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        try {
+            GlobalUtils.initializeFromConfig(this);
+        } catch (IOException e) {
+            /* TODO: Unable to find the config file or
+             *       Failed reading configuration file, exit in graceful manner
+             */
+            System.exit(1);
+        }
+
         createNotificationChannel();
+
+        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        try {
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
+        } catch (SecurityException e) {
+            e.printStackTrace();
+        }
 
         setContentView(R.layout.activity_login_view);
 
         SignInButton googleButton = findViewById(R.id.sign_in_button);
+
         googleButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -175,7 +198,7 @@ public class LoginView extends AppCompatActivity {
                     JSONObject jsonObject = new JSONObject(response.body().string());
 
                     Request getServerTokenRequest = new Request.Builder()
-                            .url(GlobalUtils.BASE_URL + "/auth/token?access_token=" + jsonObject.get("access_token"))
+                            .url(GlobalUtils.BASE_URL + "/auth/token?accessToken=" + jsonObject.get("access_token"))
                             .build();
                     Call call = client.newCall(getServerTokenRequest);
                     Response newResponse = call.execute();
@@ -197,7 +220,7 @@ public class LoginView extends AppCompatActivity {
     private void notifyCreateAccount(String google_access_token) {
         JSONObject jsonObject = new JSONObject();
         try {
-            jsonObject.put("access_token", google_access_token);
+            jsonObject.put("accessToken", google_access_token);
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -227,6 +250,7 @@ public class LoginView extends AppCompatActivity {
         try {
             jsonObject.put("userId", GlobalUtils.EMAIL);
             jsonObject.put("fcmToken", GlobalUtils.FIREBASE_TOKEN);
+            System.out.println("firebase token: " + GlobalUtils.FIREBASE_TOKEN);
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -270,5 +294,30 @@ public class LoginView extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+    }
+
+    @Override
+    public void onPointerCaptureChanged(boolean hasCapture) {
+
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+
+    }
+
+    @Override
+    public void onStatusChanged(String s, int i, Bundle bundle) {
+
+    }
+
+    @Override
+    public void onProviderEnabled(String s) {
+
+    }
+
+    @Override
+    public void onProviderDisabled(String s) {
+
     }
 }

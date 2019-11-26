@@ -16,6 +16,8 @@ import android.app.Dialog;
 import android.content.Intent;
 import android.os.Bundle;
 //import android.text.method.ScrollingMovementMethod;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -23,6 +25,7 @@ import android.view.View;
 import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 //import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -72,7 +75,6 @@ public class ProfileView extends AppCompatActivity implements CoursesListAdapter
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-
         coursesView = (RecyclerView) findViewById(R.id.courseList);
 
         layoutManager = new LinearLayoutManager(this);
@@ -96,6 +98,46 @@ public class ProfileView extends AppCompatActivity implements CoursesListAdapter
             public void onClick(View view) {
                 addcourse(course_input_text.getText().toString());
                 course_input_text.getText().clear();
+            }
+        });
+        updateRating();
+    }
+
+    private void updateRating() {
+        final TextView ratingView = findViewById(R.id.rating);
+        Request get_rating_request = new Request.Builder()
+                .url(GlobalUtils.BASE_URL + "/user/" + GlobalUtils.EMAIL)
+                .addHeader("Authorization", "Bearer " + GlobalUtils.API_KEY)
+                .build();
+
+        GlobalUtils.HTTP_CLIENT.newCall(get_rating_request).enqueue(new Callback() {
+            @Override
+            public void onFailure(@NotNull Call call, @NotNull IOException e) {
+                System.out.println("Error: "+ e.toString());
+            }
+
+            @Override
+            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+                System.out.println("Get all courses returned code " + response.code());
+                try {
+                    JSONObject jsonObject = new JSONObject(response.body().string());
+                    if (jsonObject.has("points")){
+                        try {
+                            final int rating = jsonObject.getInt("points");
+                            new Handler(Looper.getMainLooper()).post(new Runnable(){
+                                @Override
+                                public void run() {
+                                    ratingView.setText(Integer.toString(rating));
+                                }
+                            });
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
             }
         });
     }
@@ -166,6 +208,9 @@ public class ProfileView extends AppCompatActivity implements CoursesListAdapter
     }
 
     private void removeCourseAtPosition(int position) {
+        String courseID = this.courses.get(position);
+
+        // send request to server to remove course
         this.courses.remove(position);
         adapter.notifyItemRemoved(position);
     }
@@ -209,7 +254,12 @@ public class ProfileView extends AppCompatActivity implements CoursesListAdapter
     private void addCourseUpdate(String course) {
         if (!courses.contains(course)) {
             this.courses.add(course);
-            adapter.notifyItemInserted(courses.size() - 1);
+            new Handler(Looper.getMainLooper()).post(new Runnable(){
+                @Override
+                public void run() {
+                    adapter.notifyItemInserted(courses.size() - 1);
+                }
+            });
         }
     }
 
@@ -224,26 +274,17 @@ public class ProfileView extends AppCompatActivity implements CoursesListAdapter
      public boolean onOptionsItemSelected(MenuItem item) {
         switch(item.getItemId()) {
             case R.id.postingViewButton:
-                Toast.makeText(this, "Posting View selected!!", Toast.LENGTH_SHORT).show();
                 switchTabToPostingView();
                 break;
             case R.id.notifyViewButton:
-                Toast.makeText(this, "Notification View selected!!", Toast.LENGTH_SHORT).show();
                 switchTabToNotifyView();
                 break;
             case R.id.profileViewButton:
-                Toast.makeText(this, "Profile View selected!!", Toast.LENGTH_SHORT).show();
                 switchTabToProfileView();
                 break;
             default: return super.onOptionsItemSelected(item);
         }
         return true;
-    }
-
-    public void deleteProfile() {
-        /* This method is to enable the user to delete their profile from codematch and all associated data
-
-         */
     }
 
 }
