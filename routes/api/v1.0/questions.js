@@ -20,11 +20,11 @@ const qUploadHandler = upload.fields([
     }
 ]);
 
-async function validateUser(userModule, request, reply) {
+async function validateUser(fastify, userModule, request, userId, reply) {
     let userExists;
     try {
         /* eslint-disable-next-line */
-        userExists = await userModule.User.exists(request.body.userId);
+        userExists = await userModule.User.exists(userId);
     } catch (e) {
         if (ru.errCheck(reply, rc.BAD_REQUEST, e)) {
             return false;
@@ -33,14 +33,16 @@ async function validateUser(userModule, request, reply) {
 
     if (!userExists) {
         reply.status(rc.BAD_REQUEST);
-        reply.send("Provided user doesn't exist.");
+        reply.send({ msg: `Provided user ${userId} doesn't exist.` });
         return false;
     }
 
-    if (!auth.verifyUserToken(fastify, request, request.body.userId)) {
+    if (!auth.verifyUserToken(fastify, request, userId)) {
         ru.errCheck(reply, rc.UNAUTHORIZED, "Invalid credentials.");
         return false;
     }
+
+    return true;
 }
 
 async function matchQuestion(request, reply, fastify, question, seeker) {
@@ -204,18 +206,20 @@ function routes (fastify, opts, done) {
 
             const imagePaths = images.map((i) => i.path);
 
-            if (!await validateUser(um, request, reply)) { return; }
+            if (!await validateUser(fastify, um, request, body.userId, reply)) {
+                return;
+            }
 
             let uJson;
             try {
-                uJson = await um.User.retrieve(request.body.userId);
+                uJson = await um.User.retrieve(body.userId);
             } catch (e) {
                 if (ru.errCheck(reply, rc.BAD_REQUEST, e)) {return;}
             }
 
             if (!uJson) {
                 reply.status(rc.INTERNAL_SERVER_ERROR);
-                reply.send(`No user ${request.body.userId} found`);
+                reply.send(`No user ${body.userId} found`);
                 return;
             }
 
@@ -312,7 +316,9 @@ function routes (fastify, opts, done) {
             const qm = questionsModule({ mongo: fastify.mongo });
             const seekerId = request.params.seekerId;
 
-            if (!await validateUser(um, request, reply)) { return; }
+            if (!await validateUser(fastify, um, request, seekerId, reply)) {
+                return;
+            }
 
             let uJson;
             try {
@@ -449,22 +455,7 @@ function routes (fastify, opts, done) {
             const questionId = request.body.questionId;
 
             // check user exists and provided valid credentials
-            let userExists;
-            try {
-                /* eslint-disable-next-line */
-                userExists = await um.User.exists(request.body.userId);
-            } catch (e) {
-                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) {return;}
-            }
-
-            if (!userExists) {
-                reply.status(rc.BAD_REQUEST);
-                reply.send("Provided user doesn't exist.");
-                return;
-            }
-
-            if (!auth.verifyUserToken(fastify, request, request.body.userId)) {
-                ru.errCheck(reply, rc.UNAUTHORIZED, "Invalid credentials.");
+            if (!await validateUser(fastify, um, request, userId, reply)) {
                 return;
             }
 
@@ -579,24 +570,8 @@ function routes (fastify, opts, done) {
 
             const userId = request.body.userId;
             const questionId = request.body.questionId;
-            
-            // check provided user exists and provided valid credentials
-            let userExists;
-            try {
-                /* eslint-disable-next-line */
-                userExists = await um.User.exists(userId);
-            } catch (e) {
-                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) {return;}
-            }
 
-            if (!userExists) {
-                reply.status(rc.BAD_REQUEST);
-                reply.send("Provided user doesn't exist.");
-                return;
-            }
-
-            if (!auth.verifyUserToken(fastify, request, request.body.userId)) {
-                ru.errCheck(reply, rc.UNAUTHORIZED, "Invalid credentials.");
+            if (!await validateUser(fastify, um, request, userId, reply)) {
                 return;
             }
 
@@ -737,7 +712,9 @@ function routes (fastify, opts, done) {
                 return;
             }
 
-            if (!await validateUser(um, request, reply)) { return; }
+            if (!await validateUser(fastify, um, request, seekerId, reply)) {
+                return;
+            }
 
             let uJson;
             try {
@@ -750,9 +727,10 @@ function routes (fastify, opts, done) {
 
             if (seeker.currentQuestion == null) {
                 reply.status(rc.BAD_REQUEST);
-                reply.send(
-                    `Seeker '${seeker.userId} doesn't` +
-                    " have an open question.");
+                reply.send({
+                    msg: `Seeker '${seeker.userId} doesn't` +
+                        " have an open question."
+                });
                 return;
             }
 
@@ -809,8 +787,7 @@ function routes (fastify, opts, done) {
             }
 
             reply.status(rc.OK);
-            reply.send(`Rated user ${helper.userId}`);
-
+            reply.send({ msg: `Rated user ${helper.userId}` });
         }
     });
 

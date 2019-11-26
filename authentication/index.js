@@ -58,7 +58,9 @@ async function requestEmail(token) {
  */
 function verifyUserToken(fastify, request, userId) {
     // Dont require auth during testing
-    if (process.env.MODE === "test") {return true;}
+    if (process.env.MODE === "test") {
+        return true;
+    }
 
     const authHeader = request.headers.authorization;
     if (!authHeader) {

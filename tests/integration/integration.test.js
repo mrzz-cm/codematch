@@ -580,6 +580,10 @@ describe("Rating a helper test", () => {
         const seekerUser = await um.User.retrieve(testSeeker);
 
         // check the question is resolved
+        expect(JSON.parse(rateResponse.body)).toEqual({
+            msg: `Rated user ${helperUser.userId}`
+        });
+
         expect(rateResponse.statusCode).toBe(rc.OK);
         expect(helperUser.points).toBe(rating);
 
