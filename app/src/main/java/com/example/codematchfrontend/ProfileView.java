@@ -84,10 +84,7 @@ public class ProfileView extends AppCompatActivity implements CoursesListAdapter
                 DividerItemDecoration.VERTICAL);
         coursesView.addItemDecoration(dividerItemDecoration);
 
-        // debug: initialize courses
         courses = new LinkedList<String>();
-        updateAllCourses();
-
         adapter = new CoursesListAdapter(this, this.courses);
         coursesView.setAdapter(adapter);
 
@@ -101,6 +98,7 @@ public class ProfileView extends AppCompatActivity implements CoursesListAdapter
             }
         });
         updateRating();
+        updateAllCourses();
     }
 
     private void updateRating() {
@@ -143,6 +141,9 @@ public class ProfileView extends AppCompatActivity implements CoursesListAdapter
     }
 
     private void updateAllCourses() {
+        this.courses.clear();
+        adapter.notifyDataSetChanged();
+
         System.out.println("updating all courses");
         System.out.println("id passted to get courses: " + GlobalUtils.EMAIL);
         Request get_all_courses_request = new Request.Builder()
@@ -178,33 +179,6 @@ public class ProfileView extends AppCompatActivity implements CoursesListAdapter
 
     @Override
     public void onItemClick(View view, int position) {
-        System.out.println("clicked at " + position);
-        final int pressed_position = position;
-
-        final Dialog dialog = new Dialog(this);
-        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        dialog.setContentView(R.layout.course_delete_popup);
-        dialog.setCanceledOnTouchOutside(true);
-
-        Button yes = (Button) dialog.findViewById(R.id.delete_course_yes);
-        Button no = (Button) dialog.findViewById(R.id.delete_course_no);
-
-        yes.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                removeCourseAtPosition(pressed_position);
-                dialog.cancel();
-            }
-        });
-
-        no.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                dialog.cancel();
-            }
-        });
-
-        dialog.show();
     }
 
     private void removeCourseAtPosition(int position) {
@@ -251,12 +225,12 @@ public class ProfileView extends AppCompatActivity implements CoursesListAdapter
         }
     }
 
-    private void addCourseUpdate(String course) {
+    private void addCourseUpdate(final String course) {
         if (!courses.contains(course)) {
-            this.courses.add(course);
             new Handler(Looper.getMainLooper()).post(new Runnable(){
                 @Override
                 public void run() {
+                    courses.add(course);
                     adapter.notifyItemInserted(courses.size() - 1);
                 }
             });

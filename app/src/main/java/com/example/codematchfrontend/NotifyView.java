@@ -96,6 +96,7 @@ public class NotifyView extends AppCompatActivity implements NotifyViewAdapter.N
         for (int i = 0; i < notifications.size(); i++) {
             removeNotificationAtPosition(i);
         }
+
         System.out.println("updating all questions");
         System.out.println("id passted to get questions: " + GlobalUtils.EMAIL);
         Request get_all_questions_request = new Request.Builder()
@@ -142,6 +143,7 @@ public class NotifyView extends AppCompatActivity implements NotifyViewAdapter.N
         final TextView questionText = (TextView) dialog.findViewById(R.id.question_text);
         final TextView titleText = (TextView) dialog.findViewById(R.id.question_title);
         final ImageView questionImage = (ImageView) dialog.findViewById(R.id.question_image);
+        final TextView currentlyMatched = (TextView) dialog.findViewById(R.id.currentlyMatched);
 
         final Button close = (Button) dialog.findViewById(R.id.close_dialog);
 
@@ -193,6 +195,9 @@ public class NotifyView extends AppCompatActivity implements NotifyViewAdapter.N
                                         yes.setClickable(false);
                                         no.setClickable(false);
                                     }
+                                }
+                                if (jsonObject.has("seeker") && !jsonObject.isNull("seeker")) {
+                                    currentlyMatched.setText("Question asked by: " + jsonObject.getString("seeker"));
                                 }
                             } catch (JSONException e) {
                                 e.printStackTrace();
@@ -391,6 +396,7 @@ public class NotifyView extends AppCompatActivity implements NotifyViewAdapter.N
         final TextView questionText = (TextView) dialog.findViewById(R.id.question_text);
         final TextView titleText = (TextView) dialog.findViewById(R.id.question_title);
         final ImageView questionImage = (ImageView) dialog.findViewById(R.id.question_image);
+        final TextView currentlyMatched = (TextView) dialog.findViewById(R.id.currentlyMatched2);
 
         // first get the question ID of the current user
         Request get_question_id_request = new Request.Builder()
@@ -443,6 +449,9 @@ public class NotifyView extends AppCompatActivity implements NotifyViewAdapter.N
                                             }
                                             if (jsonObject.has("images")){
                                                 setQuestionImage(questionImage, jsonObject.getJSONArray("images"));
+                                            }
+                                            if (jsonObject.has("finalHelper") && !jsonObject.isNull("finalHelper")) {
+                                                currentlyMatched.setText("Currently matched helper: " + jsonObject.getString("finalHelper"));
                                             }
                                         } catch (JSONException e) {
                                             e.printStackTrace();

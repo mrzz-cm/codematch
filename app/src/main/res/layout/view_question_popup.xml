@@ -12,6 +12,14 @@
         android:gravity="left"
         android:textSize="17sp"
         android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/currentlyMatched"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Not matched yet"
+        android:textSize="18sp" />
+
     <TextView
         android:id="@+id/question_title"
         android:layout_height="0dp"
