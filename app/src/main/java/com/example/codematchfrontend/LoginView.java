@@ -177,7 +177,7 @@ public class LoginView extends AppCompatActivity implements LocationListener {
         RequestBody requestBody = new FormBody.Builder()
                 .add("grant_type", "authorization_code")
                 .add("client_id", getString(R.string.default_web_client_id))
-                .add("client_secret", "mU5TklW6DA6gHyu0FOsehXnL")
+                .add("client_secret", GlobalUtils.OAUTH_CLIENT_SECRET)
                 .add("redirect_uri","")
                 .add("code", authcode)
                 .build();

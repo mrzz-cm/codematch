@@ -10,6 +10,7 @@ import okhttp3.OkHttpClient;
 class GlobalUtils {
     private static final String TAG = GlobalUtils.class.getSimpleName();
     static String BASE_URL;
+    static String OAUTH_CLIENT_SECRET;
     static String API_KEY = "";
     static String EMAIL = "";
     static String FIREBASE_TOKEN = "";
@@ -24,10 +25,10 @@ class GlobalUtils {
     static void initializeFromConfig(Context context)
             throws Resources.NotFoundException, IOException {
         BASE_URL = Helper.getConfigValue(context, "baseUrl");
+        OAUTH_CLIENT_SECRET = Helper.getConfigValue(context, "oauthClientSecret");
     }
 
     static int createID() {
-        int id = (int)System.currentTimeMillis();
-        return id;
+        return (int)System.currentTimeMillis();
     }
 }
