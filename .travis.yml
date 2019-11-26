@@ -77,7 +77,7 @@ before_install:
   - if [ "$SUB_WORKING_DIRECTORY" = "backend" ]; then
         ./scripts/mongosetup.sh;
     else
-        echo "baseUrl=https://cm.johnramsden.ca/api" > $TRAVIS_BUILD_DIR/frontend/app/src/main/res/raw/config.properties;
+        echo "baseUrl=http://localhost:3000/api" > $TRAVIS_BUILD_DIR/frontend/app/src/main/res/raw/config.properties;
         echo "oauthClientSecret=$OAUTH_CLIENT_SECRET" >> $TRAVIS_BUILD_DIR/frontend/app/src/main/res/raw/config.properties;
         ./scripts/android_before_install.sh;
         export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64;
