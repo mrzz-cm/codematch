@@ -12,23 +12,17 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
-import android.app.Dialog;
 import android.content.Intent;
 import android.os.Bundle;
-//import android.text.method.ScrollingMovementMethod;
 import android.os.Handler;
 import android.os.Looper;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
-import android.widget.Toast;
-
-//import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONArray;
@@ -37,8 +31,6 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.LinkedList;
-
-//import static com.example.codematchfrontend.Global.createID;
 
 public class ProfileView extends AppCompatActivity implements CoursesListAdapter.CoursesListClickListener{
 

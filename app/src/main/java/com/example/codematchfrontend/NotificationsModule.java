@@ -1,38 +1,12 @@
 package com.example.codematchfrontend;
 
-//import android.app.Activity;
-//import android.app.NotificationChannel;
-//import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-//import android.os.Build;
-//import android.app.AlarmManager;
-//import android.app.AlertDialog;
-//import android.util.Log;
-
-//import com.google.android.gms.tasks.OnCompleteListener;
-//import com.google.android.gms.tasks.Task;
-//import com.google.firebase.iid.FirebaseInstanceId;
-//import com.google.firebase.iid.InstanceIdResult;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
-
-//import org.json.JSONException;
-//import org.json.JSONObject;
-
-//import java.io.IOException;
-//import java.util.Map;
-
-//import okhttp3.MediaType;
-//import okhttp3.Request;
-//import okhttp3.RequestBody;
-//import okhttp3.Response;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
-
-//import com.google.firebase.messaging.FirebaseMessagingService;
-//import com.google.firebase.messaging.RemoteMessage;
 
 public class NotificationsModule extends FirebaseMessagingService {
     private String CHANNEL_ID = "1";
