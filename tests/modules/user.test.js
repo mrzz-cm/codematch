@@ -23,7 +23,7 @@ describe("User creation test", () => {
 
     afterAll(async () => {
         const collection = await fastify.mongo.db.collection("users");
-        await collection.deleteOne({userId: tu});
+        await collection.deleteMany({});
     });
 
     test("Checks user is created", async (done) => {
@@ -54,7 +54,7 @@ describe("User update test", () => {
 
     afterAll(async () => {
         const collection = await fastify.mongo.db.collection("users");
-        await collection.deleteOne({userId: tu});
+        await collection.deleteMany({});
     });
 
     test("Checks user is updated", async (done) => {

@@ -53,7 +53,6 @@ describe("Account creation test", () => {
     });
 });
 
-
 describe("Account duplicate creation test", () => {
     const testUser = "testuser0@example.com";
 

@@ -140,7 +140,7 @@ describe("Post question test", () => {
 
     afterAll(async () => {
         const collection = await fastify.mongo.db.collection("questions");
-        await collection.deleteOne({uuid: questionId});
+        await collection.deleteMany({});
     });
 
     test("Post a new question successfully", async (done) => {

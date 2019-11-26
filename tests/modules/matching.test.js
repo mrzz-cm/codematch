@@ -79,9 +79,7 @@ describe("Optimal match test", () => {
 
     afterAll(async () => {
         const userCollection = await fastify.mongo.db.collection("users");
-        await userCollection.deleteOne({ userId: testSeeker });
-        await userCollection.deleteOne({ userId: testBadHelper });
-        await userCollection.deleteOne({ userId: testGoodHelper });
+        await userCollection.deleteMany({});
     });
 
     beforeAll(async () => {
