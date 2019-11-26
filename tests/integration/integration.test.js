@@ -261,7 +261,7 @@ describe("Getting question data", () => {
 });
 
 describe("Posting new question test", () => {
-    
+
     const testUser = "testuser1@example.com";
     const testUser2 = "testuser2@example.com";
 
@@ -297,7 +297,6 @@ describe("Posting new question test", () => {
         um.User.retrieve(testUser)
             .then((user) => qm.Question.retrieve(user.currentQuestion))
             .then((q) => {
-                question = q;
                 expect(q).toBeTruthy();
                 expect(q.uuid).toBeTruthy();
                 expect(q.seeker).toBe(testUser);
