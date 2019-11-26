@@ -45,6 +45,8 @@ matrix:
             - find "$ANDROID_HOME"
             # list installed and available packages
             - sdkmanager --list || true
+            # Accept android licenses
+            - yes | sdkmanager --licenses
             # latest SDK Platform-Tools
             - yes | sdkmanager "platform-tools" >/dev/null
             # defined SDK Platform
