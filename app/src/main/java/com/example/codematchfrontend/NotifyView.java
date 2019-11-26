@@ -93,6 +93,9 @@ public class NotifyView extends AppCompatActivity implements NotifyViewAdapter.N
     }
 
     private void updateAllQuestions() {
+        for (int i = 0; i < notifications.size(); i++) {
+            removeNotificationAtPosition(i);
+        }
         System.out.println("updating all questions");
         System.out.println("id passted to get questions: " + GlobalUtils.EMAIL);
         Request get_all_questions_request = new Request.Builder()
@@ -140,6 +143,11 @@ public class NotifyView extends AppCompatActivity implements NotifyViewAdapter.N
         final TextView titleText = (TextView) dialog.findViewById(R.id.question_title);
         final ImageView questionImage = (ImageView) dialog.findViewById(R.id.question_image);
 
+        final Button close = (Button) dialog.findViewById(R.id.close_dialog);
+
+        final Button yes = (Button) dialog.findViewById(R.id.alertbox_yes);
+        final Button no = (Button) dialog.findViewById(R.id.alertbox_no);
+
         // get the question data and update the fields
         final String questionID = notifications.get(position);
 
@@ -177,6 +185,15 @@ public class NotifyView extends AppCompatActivity implements NotifyViewAdapter.N
                                 if (jsonObject.has("images")){
                                     setQuestionImage(questionImage, jsonObject.getJSONArray("images"));
                                 }
+                                if (jsonObject.has("questionState")){
+                                    String questionState = jsonObject.getString("questionState");
+                                    if ("Matched".equals(questionState)) {
+                                        yes.setAlpha(0);
+                                        no.setAlpha(0);
+                                        yes.setClickable(false);
+                                        no.setClickable(false);
+                                    }
+                                }
                             } catch (JSONException e) {
                                 e.printStackTrace();
                             }
@@ -186,11 +203,6 @@ public class NotifyView extends AppCompatActivity implements NotifyViewAdapter.N
         });
 
         questionText.setMovementMethod(new ScrollingMovementMethod());
-
-        Button close = (Button) dialog.findViewById(R.id.close_dialog);
-
-        Button yes = (Button) dialog.findViewById(R.id.alertbox_yes);
-        Button no = (Button) dialog.findViewById(R.id.alertbox_no);
 
         setupClickListeners(close, yes, no, questionID, pressed_position, dialog);
         dialog.show();
@@ -205,6 +217,7 @@ public class NotifyView extends AppCompatActivity implements NotifyViewAdapter.N
             e.printStackTrace();
         }
         final String image_url = GlobalUtils.BASE_URL.replace("/api", "") + "/uploads/" + image_uri.getLastPathSegment();
+        System.out.println("image url: " + image_url);
 
         try {
             new Thread() {
@@ -227,6 +240,10 @@ public class NotifyView extends AppCompatActivity implements NotifyViewAdapter.N
             @Override
             public void run() {
                 System.out.println("setting image");
+                System.out.println(question_image);
+                if(question_image == null) {
+                    setQuestionImage(view, imageArray);
+                }
                 ((ImageView) view).setImageBitmap(question_image);
             }
         });
@@ -304,7 +321,7 @@ public class NotifyView extends AppCompatActivity implements NotifyViewAdapter.N
                     @Override
                     public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
                         int statuscode = response.code();
-                        System.out.println("Accept question return " + statuscode + "\n");
+                        System.out.println("Decline question return " + statuscode + "\n");
                     }
                 });
                 removeNotificationAtPosition(pressed_position);
@@ -465,15 +482,10 @@ public class NotifyView extends AppCompatActivity implements NotifyViewAdapter.N
                 view_my_question_button.setClickable(false);
                 view_my_question_button.setAlpha(0);
 
-                RequestBody body = new MultipartBody.Builder()
-                        .setType(MultipartBody.FORM)
-                        .addFormDataPart("userId", GlobalUtils.EMAIL)
-                        .build();
-
                 Request delete_question_request = new Request.Builder()
-                        .url(GlobalUtils.BASE_URL + "/questions/delete/" + GlobalUtils.EMAIL)
+                        .url(GlobalUtils.BASE_URL + "/questions/" + GlobalUtils.EMAIL)
                         .addHeader("Authorization", "Bearer " + GlobalUtils.API_KEY)
-                        .post(body)
+                        .delete()
                         .build();
 
                 GlobalUtils.HTTP_CLIENT.newCall(delete_question_request).enqueue(new Callback() {
