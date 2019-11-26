@@ -24,6 +24,7 @@ matrix:
             - npm run lint
         - sudo: required
           env:
+            - secure: "VO+O8t4+OryHNLHEi5uyrWEK1ZkKzXjTCt3suUrFfg/Tx+4VWAdusIXzLm9q4U8c08HE0H0IL98LVzNdd/A6J3U+jeTCzdzLcrLj8ONC4vDUckdJf7zZclEYtrvq5+Y4KP+TIJxyV6qzOfUonJrGkPADZ+rmWyIhQSgLrtexYPMcHWV50GIacuHgj3IqgIg2WxL/PoN8yGGeHbqsH2DRZ32griZOc06LRp3DMfp8qCFraGEcfmARXIHxGkgz8ImkkociqntOMEyKl6Cvri4i5cneyv70Ksnukn1JIgW+EfqaPaQ2o0tiaG4JES2ME4LC57VSc9zgTQyUuAsv5qlOrUVS+Yzasv6MLv7At6g98yOo94OaQ0FtM6QhhlipoJ2Bn+UzWadBEtxF0QvrbAyzz7pnw+TyqTv8sLMyfE6wUz27yNYkKuT7FjdaWM3D/OE9Wpowrxd+MPQ6Sw6VRN/URr9U6PkWbpfx5BEOQKWzbeAK9YJ6UmSi6LDTvdT89vPTQAmBZgK9076YjUijY0dkjjxdvBLXYRA1FGdhRCsmY1k5OPvK7aYQ0kX+b8nA1wOfVYo5CxBCl0EoWdRDUikmD8ojbegG/1hwUQGesH/S3GMveLSOGnnyjKOWJhLdoytHZfbw2L9NcB6br7umnq0eSRuE9RCQdbg+XUWVXrLw+jA="
             - SUB_WORKING_DIRECTORY=frontend
             - MODE=test
             - ANDROID_API_LEVEL=29
@@ -72,6 +73,8 @@ before_install:
   - if [ "$SUB_WORKING_DIRECTORY" = "backend" ]; then
         ./scripts/mongosetup.sh;
     else
+        echo "baseUrl=https://cm.johnramsden.ca/api" > $TRAVIS_BUILD_DIR/frontend/app/src/main/res/raw/config.properties
+        echo "oauthClientSecret=$OAUTH_CLIENT_SECRET" >> $TRAVIS_BUILD_DIR/frontend/app/src/main/res/raw/config.properties
         ./scripts/android_before_install.sh;
         export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64;
         export PATH="${PATH}:${HOME}/sdk/tools/bin";
