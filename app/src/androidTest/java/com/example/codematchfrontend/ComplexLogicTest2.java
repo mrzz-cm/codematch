@@ -66,7 +66,7 @@ public class ComplexLogicTest2 {
         je.perform(click());
 
         ViewInteraction floatingActionButton = onView(
-                allOf(withId(R.id.postQuestionFAB),
+                allOf(withId(R.id.postingViewButton),
                         childAtPosition(
                                 childAtPosition(
                                         withId(android.R.id.content),

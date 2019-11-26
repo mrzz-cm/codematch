@@ -184,7 +184,7 @@ public class NotifyView extends AppCompatActivity implements NotifyViewAdapter.N
                                 if (jsonObject.has("questionText")){
                                     questionText.setText(jsonObject.get("questionText").toString());
                                 }
-                                if (jsonObject.has("images")){
+                                if (jsonObject.has("images") && jsonObject.getJSONArray("images").length() > 0){
                                     setQuestionImage(questionImage, jsonObject.getJSONArray("images"));
                                 }
                                 if (jsonObject.has("questionState")){
@@ -447,7 +447,7 @@ public class NotifyView extends AppCompatActivity implements NotifyViewAdapter.N
                                             if (jsonObject.has("questionText")){
                                                 questionText.setText(jsonObject.get("questionText").toString());
                                             }
-                                            if (jsonObject.has("images")){
+                                            if (jsonObject.has("images") && jsonObject.getJSONArray("images").length() > 0){
                                                 setQuestionImage(questionImage, jsonObject.getJSONArray("images"));
                                             }
                                             if (jsonObject.has("finalHelper") && !jsonObject.isNull("finalHelper")) {

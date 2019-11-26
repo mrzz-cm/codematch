@@ -68,13 +68,7 @@ public class PostQuestionTest {
         }
 
         ViewInteraction floatingActionButton = onView(
-                allOf(withId(R.id.postQuestionFAB),
-                        childAtPosition(
-                                childAtPosition(
-                                        withId(android.R.id.content),
-                                        0),
-                                4),
-                        isDisplayed()));
+                allOf(withId(R.id.postingViewButton)));
         floatingActionButton.perform(click());
 
         try{
@@ -84,13 +78,7 @@ public class PostQuestionTest {
         }
 
         ViewInteraction appCompatButton = onView(
-                allOf(withId(R.id.postQuestionButton), withText("Post question"),
-                        childAtPosition(
-                                childAtPosition(
-                                        withId(android.R.id.content),
-                                        0),
-                                4),
-                        isDisplayed()));
+                allOf(withId(R.id.postQuestionButton)));
         appCompatButton.perform(click());
 
         device.openNotification();

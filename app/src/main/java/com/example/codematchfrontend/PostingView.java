@@ -110,16 +110,27 @@ public class PostingView extends AppCompatActivity {
         String questionTitle = ((EditText) findViewById(R.id.questionTitleText)).getText().toString();
 
         final MediaType MEDIA_TYPE_PNG = MediaType.parse("image/png");
-
-        RequestBody body = new MultipartBody.Builder()
-                .setType(MultipartBody.FORM)
-                .addFormDataPart("userId", GlobalUtils.EMAIL)
-                .addFormDataPart("title", questionTitle)
-                .addFormDataPart("courseCode", courseIDs)
-                .addFormDataPart("questionText", question)
-                .addFormDataPart("questionImage", imageFile.getName(),
-                        RequestBody.create(MEDIA_TYPE_PNG, imageFile))
-                .build();
+        String imageName = "";
+        RequestBody body = null;
+        if (imageFile != null) {
+            imageName = imageFile.getName();
+            body = new MultipartBody.Builder()
+                    .setType(MultipartBody.FORM)
+                    .addFormDataPart("userId", GlobalUtils.EMAIL)
+                    .addFormDataPart("title", questionTitle)
+                    .addFormDataPart("courseCode", courseIDs)
+                    .addFormDataPart("questionText", question)
+                    .addFormDataPart("questionImage", imageName,
+                            RequestBody.create(MEDIA_TYPE_PNG, imageFile))
+                    .build();
+        } else {
+            body = new MultipartBody.Builder()
+                    .setType(MultipartBody.FORM)
+                    .addFormDataPart("userId", GlobalUtils.EMAIL)
+                    .addFormDataPart("title", questionTitle)
+                    .addFormDataPart("courseCode", courseIDs)
+                    .build();
+        }
 
         Request notify_questions_create_request = new Request.Builder()
                 .url(GlobalUtils.BASE_URL + "/questions/create")
