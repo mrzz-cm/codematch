@@ -76,6 +76,7 @@ matrix:
 before_install:
   - ./scripts/mongosetup.sh;
   - if [ "$SUB_WORKING_DIRECTORY" = "frontend" ]; then
+        mongorestore --db=codematch --username=codematch --password=password "$TRAVIS_BUILD_DIR/backend/data/tests/dump/codematch";
         echo "baseUrl=http://localhost:3000/api" > $TRAVIS_BUILD_DIR/frontend/app/src/main/res/raw/config.properties;
         echo "oauthClientSecret=$OAUTH_CLIENT_SECRET" >> $TRAVIS_BUILD_DIR/frontend/app/src/main/res/raw/config.properties;
         ./scripts/android_before_install.sh;
