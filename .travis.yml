@@ -42,7 +42,6 @@ matrix:
           install:
             - cd $TRAVIS_BUILD_DIR/backend && npm install
             - echo "PATH=$PATH"
-            - find "$ANDROID_HOME"
             # list installed and available packages
             - sdkmanager --list || true
             # Accept android licenses
