@@ -46,7 +46,7 @@ public class PostingView extends AppCompatActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         Button postButton = (Button) findViewById(R.id.postQuestionButton);
-        postButton.setOnClickListener(new View.OnClickListener(){
+        postButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 postQuestion();
@@ -57,7 +57,7 @@ public class PostingView extends AppCompatActivity {
         });
 
         Button uploadImageButton = (Button) findViewById(R.id.attachImageButton);
-        uploadImageButton.setOnClickListener(new View.OnClickListener(){
+        uploadImageButton.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View view) {
@@ -66,7 +66,7 @@ public class PostingView extends AppCompatActivity {
         });
 
         ActivityCompat.requestPermissions(PostingView.this,
-                new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},1);
+                new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, 1);
     }
 
     private void pickImage() {
@@ -88,7 +88,6 @@ public class PostingView extends AppCompatActivity {
             }
         }
     }
-
 
 
     private void postQuestion() {
@@ -127,44 +126,49 @@ public class PostingView extends AppCompatActivity {
                 .build();
 
         GlobalUtils.HTTP_CLIENT.newCall(notify_questions_create_request).enqueue(new Callback() {
-             @Override
-             public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                 System.out.println("Error: "+ e.toString());
-             }
+            @Override
+            public void onFailure(@NotNull Call call, @NotNull IOException e) {
+                System.out.println("Error: " + e.toString());
+            }
 
-             @Override
-             public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+            @Override
+            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
                 System.out.println("Question create request returned code " + response.code());
                 System.out.println(response.body().string());
-             }
-         });
+            }
+        });
     }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.toolbar_menu, menu);
         return true;
     }
+
     public void switchTabToNotifyView() {
         // Do something in response to button
         Intent intent = new Intent(this, NotifyView.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
         startActivity(intent);
     }
+
     public void switchTabToPostingView() {
         // Do something in response to button
         Intent intent = new Intent(this, PostingView.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
         startActivity(intent);
     }
+
     public void switchTabToProfileView() {
-        Intent intent = new Intent (this, ProfileView.class);
+        Intent intent = new Intent(this, ProfileView.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
         startActivity(intent);
     }
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch(item.getItemId()) {
+        switch (item.getItemId()) {
             case R.id.postingViewButton:
                 Toast.makeText(this, "Posting View selected!!", Toast.LENGTH_SHORT).show();
                 switchTabToPostingView();
@@ -177,7 +181,8 @@ public class PostingView extends AppCompatActivity {
                 Toast.makeText(this, "Profile View selected!!", Toast.LENGTH_SHORT).show();
                 switchTabToProfileView();
                 break;
-            default: return super.onOptionsItemSelected(item);
+            default:
+                return super.onOptionsItemSelected(item);
         }
         return true;
     }

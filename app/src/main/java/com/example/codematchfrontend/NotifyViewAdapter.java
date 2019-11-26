@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.util.LinkedList;
 
 import androidx.recyclerview.widget.RecyclerView;
+
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.Request;
@@ -26,7 +27,7 @@ public class NotifyViewAdapter extends RecyclerView.Adapter<NotifyViewAdapter.No
     private LinkedList<String> dataset;
     private NotificationItemClickListener clickListener;
 
-    public class NotifyViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
+    public class NotifyViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         TextView itemView;
 
         NotifyViewHolder(View itemView) {
@@ -43,7 +44,7 @@ public class NotifyViewAdapter extends RecyclerView.Adapter<NotifyViewAdapter.No
         }
     }
 
-    NotifyViewAdapter(Context context, LinkedList<String> dataset) {
+    protected NotifyViewAdapter(Context context, LinkedList<String> dataset) {
         this.dataset = dataset;
         clickListener = (NotificationItemClickListener) context;
     }
@@ -69,7 +70,7 @@ public class NotifyViewAdapter extends RecyclerView.Adapter<NotifyViewAdapter.No
         GlobalUtils.HTTP_CLIENT.newCall(get_question_title_request).enqueue(new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                System.out.println("Error: "+ e.toString());
+                System.out.println("Error: " + e.toString());
             }
 
             @Override
@@ -77,8 +78,8 @@ public class NotifyViewAdapter extends RecyclerView.Adapter<NotifyViewAdapter.No
                 System.out.println("Get question (title) returned code " + response.code());
                 try {
                     final JSONObject jsonObject = new JSONObject(response.body().string());
-                    if (jsonObject.has("title")){
-                        new Handler(Looper.getMainLooper()).post(new Runnable(){
+                    if (jsonObject.has("title")) {
+                        new Handler(Looper.getMainLooper()).post(new Runnable() {
                             @Override
                             public void run() {
                                 try {

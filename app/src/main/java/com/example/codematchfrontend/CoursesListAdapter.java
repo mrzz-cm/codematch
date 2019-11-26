@@ -10,17 +10,17 @@ import java.util.List;
 
 import androidx.recyclerview.widget.RecyclerView;
 
-public class CoursesListAdapter extends RecyclerView.Adapter<CoursesListAdapter.CoursesListHolder>{
+public class CoursesListAdapter extends RecyclerView.Adapter<CoursesListAdapter.CoursesListHolder> {
     private List<String> dataset;
     private CoursesListAdapter.CoursesListClickListener clickListener;
 
 
-    CoursesListAdapter(Context ctx, List<String> data) {
+    protected CoursesListAdapter(Context ctx, List<String> data) {
         this.dataset = data;
         clickListener = (CoursesListClickListener) ctx;
     }
 
-    public class CoursesListHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
+    public class CoursesListHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         TextView itemView;
 
         CoursesListHolder(View itemView) {

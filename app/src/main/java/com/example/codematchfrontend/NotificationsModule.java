@@ -3,8 +3,10 @@ package com.example.codematchfrontend;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
+
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 
@@ -35,7 +37,7 @@ public class NotificationsModule extends FirebaseMessagingService {
             newNotification(getApplicationContext(), titleString, "");
         } else if ("helperMatch".equals(notificationType)) {
             newHelperMatchNotification(getApplicationContext(), titleString, "", bodyString);
-        } else if ("".equals(notificationType)){
+        } else if ("".equals(notificationType)) {
             newRatingNotification(getApplicationContext(), titleString, "", "");
         }
     }
@@ -49,7 +51,7 @@ public class NotificationsModule extends FirebaseMessagingService {
         GlobalUtils.FIREBASE_TOKEN = token;
     }
 
-    public void newNotification (Context ctx, String textTitle, String textContent) {
+    public void newNotification(Context ctx, String textTitle, String textContent) {
         Intent intent = new Intent(ctx, NotifyView.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         PendingIntent pendingIntent = PendingIntent.getActivity(ctx, 0, intent, 0);
@@ -130,7 +132,6 @@ public class NotificationsModule extends FirebaseMessagingService {
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(ctx);
         notificationManager.notify(notificationId, builder.build());
     }
-
 
 
 }

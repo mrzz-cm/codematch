@@ -18,17 +18,18 @@ class GlobalUtils {
 
     /**
      * Initialize each configuration global variable by reading from the configuration file
+     *
      * @param context Application context
      * @throws Resources.NotFoundException Unable to find the config file
-     * @throws IOException Failed reading configuration file
+     * @throws IOException                 Failed reading configuration file
      */
-    static void initializeFromConfig(Context context)
+    protected static void initializeFromConfig(Context context)
             throws Resources.NotFoundException, IOException {
         BASE_URL = Helper.getConfigValue(context, "baseUrl");
         OAUTH_CLIENT_SECRET = Helper.getConfigValue(context, "oauthClientSecret");
     }
 
-    static int createID() {
-        return (int)System.currentTimeMillis();
+    protected static int createID() {
+        return (int) System.currentTimeMillis();
     }
 }

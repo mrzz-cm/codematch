@@ -49,29 +49,25 @@ public class RatingView extends AppCompatActivity {
             return false;
 
 
-        } else if (ratingInput.length()>1) {
+        } else if (ratingInput.length() > 1) {
             textInputRating.setError("Too Many characters!");
             return false;
+        } else {
+            textInputRating.setError(null);
+            return true;
         }
-       /* else if (ratingInput.charAt(1) < 1 || ratingInput.charAt(1) > 5) {
-            textInputRating.setError("Rating outside specified range!");
-            return false;
-        }*/
-            else {
-                textInputRating.setError(null);
-                return true;
-            }
 
     }
 
     public void confirmInput(View view) {
-        if(!validateRating()) {
+        if (!validateRating()) {
             return;
         }
-        String input = "Thank you for rating : " +textInputRating.getEditText().getText().toString();
-        Toast.makeText(this,input,Toast.LENGTH_SHORT).show();
+        String input = "Thank you for rating : " + textInputRating.getEditText().getText().toString();
+        Toast.makeText(this, input, Toast.LENGTH_SHORT).show();
 
     }
+
     private void submitRating() {
         // get the question data
         String ratingInput = textInputRating.getEditText().getText().toString().trim();
@@ -95,7 +91,7 @@ public class RatingView extends AppCompatActivity {
         GlobalUtils.HTTP_CLIENT.newCall(send_rating_request).enqueue(new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                System.out.println("Error: "+ e.toString());
+                System.out.println("Error: " + e.toString());
             }
 
             @Override
@@ -104,6 +100,5 @@ public class RatingView extends AppCompatActivity {
             }
         });
     }
-
 
 }

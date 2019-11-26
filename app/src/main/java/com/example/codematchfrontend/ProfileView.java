@@ -5,6 +5,7 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.MediaType;
@@ -32,31 +33,36 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.util.LinkedList;
 
-public class ProfileView extends AppCompatActivity implements CoursesListAdapter.CoursesListClickListener{
+public class ProfileView extends AppCompatActivity implements CoursesListAdapter.CoursesListClickListener {
 
     private LinkedList<String> courses;
 
     private CoursesListAdapter adapter;
 
 
-    /** Called when the user taps the notificationviewbutton button */
+    /**
+     * Called when the user taps the notificationviewbutton button
+     */
     public void switchTabToNotifyView() {
         // Do something in response to button
         Intent intent = new Intent(this, NotifyView.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
         startActivity(intent);
     }
+
     public void switchTabToPostingView() {
         // Do something in response to button
         Intent intent = new Intent(this, PostingView.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
         startActivity(intent);
     }
+
     public void switchTabToProfileView() {
-        Intent intent = new Intent (this, ProfileView.class);
+        Intent intent = new Intent(this, ProfileView.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
         startActivity(intent);
     }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         RecyclerView.LayoutManager layoutManager;
@@ -82,7 +88,7 @@ public class ProfileView extends AppCompatActivity implements CoursesListAdapter
 
         Button addCourseButton = findViewById(R.id.addcoursebutton);
         final EditText course_input_text = findViewById(R.id.addCourseText);
-        addCourseButton.setOnClickListener(new View.OnClickListener(){
+        addCourseButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 addcourse(course_input_text.getText().toString());
@@ -103,7 +109,7 @@ public class ProfileView extends AppCompatActivity implements CoursesListAdapter
         GlobalUtils.HTTP_CLIENT.newCall(get_rating_request).enqueue(new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                System.out.println("Error: "+ e.toString());
+                System.out.println("Error: " + e.toString());
             }
 
             @Override
@@ -111,10 +117,10 @@ public class ProfileView extends AppCompatActivity implements CoursesListAdapter
                 System.out.println("Get all courses returned code " + response.code());
                 try {
                     JSONObject jsonObject = new JSONObject(response.body().string());
-                    if (jsonObject.has("points")){
+                    if (jsonObject.has("points")) {
                         try {
                             final int rating = jsonObject.getInt("points");
-                            new Handler(Looper.getMainLooper()).post(new Runnable(){
+                            new Handler(Looper.getMainLooper()).post(new Runnable() {
                                 @Override
                                 public void run() {
                                     ratingView.setText(Integer.toString(rating));
@@ -146,7 +152,7 @@ public class ProfileView extends AppCompatActivity implements CoursesListAdapter
         GlobalUtils.HTTP_CLIENT.newCall(get_all_courses_request).enqueue(new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                System.out.println("Error: "+ e.toString());
+                System.out.println("Error: " + e.toString());
             }
 
             @Override
@@ -154,7 +160,7 @@ public class ProfileView extends AppCompatActivity implements CoursesListAdapter
                 System.out.println("Get all courses returned code " + response.code());
                 try {
                     JSONObject jsonObject = new JSONObject(response.body().string());
-                    if (jsonObject.has("courses")){
+                    if (jsonObject.has("courses")) {
                         JSONArray array = jsonObject.getJSONArray("courses");
                         for (int i = 0; i < array.length(); i++) {
                             String course_id = array.getString(i);
@@ -173,16 +179,9 @@ public class ProfileView extends AppCompatActivity implements CoursesListAdapter
     public void onItemClick(View view, int position) {
     }
 
-    private void removeCourseAtPosition(int position) {
-        String courseID = this.courses.get(position);
-
-        // send request to server to remove course
-        this.courses.remove(position);
-        adapter.notifyItemRemoved(position);
-    }
 
     private void addcourse(String course) {
-        if (!courses.contains(course)){
+        if (!courses.contains(course)) {
             courses.add(course);
 
             // send course information to the backend
@@ -206,7 +205,7 @@ public class ProfileView extends AppCompatActivity implements CoursesListAdapter
             GlobalUtils.HTTP_CLIENT.newCall(post_course_request).enqueue(new Callback() {
                 @Override
                 public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                    System.out.println("Error: "+ e.toString());
+                    System.out.println("Error: " + e.toString());
                 }
 
                 @Override
@@ -219,7 +218,7 @@ public class ProfileView extends AppCompatActivity implements CoursesListAdapter
 
     private void addCourseUpdate(final String course) {
         if (!courses.contains(course)) {
-            new Handler(Looper.getMainLooper()).post(new Runnable(){
+            new Handler(Looper.getMainLooper()).post(new Runnable() {
                 @Override
                 public void run() {
                     courses.add(course);
@@ -237,8 +236,8 @@ public class ProfileView extends AppCompatActivity implements CoursesListAdapter
     }
 
     @Override
-     public boolean onOptionsItemSelected(MenuItem item) {
-        switch(item.getItemId()) {
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
             case R.id.postingViewButton:
                 switchTabToPostingView();
                 break;
@@ -248,7 +247,8 @@ public class ProfileView extends AppCompatActivity implements CoursesListAdapter
             case R.id.profileViewButton:
                 switchTabToProfileView();
                 break;
-            default: return super.onOptionsItemSelected(item);
+            default:
+                return super.onOptionsItemSelected(item);
         }
         return true;
     }

@@ -5,6 +5,7 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.MediaType;
@@ -39,7 +40,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.LinkedList;
 
-public class NotifyView extends AppCompatActivity implements NotifyViewAdapter.NotificationItemClickListener{
+public class NotifyView extends AppCompatActivity implements NotifyViewAdapter.NotificationItemClickListener {
 
     private NotifyViewAdapter adapter;
     private LinkedList<String> notifications;
@@ -98,7 +99,7 @@ public class NotifyView extends AppCompatActivity implements NotifyViewAdapter.N
         GlobalUtils.HTTP_CLIENT.newCall(get_all_questions_request).enqueue(new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                System.out.println("Error: "+ e.toString());
+                System.out.println("Error: " + e.toString());
             }
 
             @Override
@@ -106,9 +107,9 @@ public class NotifyView extends AppCompatActivity implements NotifyViewAdapter.N
                 System.out.println("Get all questions returned code " + response.code());
                 try {
                     JSONObject jsonObject = new JSONObject(response.body().string());
-                    if (jsonObject.has("currentMatchedQuestion") && !jsonObject.isNull("currentMatchedQuestion")){
+                    if (jsonObject.has("currentMatchedQuestion") && !jsonObject.isNull("currentMatchedQuestion")) {
                         final String question_id = jsonObject.get("currentMatchedQuestion").toString();
-                        new Handler(Looper.getMainLooper()).post(new Runnable(){
+                        new Handler(Looper.getMainLooper()).post(new Runnable() {
                             @Override
                             public void run() {
                                 addNotification(question_id);
@@ -152,48 +153,48 @@ public class NotifyView extends AppCompatActivity implements NotifyViewAdapter.N
         GlobalUtils.HTTP_CLIENT.newCall(get_question_data_request).enqueue(new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                System.out.println("Error: "+ e.toString());
+                System.out.println("Error: " + e.toString());
             }
 
             @Override
             public void onResponse(@NotNull Call call, @NotNull final Response response) throws IOException {
                 System.out.println("Get question data returned code " + response.code());
-                new Handler(Looper.getMainLooper()).post(new Runnable(){
-                        @Override
-                        public void run() {
+                new Handler(Looper.getMainLooper()).post(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            JSONObject jsonObject = null;
                             try {
-                                JSONObject jsonObject = null;
-                                try {
-                                    jsonObject = new JSONObject(response.body().string());
-                                } catch (Exception e) {
-                                    e.printStackTrace();
-                                }
-
-                                if (jsonObject.has("title")){
-                                    titleText.setText(jsonObject.get("title").toString());
-                                }
-                                if (jsonObject.has("questionText")){
-                                    questionText.setText(jsonObject.get("questionText").toString());
-                                }
-                                if (jsonObject.has("images") && jsonObject.getJSONArray("images").length() > 0){
-                                    setQuestionImage(questionImage, jsonObject.getJSONArray("images"));
-                                }
-                                if (jsonObject.has("questionState")){
-                                    String questionState = jsonObject.getString("questionState");
-                                    if ("Matched".equals(questionState)) {
-                                        yes.setAlpha(0);
-                                        no.setAlpha(0);
-                                        yes.setClickable(false);
-                                        no.setClickable(false);
-                                    }
-                                }
-                                if (jsonObject.has("seeker") && !jsonObject.isNull("seeker")) {
-                                    currentlyMatched.setText("Question asked by: " + jsonObject.getString("seeker"));
-                                }
-                            } catch (JSONException e) {
+                                jsonObject = new JSONObject(response.body().string());
+                            } catch (Exception e) {
                                 e.printStackTrace();
                             }
+
+                            if (jsonObject.has("title")) {
+                                titleText.setText(jsonObject.get("title").toString());
+                            }
+                            if (jsonObject.has("questionText")) {
+                                questionText.setText(jsonObject.get("questionText").toString());
+                            }
+                            if (jsonObject.has("images") && jsonObject.getJSONArray("images").length() > 0) {
+                                setQuestionImage(questionImage, jsonObject.getJSONArray("images"));
+                            }
+                            if (jsonObject.has("questionState")) {
+                                String questionState = jsonObject.getString("questionState");
+                                if ("Matched".equals(questionState)) {
+                                    yes.setAlpha(0);
+                                    no.setAlpha(0);
+                                    yes.setClickable(false);
+                                    no.setClickable(false);
+                                }
+                            }
+                            if (jsonObject.has("seeker") && !jsonObject.isNull("seeker")) {
+                                currentlyMatched.setText("Question asked by: " + jsonObject.getString("seeker"));
+                            }
+                        } catch (JSONException e) {
+                            e.printStackTrace();
                         }
+                    }
                 });
             }
         });
@@ -232,12 +233,12 @@ public class NotifyView extends AppCompatActivity implements NotifyViewAdapter.N
             e.printStackTrace();
         }
 
-        new Handler(Looper.getMainLooper()).post(new Runnable(){
+        new Handler(Looper.getMainLooper()).post(new Runnable() {
             @Override
             public void run() {
                 System.out.println("setting image");
                 System.out.println(question_image);
-                if(question_image == null) {
+                if (question_image == null) {
                     setQuestionImage(view, imageArray);
                 }
                 ((ImageView) view).setImageBitmap(question_image);
@@ -325,7 +326,7 @@ public class NotifyView extends AppCompatActivity implements NotifyViewAdapter.N
             }
         });
 
-        close.setOnClickListener(new View.OnClickListener(){
+        close.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View view) {
@@ -345,7 +346,7 @@ public class NotifyView extends AppCompatActivity implements NotifyViewAdapter.N
         GlobalUtils.HTTP_CLIENT.newCall(get_question_id_request).enqueue(new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                System.out.println("Error: "+ e.toString());
+                System.out.println("Error: " + e.toString());
             }
 
             @Override
@@ -353,8 +354,8 @@ public class NotifyView extends AppCompatActivity implements NotifyViewAdapter.N
                 try {
                     JSONObject jsonObject = new JSONObject(response.body().string());
                     if (jsonObject.has("currentMatchedQuestion") && !jsonObject.isNull("currentMatchedQuestion")
-                        || (jsonObject.has("currentQuestion") && jsonObject.isNull("currentQuestion"))){
-                        new Handler(Looper.getMainLooper()).post(new Runnable(){
+                            || (jsonObject.has("currentQuestion") && jsonObject.isNull("currentQuestion"))) {
+                        new Handler(Looper.getMainLooper()).post(new Runnable() {
                             @Override
                             public void run() {
                                 view_my_question_button.setAlpha(0);
@@ -362,8 +363,8 @@ public class NotifyView extends AppCompatActivity implements NotifyViewAdapter.N
                             }
                         });
                     }
-                    if (jsonObject.has("currentQuestion") && !jsonObject.isNull("currentQuestion")){
-                        new Handler(Looper.getMainLooper()).post(new Runnable(){
+                    if (jsonObject.has("currentQuestion") && !jsonObject.isNull("currentQuestion")) {
+                        new Handler(Looper.getMainLooper()).post(new Runnable() {
                             @Override
                             public void run() {
                                 view_my_question_button.setAlpha(1);
@@ -398,14 +399,14 @@ public class NotifyView extends AppCompatActivity implements NotifyViewAdapter.N
         GlobalUtils.HTTP_CLIENT.newCall(get_question_id_request).enqueue(new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                System.out.println("Error: "+ e.toString());
+                System.out.println("Error: " + e.toString());
             }
 
             @Override
             public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
                 try {
                     JSONObject jsonObject = new JSONObject(response.body().string());
-                    if (jsonObject.has("currentQuestion") && !jsonObject.isNull("currentQuestion")){
+                    if (jsonObject.has("currentQuestion") && !jsonObject.isNull("currentQuestion")) {
                         current_question_id = jsonObject.get("currentQuestion").toString();
 
                         Request get_question_data_request = new Request.Builder()
@@ -416,13 +417,13 @@ public class NotifyView extends AppCompatActivity implements NotifyViewAdapter.N
                         GlobalUtils.HTTP_CLIENT.newCall(get_question_data_request).enqueue(new Callback() {
                             @Override
                             public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                                System.out.println("Error: "+ e.toString());
+                                System.out.println("Error: " + e.toString());
                             }
 
                             @Override
                             public void onResponse(@NotNull Call call, @NotNull final Response response) throws IOException {
                                 System.out.println("Get question data returned code " + response.code());
-                                new Handler(Looper.getMainLooper()).post(new Runnable(){
+                                new Handler(Looper.getMainLooper()).post(new Runnable() {
                                     @Override
                                     public void run() {
                                         try {
@@ -432,13 +433,13 @@ public class NotifyView extends AppCompatActivity implements NotifyViewAdapter.N
                                             } catch (Exception e) {
                                                 e.printStackTrace();
                                             }
-                                            if (jsonObject.has("title")){
+                                            if (jsonObject.has("title")) {
                                                 titleText.setText(jsonObject.get("title").toString());
                                             }
-                                            if (jsonObject.has("questionText")){
+                                            if (jsonObject.has("questionText")) {
                                                 questionText.setText(jsonObject.get("questionText").toString());
                                             }
-                                            if (jsonObject.has("images") && jsonObject.getJSONArray("images").length() > 0){
+                                            if (jsonObject.has("images") && jsonObject.getJSONArray("images").length() > 0) {
                                                 setQuestionImage(questionImage, jsonObject.getJSONArray("images"));
                                             }
                                             if (jsonObject.has("finalHelper") && !jsonObject.isNull("finalHelper")) {
@@ -474,7 +475,7 @@ public class NotifyView extends AppCompatActivity implements NotifyViewAdapter.N
     }
 
     private void setupDeleteQuestionListener(Button deleteQuestionButton, final Dialog dialog) {
-        deleteQuestionButton.setOnClickListener(new View.OnClickListener(){
+        deleteQuestionButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 dialog.cancel();
@@ -491,7 +492,7 @@ public class NotifyView extends AppCompatActivity implements NotifyViewAdapter.N
                 GlobalUtils.HTTP_CLIENT.newCall(delete_question_request).enqueue(new Callback() {
                     @Override
                     public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                        System.out.println("Error: "+ e.toString());
+                        System.out.println("Error: " + e.toString());
                     }
 
                     @Override
@@ -517,7 +518,7 @@ public class NotifyView extends AppCompatActivity implements NotifyViewAdapter.N
     }
 
     private void addNotification(String notification) {
-        if (this.notifications.contains(notification)){
+        if (this.notifications.contains(notification)) {
             System.out.println("WARNING: TRIED TO ADD SAME QUESTION ID TWICE");
         } else {
             this.notifications.add(notification);
@@ -529,39 +530,45 @@ public class NotifyView extends AppCompatActivity implements NotifyViewAdapter.N
         Intent postQuestionIntent = new Intent(this, PostingView.class);
         startActivity(postQuestionIntent);
     }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.toolbar_menu, menu);
         return true;
     }
+
     public void switchTabToProfileView(View view) {
         // Do something in response to button
         Intent intent = new Intent(this, ProfileView.class);
         startActivity(intent);
     }
+
     public void switchTabToNotifyView() {
         // Do something in response to button
         Intent intent = new Intent(this, NotifyView.class);
         startActivity(intent);
     }
+
     public void switchTabToPostingView() {
         // Do something in response to button
         Intent intent = new Intent(this, PostingView.class);
         startActivity(intent);
     }
+
     public void switchTabToProfileView() {
-        Intent intent = new Intent (this, ProfileView.class);
+        Intent intent = new Intent(this, ProfileView.class);
         startActivity(intent);
     }
+
     public void switchTabToRatingView(View view) {
-        Intent intent = new Intent (this, RatingView.class);
+        Intent intent = new Intent(this, RatingView.class);
         startActivity(intent);
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch(item.getItemId()) {
+        switch (item.getItemId()) {
             case R.id.postingViewButton:
                 switchTabToPostingView();
                 break;
@@ -571,7 +578,8 @@ public class NotifyView extends AppCompatActivity implements NotifyViewAdapter.N
             case R.id.profileViewButton:
                 switchTabToProfileView();
                 break;
-            default: return super.onOptionsItemSelected(item);
+            default:
+                return super.onOptionsItemSelected(item);
         }
         return true;
     }
