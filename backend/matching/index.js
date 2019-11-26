@@ -2,12 +2,13 @@ const user = require("../user");
 const config = require("../config");
 const logger = require("../logger").logger;
 
+/* eslint complexity: ["error", 20] */
+
 const userCollection = config.collections.users;
 const EARTH_RADIUS = 6371; // Earth's radius (KM)
 
-/* TODO: Decide on weights */
 const LOCATION_WEIGHT = 1;
-const LAST_ACTIVE_WEIGHT = 1;
+const LAST_ACTIVE_WEIGHT = 10e-13;
 const COURSE_CODE_WEIGHT = 1;
 const USER_RATING_WEIGHT = 1;
 
@@ -47,6 +48,8 @@ class Match {
 
         const collection = await mongo.db.collection(userCollection);
 
+        const checkedHelpers = this._question.prevCheckedHelpers;
+
         let highestQuery;
         try {
             /* Calculate highest rated user with MongoDB query */
@@ -56,6 +59,9 @@ class Match {
                         $ne: seekerJson.userId
                     },
                     currentQuestion: {
+                        $eq: null
+                    },
+                    currentMatchedQuestion: {
                         $eq: null
                     }
                 }
@@ -101,8 +107,11 @@ class Match {
                     totalCourses: {
                         $cond: {
                             if: {
+                                /* true when the first array is a subset of the
+                                second, including when the first array equals
+                                the second array, and false otherwise */
                                 $setIsSubset: [
-                                    seekerJson.courses, "$courses"
+                                    [ this._question.courseCode ], "$courses"
                                 ]
                             },
                             then: COURSE_CODE_WEIGHT,
@@ -114,42 +123,31 @@ class Match {
             {
                 $addFields: {
                     totalRating: {
-                        $add: [{
-                            $add: [
-                                "$totalPoints",
-                                {
-                                    $add: [{
-                                        $add: [
-                                            "$totalLastOnline", "$totalCourses"
-                                        ]
-                                    },
-                                    {
-                                        $add: [{
-                                            $multiply: [{
-                                                $sin: {
-                                                    $divide: ["$dLat", 2]
-                                                }
+                        $cond: {
+                            if: {
+                                $setIsSubset: [
+                                    [ "$userId" ], checkedHelpers
+                                ]
+                            },
+                            /* Null if user already checked so $max ignores */
+                            then: null,
+                            else: {
+                                $add: [{
+                                    $add: [
+                                        "$totalPoints",
+                                        {
+                                            $add: [{
+                                                $add: [
+                                                    "$totalLastOnline",
+                                                    "$totalCourses"
+                                                ]
                                             },
                                             {
-                                                $sin: {
-                                                    $divide: ["$dLong", 2]
-                                                }
-                                            }
-                                            ]
-                                        },
-                                        {
-                                            $multiply: [
-                                                {
+                                                $add: [{
                                                     $multiply: [{
-                                                        $cos: "$lat1"
-                                                    },
-                                                    {
-                                                        $cos: "$lat2"
-                                                    },
-                                                    {
                                                         $sin: {
                                                             $divide: [
-                                                                "$dLong", 2
+                                                                "$dLat", 2
                                                             ]
                                                         }
                                                     },
@@ -162,15 +160,42 @@ class Match {
                                                     }
                                                     ]
                                                 },
-                                                EARTH_RADIUS * -LOCATION_WEIGHT
+                                                {
+                                                    $multiply: [
+                                                        {
+                                                            $multiply: [{
+                                                                $cos: "$lat1"
+                                                            },
+                                                            {
+                                                                $cos: "$lat2"
+                                                            },
+                                                            {
+                                                                $sin: {
+                                                                    $divide: [
+                                                                        "$dLong", 2
+                                                                    ]
+                                                                }
+                                                            },
+                                                            {
+                                                                $sin: {
+                                                                    $divide: [
+                                                                        "$dLong", 2
+                                                                    ]
+                                                                }
+                                                            }
+                                                            ]
+                                                        },
+                                                        EARTH_RADIUS * -LOCATION_WEIGHT
+                                                    ]
+                                                }
+                                                ]
+                                            }
                                             ]
                                         }
-                                        ]
-                                    }
                                     ]
-                                }
-                            ]
-                        }]
+                                }]
+                            }
+                        }
                     }
                 },
             },
@@ -193,7 +218,24 @@ class Match {
                         $filter: {
                             input: "$records",
                             as: "re",
-                            cond: {$eq: ["$$re.totalRating", "$$ROOT.finalRating"]}
+                            cond: {
+                                $and: [
+                                    {
+                                        $eq: [
+                                            "$$re.totalRating",
+                                            "$$ROOT.finalRating"
+                                        ]
+                                    },
+                                    {
+                                        $not: {
+                                            $setIsSubset: [
+                                                [ "$$re.userId" ],
+                                                checkedHelpers
+                                            ]
+                                        }
+                                    }
+                                ]
+                            }
                         }
                     },
                     finalRating: "$$ROOT.finalRating"
@@ -210,6 +252,11 @@ class Match {
         } catch (e) {
             throw new Error(e);
         }
+
+        logger.log("debug","Match weights:", {
+            weights: highestUsers,
+            seeker: this._question.seeker,
+        });
 
         if ((highestUsers.length === 0) ||
             (highestUsers[0].items === null) ||

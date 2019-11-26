@@ -1,12 +1,25 @@
 language: node_js
 node_js: "12"
 
-services: mongodb
+services: mongod
+addons:
+  apt:
+    sources:
+      - sourceline: 'deb http://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/4.2 multiverse'
+        key_url: 'https://www.mongodb.org/static/pgp/server-4.2.asc'
+    packages:
+      - mongodb-org
+      - mongodb-org-server
+      - mongodb-org-shell
+      - mongodb-org-mongos
+      - mongodb-org-tools
 
 env:
   - MODE=test
 
 before_install:
+  - mongo --version
+  - mongod --version
   - |
     mongo admin --eval 'db.createUser(
         {
