@@ -25,12 +25,12 @@ import okhttp3.Response;
 public class NotifyViewAdapter extends RecyclerView.Adapter<NotifyViewAdapter.NotifyViewHolder> {
 
     private LinkedList<String> dataset;
-    public NotificationItemClickListener clickListener;
+    private NotificationItemClickListener clickListener;
 
     public class NotifyViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
-        public TextView itemView;
+        TextView itemView;
 
-        public NotifyViewHolder(View itemView) {
+        NotifyViewHolder(View itemView) {
             super(itemView);
             this.itemView = itemView.findViewById(R.id.notificationname);
 
@@ -44,7 +44,7 @@ public class NotifyViewAdapter extends RecyclerView.Adapter<NotifyViewAdapter.No
         }
     }
 
-    public NotifyViewAdapter(Context context, LinkedList<String> dataset) {
+    NotifyViewAdapter(Context context, LinkedList<String> dataset) {
         this.dataset = dataset;
         clickListener = (NotificationItemClickListener) context;
     }

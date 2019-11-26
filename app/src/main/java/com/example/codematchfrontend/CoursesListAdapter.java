@@ -12,18 +12,18 @@ import androidx.recyclerview.widget.RecyclerView;
 
 public class CoursesListAdapter extends RecyclerView.Adapter<CoursesListAdapter.CoursesListHolder>{
     private List<String> dataset;
-    public CoursesListAdapter.CoursesListClickListener clickListener;
+    private CoursesListAdapter.CoursesListClickListener clickListener;
 
 
-    public CoursesListAdapter(Context ctx, List<String> data) {
+    CoursesListAdapter(Context ctx, List<String> data) {
         this.dataset = data;
         clickListener = (CoursesListClickListener) ctx;
     }
 
     public class CoursesListHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
-        public TextView itemView;
+        TextView itemView;
 
-        public CoursesListHolder(View itemView) {
+        CoursesListHolder(View itemView) {
             super(itemView);
             this.itemView = itemView.findViewById(R.id.course_name);
 

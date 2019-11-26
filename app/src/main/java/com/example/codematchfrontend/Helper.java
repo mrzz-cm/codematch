@@ -13,8 +13,8 @@ final class Helper {
      * @param context Class context
      * @param name Name of property being requested
      * @return Property requested
-     * @throws Resources.NotFoundException
-     * @throws IOException
+     * @throws Resources.NotFoundException Unable to find the config file
+     * @throws IOException Failed reading configuration file
      */
     static String getConfigValue(Context context, String name)
             throws Resources.NotFoundException, IOException {
