@@ -11,7 +11,7 @@ update-alternatives --config java
 # download und unzip Android SDK Tools
 wget "https://dl.google.com/android/repository/$ANDROID_SDK_TOOLS"
 
-unzip -q "${ANDROID_SDK_TOOLS}" -d "${HOME}/sdk"
+unzip -v -q "${ANDROID_SDK_TOOLS}" -d "${HOME}/sdk"
 
 # create empty cfg file to prevent sdkmanager warning message
 mkdir -p "${HOME}/.android" && touch "${HOME}/.android/repositories.cfg"
