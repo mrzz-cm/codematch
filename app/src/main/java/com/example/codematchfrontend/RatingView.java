@@ -100,7 +100,7 @@ public class RatingView extends AppCompatActivity {
             }
 
             @Override
-            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+            public void onResponse(@NotNull Call call, @NotNull Response response) {
                 System.out.println("Question create request returned code " + response.code());
             }
         });
