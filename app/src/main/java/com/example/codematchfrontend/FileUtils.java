@@ -13,11 +13,11 @@ import android.provider.MediaStore;
 
 import java.io.File;
 
-/*
-    Credit: implementation taken from https://gist.github.com/HBiSoft/15899990b8cd0723c3a894c1636550a8
+/**
+ *  Credit: implementation taken from
+ *  https://gist.github.com/HBiSoft/15899990b8cd0723c3a894c1636550a8
  */
-
-public class FileUtils {
+class FileUtils {
     static String getRealPath(Context context, Uri fileUri) {
         String realPath;
         // SDK < API11
@@ -37,7 +37,7 @@ public class FileUtils {
 
 
     @SuppressLint("NewApi")
-    public static String getRealPathFromURI_API11to18(Context context, Uri contentUri) {
+    private static String getRealPathFromURI_API11to18(Context context, Uri contentUri) {
         String[] proj = {MediaStore.Images.Media.DATA};
         String result = null;
 
@@ -53,7 +53,7 @@ public class FileUtils {
         return result;
     }
 
-    public static String getRealPathFromURI_BelowAPI11(Context context, Uri contentUri) {
+    private static String getRealPathFromURI_BelowAPI11(Context context, Uri contentUri) {
         String[] proj = {MediaStore.Images.Media.DATA};
         Cursor cursor = context.getContentResolver().query(contentUri, proj, null, null, null);
         int column_index = 0;
@@ -69,7 +69,7 @@ public class FileUtils {
     }
 
     @SuppressLint("NewApi")
-    public static String getRealPathFromURI_API19(final Context context, final Uri uri) {
+    private static String getRealPathFromURI_API19(final Context context, final Uri uri) {
 
         final boolean isKitKat = Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT;
 
