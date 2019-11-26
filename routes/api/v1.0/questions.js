@@ -81,10 +81,12 @@ async function matchQuestion(request, reply, fastify, question, seeker) {
     }
 
     // update question fields
+    /* eslint-disable require-atomic-updates */
     question.helperNotifiedTimestamp = Date.now();
     question.optimalHelper = match.userId;
     question.prevCheckedHelpers.push(match.userId);
     question.questionState = "Waiting";
+    /* eslint-enable require-atomic-updates */
 
     request.log.info("Updating question");
 

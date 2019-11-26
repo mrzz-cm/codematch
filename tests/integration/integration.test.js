@@ -261,8 +261,7 @@ describe("Getting question data", () => {
 });
 
 describe("Posting new question test", () => {
-
-    let question;
+    
     const testUser = "testuser1@example.com";
     const testUser2 = "testuser2@example.com";
 
