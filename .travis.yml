@@ -29,8 +29,9 @@ matrix:
             - MODE=test
             - ANDROID_API_LEVEL=29
             - ANDROID_BUILD_TOOLS_VERSION=29.0.0
+            - ANDROID_HOME=$HOME/sdk
             - ANDROID_SDK_TOOLS=sdk-tools-linux-4333796.zip
-            - PATH=$ANDROID_HOME:$ANDROID_HOME/emulator:$ANDROID_HOME/platform-tools:$PATH
+            - PATH=$ANDROID_HOME:$ANDROID_HOME/emulator:$ANDROID_HOME/platform-tools:$ANDROID_HOME/bin:$PATH
           components:
             - tools
             - platform-tools
@@ -40,6 +41,8 @@ matrix:
             - doc-29
           install:
             - cd $TRAVIS_BUILD_DIR/backend && npm install
+            - echo "PATH=$PATH"
+            - find "$ANDROID_HOME"
             # list installed and available packages
             - sdkmanager --list || true
             # latest SDK Platform-Tools
