@@ -9,6 +9,10 @@ addons:
         key_url: 'https://www.mongodb.org/static/pgp/server-4.2.asc'
     packages:
       - mongodb-org
+      - mongodb-org-server
+      - mongodb-org-shell
+      - mongodb-org-mongos
+      - mongodb-org-tools
 
 env:
   - MODE=test
