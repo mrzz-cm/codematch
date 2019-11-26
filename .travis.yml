@@ -3,8 +3,20 @@ global:
     - MODE=test
 
 language: node_js
-services: mongodb
 node_js: "12"
+
+services: mongod
+addons:
+  apt:
+    sources:
+      - sourceline: 'deb http://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/4.2 multiverse'
+        key_url: 'https://www.mongodb.org/static/pgp/server-4.2.asc'
+    packages:
+      - mongodb-org
+      - mongodb-org-server
+      - mongodb-org-shell
+      - mongodb-org-mongos
+      - mongodb-org-tools
 
 matrix:
     include:
