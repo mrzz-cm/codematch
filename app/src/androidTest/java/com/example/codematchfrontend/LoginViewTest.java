@@ -62,11 +62,9 @@ public class LoginViewTest {
             loginAccount.click();
         }
 
-        try{
+        try {
             Thread.sleep(10000);
-
         } catch (InterruptedException e) {
-
         }
 
         ViewInteraction linearLayout = onView(

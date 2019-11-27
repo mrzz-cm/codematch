@@ -60,7 +60,7 @@ public class PostQuestionTest {
             loginAccount.click();
         }
 
-        try{
+        try {
             Thread.sleep(10000);
 
         } catch (InterruptedException e) {
@@ -71,7 +71,7 @@ public class PostQuestionTest {
                 allOf(withId(R.id.postingViewButton)));
         floatingActionButton.perform(click());
 
-        try{
+        try {
             Thread.sleep(5000);
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -85,7 +85,7 @@ public class PostQuestionTest {
         device.wait(Until.hasObject(By.textStartsWith("codematchfrontend")), 1000);
         UiObject2 title = device.findObject(By.text("codematchfrontend"));
         UiObject2 description = device.findObject(By.text("No match was found for your problem."));
-        assert(description.getText().equals("No match was found for your problem."));
+        assert (description.getText().equals("No match was found for your problem."));
         title.click();
     }
 
