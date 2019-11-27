@@ -16,17 +16,17 @@ function routes (fastify, opts, done) {
         schema: {
             body: {
                 type: "object",
-                required: ["access_token"],
+                required: ["accessToken"],
                 properties: {
-                    access_token: { type: "string" },
-                    test_email:  { type: "string" },
+                    accessToken: { type: "string" },
+                    testEmail:  { type: "string" },
                     longitude: { type: "number" },
                     latitude: { type: "number" },
                 }
             }
         },
         preValidation: [ fastify.authenticate ],
-        handler: async (request, reply) => {
+        async handler(request, reply) {
             const um = userModule({ mongo: fastify.mongo });
             request.log.info(request.body);
 
@@ -37,14 +37,16 @@ function routes (fastify, opts, done) {
 
             let emailJson;
             if (process.env.MODE === "test") {
-                emailJson = { email: request.body.test_email };
+                emailJson = { email: request.body.testEmail };
             } else {
                 try {
                     emailJson = await auth.requestEmail(
-                        request.body.access_token
+                        request.body.accessToken
                     );
                 } catch (e) {
-                    if (ru.errCheck(reply, rc.INTERNAL_SERVER_ERROR, e)) return;
+                    if (ru.errCheck(reply, rc.INTERNAL_SERVER_ERROR, e)) {
+                        return;
+                    }
                 }
             }
 
@@ -56,13 +58,14 @@ function routes (fastify, opts, done) {
 
             let userExists;
             try {
+                /* eslint-disable-next-line */
                 userExists = await um.User.exists(emailJson.email);
             } catch (e) {
-                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) {return;}
             }
 
             if (userExists) {
-                ru.errCheck(reply, rc.INTERNAL_SERVER_ERROR, "User exists");
+                ru.errCheck(reply, rc.BAD_REQUEST, "User exists");
                 return;
             }
 
@@ -72,7 +75,7 @@ function routes (fastify, opts, done) {
             try {
                 await newUser.create();
             } catch (e) {
-                if (ru.errCheck(reply, rc.INTERNAL_SERVER_ERROR, e)) return;
+                if (ru.errCheck(reply, rc.INTERNAL_SERVER_ERROR, e)) {return;}
             }
 
             // done
@@ -99,14 +102,15 @@ function routes (fastify, opts, done) {
             }
         },
         preValidation: [ fastify.authenticate ],
-        handler: async (request, reply) => {
+        async handler(request, reply) {
             const um = userModule({ mongo: fastify.mongo });
 
             let userExists;
             try {
+                /* eslint-disable-next-line */
                 userExists = await um.User.exists(request.body.userId);
             } catch (e) {
-                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) {return;}
             }
 
             if (!userExists) {
@@ -128,6 +132,13 @@ function routes (fastify, opts, done) {
             }
 
             const user = um.User.fromJson(uJson);
+
+            // check authentication token before modifying user data
+            if (!auth.verifyUserToken(fastify, request, user.userId)) {
+                ru.errCheck(reply, rc.UNAUTHORIZED, "Invalid credentials.");
+                return;
+            }
+
             user.courses.push(request.body.courseId);
 
             // update database
@@ -138,7 +149,7 @@ function routes (fastify, opts, done) {
                         }
                 });
             } catch (e) {
-                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) {return;}
             }
 
             reply.status(rc.OK);
@@ -162,7 +173,7 @@ function routes (fastify, opts, done) {
             }
         },
         preValidation: [ fastify.authenticate ],
-        handler: async (request, reply) => {
+        async handler(request, reply) {
             const um = userModule({ mongo: fastify.mongo });
 
             const location = {
@@ -172,6 +183,7 @@ function routes (fastify, opts, done) {
 
             let exists;
             try {
+                /* eslint-disable-next-line */
                 exists = await um.User.exists(request.params.userId);
             } catch (e) {
                 ru.errCheck(reply, rc.BAD_REQUEST, e);
@@ -180,6 +192,11 @@ function routes (fastify, opts, done) {
 
             if (!exists) {
                 ru.errCheck(reply, rc.BAD_REQUEST, "No user found");
+                return;
+            }
+
+            if (!auth.verifyUserToken(fastify, request, request.params.userId)) {
+                ru.errCheck(reply, rc.UNAUTHORIZED, "Invalid credentials.");
                 return;
             }
 
@@ -204,6 +221,69 @@ function routes (fastify, opts, done) {
         }
     });
 
+    /**
+     * Send a message to a user
+     */
+    fastify.route({
+        method: "POST",
+        url: "/sendMessage",
+        preValidation: [ fastify.authenticate ],
+        body: {
+            type: "object",
+            required: ["userId", "receiverId", "message"],
+            properties: {
+                userId: { type: "string" },
+                receiverId: { type: "string" },
+                message: { type: "string" }
+            }
+        },
+        async handler (request, reply) {
+            const um = userModule({ mongo: fastify.mongo });
+
+            const body = request.body;
+
+            let usersExist;
+            try {
+                /* eslint-disable */
+                const userExists = await um.User.exists(body.userId);
+                const receiverExists = await um.User.exists(body.receiverId);
+                /* eslint-enable */
+                usersExist = userExists && receiverExists;
+            } catch (e) {
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) {return;}
+            }
+
+            if (!usersExist) {
+                reply.status(rc.BAD_REQUEST);
+                reply.send("Provided user(s) doesn't exist.");
+                return;
+            }
+
+            if (!auth.verifyUserToken(fastify, request, body.userId)) {
+                ru.errCheck(reply, rc.UNAUTHORIZED, "Invalid credentials.");
+                return;
+            }
+
+            /* Send the message through a notification */
+            try {
+                await um.User.sendNotification(
+                    body.receiverId,
+                    body.message,
+                    "message",
+                    {
+                        notificationType: "message"
+                    });
+
+            } catch (e) {
+                request.log.info(e);
+                if (ru.errCheck(reply, rc.INTERNAL_SERVER_ERROR, e)) {return;}
+            }
+
+            reply.status(rc.OK);
+            reply.send({msg: "Sent message."});
+        }
+    });
+
     /* GET Requests */
 
     /**
@@ -213,7 +293,7 @@ function routes (fastify, opts, done) {
         method: "GET",
         url: "/:userId",
         preValidation: [ fastify.authenticate ],
-        handler: async (request, reply) => {
+        async handler(request, reply) {
             const um = userModule({ mongo: fastify.mongo });
 
             let user;

@@ -16,7 +16,10 @@ const googleAuth = {
         "token_uri": "https://oauth2.googleapis.com/token",
         "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
         "client_secret": "REDACTED",
-        "redirect_uris": ["https://cm.johnramsden.ca/auth/google", "https://cm.johnramsden.ca/auth/google/callback"]
+        "redirect_uris": [
+            "https://cm.johnramsden.ca/api/auth/google",
+            "https://cm.johnramsden.ca/api/auth/google/callback"
+        ]
     }
 };
 
@@ -33,12 +36,18 @@ const collections = {
     questions: "questions",
 };
 
+const fileSettings = {
+    uploadDirectory: "uploads",
+    maxFileSize: 15728640 /* 15 MiB limit */
+};
+
 module.exports = {
-    mongoDBConnection: mongoDBConnection,
-    collections: collections,
-    googleAuth: googleAuth,
-    domain: domain,
-    FCM_KEY: FCM_KEY,
-    jwtSecret: jwtSecret,
-    logLevel: logLevel,
+    mongoDBConnection,
+    collections,
+    googleAuth,
+    domain,
+    FCM_KEY,
+    jwtSecret,
+    logLevel,
+    fileSettings
 };

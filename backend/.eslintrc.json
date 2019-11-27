@@ -29,12 +29,24 @@
         "semi": [
             "error",
             "always"
+        ],
+        "curly": [
+            "error",
+            "all"
+        ],
+        "max-len": [
+            "error", {
+                "code": 100
+            }
+        ],
+        "camelcase": "error",
+        "complexity": [
+            "error", 20
         ]
     },
     "overrides": [
         {
-            "files": ["**/*.js", "bin/*"],
-            "excludedFiles": "*.test.js"
+            "files": ["**/*.js", "bin/*"]
         }
     ]
 }

@@ -23,16 +23,20 @@ describe("User creation test", () => {
 
     afterAll(async () => {
         const collection = await fastify.mongo.db.collection("users");
-        await collection.deleteOne({userId: tu});
+        await collection.deleteMany({});
     });
 
     test("Checks user is created", async (done) => {
         const user = um.User.newUser(tu);
 
         /* Make sure removed in last run */
-        expect(await um.User.exists(tu)).toBeFalsy();
+
+        /* eslint-disable-next-line */
+        const userExists = await um.User.exists(tu);
+        expect(userExists).toBeFalsy();
 
         user.create()
+            /* eslint-disable-next-line */
             .then(() => um.User.exists(tu))
             .then((result) => expect(result).toBeTruthy())
             .then(() => done());
@@ -50,7 +54,7 @@ describe("User update test", () => {
 
     afterAll(async () => {
         const collection = await fastify.mongo.db.collection("users");
-        await collection.deleteOne({userId: tu});
+        await collection.deleteMany({});
     });
 
     test("Checks user is updated", async (done) => {
@@ -59,7 +63,7 @@ describe("User update test", () => {
         /* Make sure created properly */
         expect(user.toJson().userId).toBe(tu);
 
-        user.update({ $set: { courses: courses } })
+        user.update({ $set: { courses } })
             .then(() => um.User.retrieve(tu))
             .then((result) => (
                 expect(result.courses).toStrictEqual(courses)

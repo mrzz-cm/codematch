@@ -1,50 +1,86 @@
-global:
-  env:
-    - MODE=test
+language: node_js
+node_js: "12"
+
+services: mongod
+addons:
+  apt:
+    sources:
+      - sourceline: 'deb http://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/4.2 multiverse'
+        key_url: 'https://www.mongodb.org/static/pgp/server-4.2.asc'
+    packages:
+      - mongodb-org
+      - mongodb-org-server
+      - mongodb-org-shell
+      - mongodb-org-mongos
+      - mongodb-org-tools
 
 matrix:
     include:
-        - language: node_js
-          services: mongodb
-          node_js: "12"
-          env: SUB_WORKING_DIRECTORY=backend
+        - env: 
+          - SUB_WORKING_DIRECTORY=backend
+          - MODE=test
           script:
             - npm test
             - npm run lint
-        - language: minimal
-          services: mongodb
-          sudo: required
+        - sudo: required
           env:
+            - secure: "VO+O8t4+OryHNLHEi5uyrWEK1ZkKzXjTCt3suUrFfg/Tx+4VWAdusIXzLm9q4U8c08HE0H0IL98LVzNdd/A6J3U+jeTCzdzLcrLj8ONC4vDUckdJf7zZclEYtrvq5+Y4KP+TIJxyV6qzOfUonJrGkPADZ+rmWyIhQSgLrtexYPMcHWV50GIacuHgj3IqgIg2WxL/PoN8yGGeHbqsH2DRZ32griZOc06LRp3DMfp8qCFraGEcfmARXIHxGkgz8ImkkociqntOMEyKl6Cvri4i5cneyv70Ksnukn1JIgW+EfqaPaQ2o0tiaG4JES2ME4LC57VSc9zgTQyUuAsv5qlOrUVS+Yzasv6MLv7At6g98yOo94OaQ0FtM6QhhlipoJ2Bn+UzWadBEtxF0QvrbAyzz7pnw+TyqTv8sLMyfE6wUz27yNYkKuT7FjdaWM3D/OE9Wpowrxd+MPQ6Sw6VRN/URr9U6PkWbpfx5BEOQKWzbeAK9YJ6UmSi6LDTvdT89vPTQAmBZgK9076YjUijY0dkjjxdvBLXYRA1FGdhRCsmY1k5OPvK7aYQ0kX+b8nA1wOfVYo5CxBCl0EoWdRDUikmD8ojbegG/1hwUQGesH/S3GMveLSOGnnyjKOWJhLdoytHZfbw2L9NcB6br7umnq0eSRuE9RCQdbg+XUWVXrLw+jA="
             - SUB_WORKING_DIRECTORY=frontend
+            - MODE=test
             - ANDROID_API_LEVEL=29
-            - ANDROID_BUILD_TOOLS_VERSION=29.0.4
+            - ANDROID_BUILD_TOOLS_VERSION=29.0.0
+            - ANDROID_HOME=$HOME/sdk
             - ANDROID_SDK_TOOLS=sdk-tools-linux-4333796.zip
-          dist: xenial
+            - PATH=$ANDROID_HOME:$ANDROID_HOME/emulator:$ANDROID_HOME/platform-tools:$ANDROID_HOME/bin:$PATH
+          components:
+            - tools
+            - platform-tools
+            - android-tools-adb
+            - build-tools-29.0.0
+            - android-29
+            - doc-29
+          install:
+            - cd $TRAVIS_BUILD_DIR/backend && npm install
+            - echo "PATH=$PATH"
+            # list installed and available packages
+            - sdkmanager --list || true
+            # Accept android licenses
+            - yes | sdkmanager --licenses
+            # latest SDK Platform-Tools
+            - yes | sdkmanager "platform-tools" >/dev/null
+            # defined SDK Platform
+            - yes | sdkmanager "platforms;android-$ANDROID_API_LEVEL" >/dev/null
+            # defined SDK Build-Tools
+            - yes | sdkmanager "build-tools;$ANDROID_BUILD_TOOLS_VERSION" >/dev/null
+            - echo yes | sdkmanager "tools"
+            - echo yes | sdkmanager "emulator"
+            # Install the system image.
+            - sdkmanager "system-images;android-24;default;armeabi-v7a"
+            # Create and start emulator for the script. Meant to race the install task.
+            - echo no | avdmanager create avd --force -n emulatorApi24 -k "system-images;android-24;default;armeabi-v7a"
+            - $ANDROID_HOME/emulator/emulator -avd emulatorApi24 -no-audio -no-window &
+#             - android-wait-for-emulator
+            - adb wait-for-device
+            - adb remount
           script:
             - |
               node "$TRAVIS_BUILD_DIR/backend/bin/www" &
               SERVER_PID=$!
               export SERVER_PID=$SERVER_PID
-            - ./gradlew connectedAndroidTest
+            - chmod +x $TRAVIS_BUILD_DIR/frontend/gradlew
+            - cd $TRAVIS_BUILD_DIR/frontend && ./gradlew connectedAndroidTest
             - kill $SERVER_PID
-           
-android:
-    components:
-        - platform-tools
-        - tools
-        - build-tools-27.0.3
-        - android-27
-        - extra-google-google_play_services
-        - extra-google-m2repository
-        - extra-android-m2repository
-        - addon-google_apis-google-19
 
 before_install:
-  - if [ "$SUB_WORKING_DIRECTORY" = "backend" ]; then
-        ./scripts/mongosetup.sh;
-    else
+  - ./scripts/mongosetup.sh;
+  - if [ "$SUB_WORKING_DIRECTORY" = "frontend" ]; then
+        mongorestore --db=codematch --username=codematch --password=password "$TRAVIS_BUILD_DIR/backend/data/tests/dump/codematch";
+        echo "baseUrl=http://localhost:3000/api" > $TRAVIS_BUILD_DIR/frontend/app/src/main/res/raw/config.properties;
+        echo "oauthClientSecret=$OAUTH_CLIENT_SECRET" >> $TRAVIS_BUILD_DIR/frontend/app/src/main/res/raw/config.properties;
         ./scripts/android_before_install.sh;
+        export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64;
+        export PATH="${PATH}:${HOME}/sdk/tools/bin";
+        export ANDROID_HOME="${HOME}/sdk";
     fi
   - cp "$TRAVIS_BUILD_DIR/backend/config.js.example" "$TRAVIS_BUILD_DIR/backend/config.js"
   - cd "$TRAVIS_BUILD_DIR/$SUB_WORKING_DIRECTORY"
-  - yes | sdkmanager "platforms;android-27"

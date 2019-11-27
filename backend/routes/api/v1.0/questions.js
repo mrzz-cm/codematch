@@ -1,11 +1,178 @@
 const questionsModule = require("../../../questions");
+const auth = require("../../../authentication");
 const matchingModule = require("../../../matching");
+const multerModule = require("../../../multer");
 const userModule = require("../../../user");
 const ru = require("../../../utils/router");
+const config = require("../../../config");
 
 const rc = ru.responseCodes;
 
+const upload = multerModule.multer({
+    limits: { fileSize:  config.fileSettings.maxFileSize },
+    storage: multerModule.storageHandler
+});
+
+const qUploadHandler = upload.fields([
+    {
+        name: "questionImage",
+        maxCount: 2
+    }
+]);
+
+async function matchQuestion(request, reply, fastify, question, seeker) {
+    const um = userModule({ mongo: fastify.mongo });
+    const mm = matchingModule({ mongo: fastify.mongo });
+
+    let match;
+    try {
+        match = await new mm.Match(question).optimalHelper();
+    } catch (e) {
+        reply.status(rc.INTERNAL_SERVER_ERROR);
+        reply.send(e);
+
+        // notify that there was no match
+        await um.User.sendNotification(
+            seeker.userId,
+            "No match was found for your problem.",
+            "basic",
+            {
+                notificationType: "basic"
+            });
+        
+        return false;
+    }
+
+    request.log.info(`match: ${match.userId}`);
+
+    request.log.info("Sending the notification to ", seeker.userId);
+
+    // send notification to seeker
+    try {
+        await um.User.sendNotification(
+            seeker.userId,
+            `You were matched with '${match.userId}`,
+            "basic",
+            {
+                notificationType: "basic"
+            });
+
+    } catch (e) {
+        request.log.info(e);
+        if (ru.errCheck(reply, rc.INTERNAL_SERVER_ERROR, e)) {return false;}
+    }
+
+    request.log.info("Sending the notification to ", match.userId);
+
+    // send notification to helper
+    try {
+        await um.User.sendNotification(
+            match.userId,
+            `You have a new question from ${seeker.userId}`,
+            `helperMatch ${question.uuid}`,
+            {
+                notificationType: "helperMatch",
+                questionId: question.uuid
+            });
+
+    } catch (e) {
+        request.log.info("Warning: notifying helper " +
+            "about a new question failed!");
+    }
+
+    // update question fields
+    /* eslint-disable require-atomic-updates */
+    question.helperNotifiedTimestamp = Date.now();
+    question.optimalHelper = match.userId;
+    question.prevCheckedHelpers.push(match.userId);
+    question.questionState = "Waiting";
+    /* eslint-enable require-atomic-updates */
+
+    request.log.info("Updating question");
+
+    try {
+        await question.update(
+            {
+                $set: {
+                    helperNotifiedTimestamp: question.helperNotifiedTimestamp,
+                    optimalHelper: question.optimalHelper,
+                    prevCheckedHelpers: question.prevCheckedHelpers,
+                    questionState: question.questionState
+                }
+            });
+    } catch (e) {
+        request.log.info(e);
+        request.log.info("Warning: Failed to update question " +
+            "state in database after match was found!");
+    }
+
+    // update matched helper fields
+    request.log.info("Fetching matched helper ", match.userId);
+
+    let helper;
+    try {
+        helper = await um.User.retrieve(match.userId);
+    } catch (e) {
+        request.log.info(e);
+        request.log.info("Couldn't find the helper!");
+
+        reply.status(rc.INTERNAL_SERVER_ERROR);
+        reply.send();
+
+        return false;
+    }
+
+    if (!helper) {
+        reply.status(rc.INTERNAL_SERVER_ERROR);
+        reply.send();
+
+        return false;
+    }
+
+    const helperUser = um.User.fromJson(helper);
+
+    request.log.info("Updating matched helper data");
+
+    try {
+        await helperUser.update({
+            $set:
+                {
+                    currentMatchedQuestion: question.uuid
+                }
+        });
+    } catch (e) {
+        if (ru.errCheck(reply, rc.INTERNAL_SERVER_ERROR, e)) {return false;}
+    }
+
+    return true;
+}
+
 function routes (fastify, opts, done) {
+
+    async function validateUser(fastify, userModule, request, userId, reply) {
+        let userExists;
+        try {
+            /* eslint-disable-next-line */
+            userExists = await userModule.User.exists(userId);
+        } catch (e) {
+            if (ru.errCheck(reply, rc.BAD_REQUEST, e)) {
+                return false;
+            }
+        }
+
+        if (!userExists) {
+            reply.status(rc.BAD_REQUEST);
+            reply.send({ msg: `Provided user ${userId} doesn't exist.` });
+            return false;
+        }
+
+        if (!auth.verifyUserToken(fastify, request, userId)) {
+            ru.errCheck(reply, rc.UNAUTHORIZED, "Invalid credentials.");
+            return false;
+        }
+
+        return true;
+    }
 
     /* POST Requests */
 
@@ -17,55 +184,52 @@ function routes (fastify, opts, done) {
         url: "/create",
         schema: {
             body: {
-                type: "object",
                 required: ["userId", "title", "courseCode", "questionText"],
                 properties: {
                     userId: { type: "string" },
                     title: { type: "string" },
                     courseCode: { type: "string" },
-                    questionText:  { type: "string" }
+                    questionText:  { type: "string" },
                 }
             }
         },
+        preHandler: qUploadHandler,
         preValidation: [ fastify.authenticate ],
-        handler: async (request, reply) => {
+        async handler(request, reply) {
             const qm = questionsModule({ mongo: fastify.mongo });
             const um = userModule({ mongo: fastify.mongo });
-            const mm = matchingModule({ mongo: fastify.mongo });
 
             const body = request.body;
 
-            let userExists;
-            try {
-                userExists = await um.User.exists(request.body.userId);
-            } catch (e) {
-                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
+            let images = [];
+            if (!(typeof request.files === "undefined" || (request.files === null))) {
+                images = request.files.questionImage || [];
             }
 
-            if (!userExists) {
-                reply.status(rc.BAD_REQUEST);
-                reply.send("Provided user doesn't exist.");
+            const imagePaths = images.map((i) => i.path);
+
+            if (!await validateUser(fastify, um, request, body.userId, reply)) {
                 return;
             }
 
             let uJson;
             try {
-                uJson = await um.User.retrieve(request.body.userId);
+                uJson = await um.User.retrieve(body.userId);
             } catch (e) {
-                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) {return;}
             }
 
             if (!uJson) {
                 reply.status(rc.INTERNAL_SERVER_ERROR);
-                reply.send(`No user ${request.body.userId} found`);
+                reply.send(`No user ${body.userId} found`);
                 return;
             }
 
             // check that the user can post the question
             const user = um.User.fromJson(uJson);
 
-            if (user.currentQuestion) {
-                reply.status(401);
+            if (user.currentQuestion != null || user.currentMatchedQuestion !== null) {
+                reply.status(rc.UNAUTHORIZED);
                 reply.send(
                     "Cannot post a question when you are already " +
                     "registered to another question!");
@@ -79,14 +243,15 @@ function routes (fastify, opts, done) {
                     body.userId,
                     body.title,
                     body.courseCode,
-                    body.questionText
+                    body.questionText,
+                    imagePaths
                 );
             } catch (e) {
-                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) {return;}
             }
 
             if (!q) {
-                reply.status(rc.INTERNAL_SERVER_ERROR);
+                reply.status(rc.BAD_REQUEST);
                 reply.send(`No question found in user ${body.userId}`);
                 return;
             }
@@ -95,7 +260,7 @@ function routes (fastify, opts, done) {
             try {
                 await q.create();
             } catch (e) {
-                if (ru.errCheck(reply, rc.INTERNAL_SERVER_ERROR, e)) return;
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) {return;}
             }
 
             // set the user's current question
@@ -104,123 +269,166 @@ function routes (fastify, opts, done) {
 
             // update the user
             try {
-                await user.update({$set:
+                await user.update({
+                    $set:
                         {
                             currentQuestion: q.uuid,
                             questionsPosted: user.questionsPosted
                         }
                 });
             } catch (e) {
-                if (ru.errCheck(reply, rc.INTERNAL_SERVER_ERROR, e)) return;
+                if (ru.errCheck(reply, rc.INTERNAL_SERVER_ERROR, e)) {return;}
             }
 
             let uQuestion;
             try {
                 uQuestion = await qm.Question.retrieve(user.currentQuestion);
             } catch (e) {
-                if (ru.errCheck(reply, rc.INTERNAL_SERVER_ERROR, e)) return;
+                if (ru.errCheck(reply, rc.INTERNAL_SERVER_ERROR, e)) {return;}
             }
 
             const question = qm.Question.fromJson(uQuestion);
 
-            let match;
-            try {
-                match = await new mm.Match(question).optimalHelper();
-            } catch (e) {
-                reply.status(rc.INTERNAL_SERVER_ERROR);
-                reply.send(e);
+            request.log.info(question);
 
-                // notify that there was no match
-                await um.User.sendNotification(
-                    user.userId,
-                    "No match was found for your problem.",
-                    "basic",
-                    {
-                        notificationType: "basic"
-                    });
-            }
+            // run matching algorithm
+            const matchSuccess = await matchQuestion(
+                request, reply, fastify, question, user);
+            if (!matchSuccess) { return; }
 
-            // send notification to seeker
-            try {
-                await um.User.sendNotification(
-                    user.userId,
-                    `You were matched with '${match.userId}`,
-                    "basic",
-                    {
-                        notificationType: "basic"
-                    });
+            request.log.info("New question matched: ", question);
 
-            } catch (e) {
-                request.log.info(e);
-                if (ru.errCheck(reply, rc.INTERNAL_SERVER_ERROR, e)) return;
-            }
+            reply.status(rc.OK);
+            reply.send({
+                msg: `Created question ${q.uuid}`,
+                uuid: q.uuid
+            });
+        }
+    });
 
-            // send notification to helper
-            try {
-                await um.User.sendNotification(
-                    match.userId,
-                    `You have a new question from ${user.userId}`,
-                    `helperMatch ${question.uuid}`,
-                    {
-                        notificationType: "helperMatch",
-                        questionId: question.uuid
-                    });
+    /**
+     * POST - delete a pending question as a seeker
+     */
+    fastify.route({
+        method: "POST",
+        url: "/delete/:seekerId",
+        preValidation: [ fastify.authenticate ],
+        async handler (request, reply) {
+            const um = userModule({ mongo: fastify.mongo });
+            const qm = questionsModule({ mongo: fastify.mongo });
+            const seekerId = request.params.seekerId;
 
-            } catch (e) {
-                request.log.info("Warning: notifying helper " +
-                    "about a new question failed!");
-            }
-
-            // update question fields
-            question.helperNotifiedTimestamp = Date.now();
-            question.optimalHelper = match.userId;
-            question.prevCheckedHelpers.push(match.userId);
-            question.questionState = "Waiting";
-
-            try {
-                await question.update(
-                    {$set: {
-                        helperNotifiedTimestamp: question.helperNotifiedTimestamp,
-                        optimalHelper: question.optimalHelper,
-                        prevCheckedHelpers: question.prevCheckedHelpers,
-                        questionState: question.questionState
-                    }});
-            } catch(e) {
-                request.log.info(e);
-                request.log.info("Warning: Failed to update question " +
-                    "state in database after match was found!");
-            }
-
-
-            // update helper fields
-            let hJson;
-            try {
-                hJson = await um.User.retrieve(match.userId);
-            } catch (e) {
-                request.log.info(e);
-                request.log.info("Warning: Failed to retrieve helper " +
-                    "for question!");
+            if (!await validateUser(fastify, um, request, seekerId, reply)) {
                 return;
             }
 
-            const optimalHelper = um.User.fromJson(hJson);
-            optimalHelper.currentQuestion = question.uuid;
-
-            // update database
-            optimalHelper.update({$set:
-                    {
-                        currentQuestion: optimalHelper.currentQuestion
-                    }
-            }).catch((err) => {
-                request.log.info(err);
-                request.log.info(
-                    "Warning: Failed to set helper's fields " +
-                        "when they were selected for a question");
+            let uJson;
+            try {
+                uJson = await um.User.retrieve(seekerId);
+            } catch (e) {
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) {return;}
             }
-            );
+
+            const seeker = um.User.fromJson(uJson);
+
+            if (seeker.currentQuestion == null) {
+                reply.status(rc.BAD_REQUEST);
+                reply.send(
+                    `Seeker '${seeker.userId} doesn't` +
+                    " have an open question.");
+                return;
+            }
+
+            let qJson;
+            try {
+                qJson = await qm.Question.retrieve(seeker.currentQuestion);
+            } catch (e) {
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) {return;}
+            }
+            const question = qm.Question.fromJson(qJson);
+
+            if (question.seeker !== seekerId) {
+                reply.status(rc.UNAUTHORIZED);
+                reply.send("Unauthorized to delete this question.");
+                return;
+            }
+
+            const qState = question.questionState;
+
+            if ((qState !== "Waiting") && (qState !== "Unmatched")) {
+                reply.status(rc.BAD_REQUEST);
+                reply.send("Cannot close this question.");
+            }
+
+            const helperWaiting = (question.questionState === "Waiting");
+
+            // close the question
+            question.questionState = "Resolved";
+            try {
+                await question.update(
+                    {
+                        $set: {
+                            questionState: "Resolved",
+                        }
+                    });
+            } catch (e) {
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) {return;}
+            }
+
+            // free up seeker's currentQuestion
+            seeker.currentQuestion = null;
+            try {
+                await seeker.update(
+                    {
+                        $set: {
+                            currentQuestion: null,
+                        }
+                    }
+                );
+            } catch (e) {
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) {return;}
+            }
 
             reply.status(rc.OK);
-            reply.send({ msg: `Created question ${q.uuid}`});
+            reply.send("Closed question.");
+
+            if (helperWaiting) {
+                // update the helper we are waiting for a response from
+                let hJson;
+                try {
+                    hJson = await um.User.retrieve(qJson.optimalHelper);
+                } catch (e) {
+                    if (ru.errCheck(reply, rc.BAD_REQUEST, e)) {return;}
+                }
+
+                const helper = um.User.fromJson(hJson);
+
+                // free up the helper's matched question
+                try {
+                    await helper.update({
+                        $set:
+                            {
+                                currentMatchedQuestion: null
+                            }
+                    });
+                } catch (e) {
+                    request.log.info("Warning: unable to clear helper's " + 
+                        "current matched question!");
+                }
+
+                try {
+                    await um.User.sendNotification(
+                        helper.userId,
+                        `${seeker.userId} closed their question.`,
+                        "basic",
+                        {
+                            notificationType: "basic"
+                        });
+                } catch (e) {
+                    request.log.info("Warning: notifying helper " +
+                        "about a deleted question failed!");
+                }
+            }
         }
     });
 
@@ -241,27 +449,65 @@ function routes (fastify, opts, done) {
             }
         },
         preValidation: [ fastify.authenticate ],
-        handler: async (request, reply) => {
+        async handler(request, reply) {
             const qm = questionsModule({ mongo: fastify.mongo });
             const um = userModule({ mongo: fastify.mongo });
 
             const userId = request.body.userId;
             const questionId = request.body.questionId;
 
-            // TODO: add more security checks
+            // check user exists and provided valid credentials
+            if (!await validateUser(fastify, um, request, userId, reply)) {
+                return;
+            }
 
+            // retrieve question information
             let qJson;
             try {
                 qJson = await qm.Question.retrieve(questionId);
             } catch (e) {
-                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) {return;}
             }
 
-            if (qJson.seeker === userId) {
-                reply.status(rc.BAD_REQUEST);
-                reply.send("Cannot accept your own question.");
+            if (qJson.optimalHelper !== userId) {
+                reply.status(rc.UNAUTHORIZED);
+                reply.send("Not authorized to accept this question.");
+                return;
             }
 
+            if (qJson.questionState !== "Waiting") {
+                reply.status(rc.UNAUTHORIZED);
+                reply.send("Not authorized to accept this question.");
+                return;
+            }
+
+            let helperJson;
+            try {
+                helperJson = await um.User.retrieve(userId);
+            } catch (e) {
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) {return;}
+            }
+
+            if (!helperJson) {
+                request.log.info("No helper found");
+                return;
+            }
+
+            if (helperJson.currentQuestion !== null) {
+                reply.status(rc.UNAUTHORIZED);
+                reply.send("Cannot accept a question when you already have an active one.");
+                return;
+            }
+
+            if (helperJson.currentMatchedQuestion !== qJson.uuid ) {
+                reply.status(rc.UNAUTHORIZED);
+                reply.send("Not authorized to accept this question.");
+                return;
+            }
+
+            const helper = um.User.fromJson(helperJson);
+
+            // now we can actually update the database
             try {
                 await qm.Question.fromJson(qJson).update({
                     $set:
@@ -272,7 +518,7 @@ function routes (fastify, opts, done) {
                         }
                 });
             } catch (e) {
-                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) {return;}
             }
 
             try {
@@ -283,36 +529,158 @@ function routes (fastify, opts, done) {
                     "basic", {}
                 );
             } catch (e) {
-                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) {return;}
             }
 
             reply.status(rc.OK);
             reply.send({ msg: `${userId} accepted ${questionId}` });
 
             // update the helper
-            let helper;
-            try {
-                helper = await um.User.retrieve(qJson.optimalHelper);
-            } catch (e) {
-                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
-            }
+            helper.currentMatchedQuestion = questionId;
+            helper.questionsHelped.push(questionId);
 
-            if (!helper) {
-                request.log.info("No helper found");
-                return;
-            }
-
-            // update helper
-            const user = um.User.fromJson(helper);
-            user.questionsHelped.push(questionId);
-
-            user.update( {
+            helper.update( {
                 $set: {
-                    currentQuestion: questionId,
-                    questionsHelped: user.questionsHelped
+                    currentMatchedQuestion: questionId,
+                    questionsHelped: helper.questionsHelped
                 }
             })
                 .catch(request.log.info);
+        }
+    });
+
+    /**
+     * POST - decline a question as a helper
+     */
+    fastify.route({
+        method: "POST",
+        url: "/decline",
+        schema: {
+            body: {
+                type: "object",
+                required: ["userId", "questionId"],
+                properties: {
+                    userId: { type: "string" },
+                    questionId: { type: "string" }
+                }
+            }
+        },
+        preValidation: [ fastify.authenticate ],
+        async handler(request, reply) {
+            const qm = questionsModule({ mongo: fastify.mongo });
+            const um = userModule({ mongo: fastify.mongo });
+
+            const userId = request.body.userId;
+            const questionId = request.body.questionId;
+
+            if (!await validateUser(fastify, um, request, userId, reply)) {
+                return;
+            }
+
+            // retrieve question information
+            let qJson;
+            try {
+                qJson = await qm.Question.retrieve(questionId);
+            } catch (e) {
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) {return;}
+            }
+
+            if ((qJson.optimalHelper !== userId) ||
+                (qJson.questionState !== "Waiting")) {
+                reply.status(rc.UNAUTHORIZED);
+                reply.send({
+                    msg: "Not authorized to decline this question.",
+                    userId,
+                    optimalHelper: qJson.optimalHelper,
+                    questionState: qJson.questionState,
+                });
+                return;
+            }
+
+            // update question fields
+            const question = qm.Question.fromJson(qJson);
+            question.helperAccepted = false;
+            question.optimalHelper = null;
+            question.questionState = "Unmatched";
+
+            try {
+                await question.update({
+                    $set:
+                        {
+                            helperAccepted: false,
+                            optimalHelper: null,
+                            questionState: "Unmatched"
+                        }
+                });
+            } catch (e) {
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) {return;}
+            }
+
+            // retrieve helper (sender of this request) user
+            let helperJson;
+            try {
+                helperJson = await um.User.retrieve(userId);
+            } catch (e) {
+                if (ru.errCheck(reply, rc.INTERNAL_SERVER_ERROR, e)) { return; }
+            }
+
+            if (!helperJson) {
+                reply.status(rc.INTERNAL_SERVER_ERROR);
+                reply.send(`No user ${userId} found`);
+                return;
+            }
+
+            const helperUser = um.User.fromJson(helperJson);
+
+            // free up the helper's matched question
+            try {
+                await helperUser.update({
+                    $set:
+                        {
+                            currentMatchedQuestion: null
+                        }
+                });
+            } catch (e) {
+                request.log.info("Warning: unable to clear helper's " + 
+                    "current matched question!");
+                reply.status(rc.INTERNAL_SERVER_ERROR);
+                reply.send();
+                return;
+            }
+
+            // retrieve seeker (poster of question) information
+            let uJson;
+            try {
+                uJson = await um.User.retrieve(question.seeker);
+            } catch (e) {
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) { return; }
+            }
+
+            if (!uJson) {
+                reply.status(rc.INTERNAL_SERVER_ERROR);
+                reply.send(`No user ${question.seeker} found`);
+                return;
+            }
+            const seeker = um.User.fromJson(uJson);
+
+            // notify the seeker helper declined
+            try {
+                await um.User.sendNotification(
+                    qJson.seeker,
+                    `Helper for ${qJson.title} (${qJson.optimalHelper}) declined.
+                    Rematching...`,
+                    "basic", {}
+                );
+            } catch (e) {
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) {return;}
+            }
+
+            // run matching algorithm again
+            const matchSuccess = await matchQuestion(request, reply, fastify, question, seeker);
+            if (!matchSuccess) { return; }
+
+            reply.status(rc.OK);
+            reply.send({ msg: `${userId} declined ${questionId}` });
         }
     });
 
@@ -332,7 +700,7 @@ function routes (fastify, opts, done) {
             }
         },
         preValidation: [ fastify.authenticate ],
-        handler: async (request, reply) => {
+        async handler(request, reply) {
             const um = userModule({ mongo: fastify.mongo });
             const qm = questionsModule({ mongo: fastify.mongo });
             const rating = request.body.rating;
@@ -346,22 +714,25 @@ function routes (fastify, opts, done) {
                 return;
             }
 
-            // TODO: If seeker matches
+            if (!await validateUser(fastify, um, request, seekerId, reply)) {
+                return;
+            }
 
             let uJson;
             try {
                 uJson = await um.User.retrieve(seekerId);
             } catch (e) {
-                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) {return;}
             }
 
             const seeker = um.User.fromJson(uJson);
 
             if (seeker.currentQuestion == null) {
                 reply.status(rc.BAD_REQUEST);
-                reply.send(
-                    `Seeker '${seeker.userId} doesn't` +
-                    " have an open question.");
+                reply.send({
+                    msg: `Seeker '${seeker.userId} doesn't` +
+                        " have an open question."
+                });
                 return;
             }
 
@@ -369,37 +740,37 @@ function routes (fastify, opts, done) {
             try {
                 qJson = await qm.Question.retrieve(seeker.currentQuestion);
             } catch (e) {
-                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) {return;}
             }
 
             let hJson;
             try {
                 hJson = await um.User.retrieve(qJson.finalHelper);
             } catch (e) {
-                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) {return;}
             }
 
             const helper = um.User.fromJson(hJson);
             fastify.log.info(uJson);
 
-            // update helper's points
+            // update helper's points and clear their question
             try {
                 await helper.update(
                     {
                         $set: {
                             points: (helper.points + rating),
-                            currentQuestion: null
+                            currentMatchedQuestion: null
                         }
                     });
             } catch (e) {
-                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) {return;}
             }
 
             // clear the seeker's question
             try {
                 await seeker.update({ $set: { currentQuestion: null }});
             } catch (e) {
-                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) {return;}
             }
 
             // set the status of the question to "Resolved"
@@ -414,12 +785,11 @@ function routes (fastify, opts, done) {
                     }
                 );
             } catch (e) {
-                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) {return;}
             }
 
             reply.status(rc.OK);
-            reply.send(`Rated user ${helper.userId}`);
-
+            reply.send({ msg: `Rated user ${helper.userId}` });
         }
     });
 
@@ -432,14 +802,14 @@ function routes (fastify, opts, done) {
         method: "GET",
         url: "/:questionId",
         preValidation: [ fastify.authenticate ],
-        handler: async (request, reply) => {
+        async handler(request, reply) {
             const qm = questionsModule({ mongo: fastify.mongo });
 
             let q;
             try {
                 q = await qm.Question.retrieve(request.params.questionId);
             } catch (e) {
-                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) return;
+                if (ru.errCheck(reply, rc.BAD_REQUEST, e)) {return;}
             }
 
             fastify.log.info(q);

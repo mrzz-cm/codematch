@@ -22,7 +22,7 @@ describe("Question creation test", () => {
 
     afterAll(async () => {
         const collection = await fastify.mongo.db.collection("questions");
-        await collection.deleteOne({uuid: question.uuid});
+        await collection.deleteMany({});
     });
 
     test("Checks question is created", async (done) => {
