@@ -62,18 +62,16 @@ public class LoginViewTest {
             loginAccount.click();
         }
 
-        try{
+        try {
             Thread.sleep(10000);
-
         } catch (InterruptedException e) {
-
         }
 
         ViewInteraction linearLayout = onView(
                 allOf(childAtPosition(
                         allOf(withId(R.id.notifications_list),
                                 childAtPosition(
-                                        IsInstanceOf.<View>instanceOf(android.view.ViewGroup.class),
+                                        IsInstanceOf.<View>instanceOf(ViewGroup.class),
                                         1)),
                         0),
                         isDisplayed()));

@@ -5,7 +5,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
-//import android.widget.EditText;
 import android.widget.Toast;
 
 import com.google.android.material.textfield.TextInputLayout;
@@ -26,6 +25,10 @@ import okhttp3.Response;
 public class RatingView extends AppCompatActivity {
     private TextInputLayout textInputRating;
 
+    /**
+     * Trigger creation of view
+     * @param savedInstanceState State to restore
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -42,6 +45,17 @@ public class RatingView extends AppCompatActivity {
         });
     }
 
+    /**
+     * Validate user input
+     * @param view
+     */
+    public void confirmInput(View view) {
+        if (!validateRating()) {
+            return;
+        }
+        String input = "Thank you for rating : " + textInputRating.getEditText().getText().toString();
+        Toast.makeText(this, input, Toast.LENGTH_SHORT).show();
+    }
 
     private boolean validateRating() {
         String ratingInput = textInputRating.getEditText().getText().toString().trim();
@@ -50,29 +64,16 @@ public class RatingView extends AppCompatActivity {
             return false;
 
 
-        } else if (ratingInput.length()>1) {
+        } else if (ratingInput.length() > 1) {
             textInputRating.setError("Too Many characters!");
             return false;
+        } else {
+            textInputRating.setError(null);
+            return true;
         }
-       /* else if (ratingInput.charAt(1) < 1 || ratingInput.charAt(1) > 5) {
-            textInputRating.setError("Rating outside specified range!");
-            return false;
-        }*/
-            else {
-                textInputRating.setError(null);
-                return true;
-            }
 
     }
 
-    public void confirmInput(View view) {
-        if(!validateRating()) {
-            return;
-        }
-        String input = "Thank you for rating : " +textInputRating.getEditText().getText().toString();
-        Toast.makeText(this,input,Toast.LENGTH_SHORT).show();
-
-    }
     private void submitRating() {
         // get the question data
         String ratingInput = textInputRating.getEditText().getText().toString().trim();
@@ -96,15 +97,14 @@ public class RatingView extends AppCompatActivity {
         GlobalUtils.HTTP_CLIENT.newCall(send_rating_request).enqueue(new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                System.out.println("Error: "+ e.toString());
+                System.out.println("Error: " + e.toString());
             }
 
             @Override
-            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+            public void onResponse(@NotNull Call call, @NotNull Response response) {
                 System.out.println("Question create request returned code " + response.code());
             }
         });
     }
-
 
 }

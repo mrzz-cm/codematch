@@ -1,31 +1,25 @@
 package com.example.codematchfrontend;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
+
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.FormBody;
 import okhttp3.MediaType;
-//import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
-//import android.accounts.AccountManager;
-import android.Manifest;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
-import android.content.res.Resources;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
-//import android.os.Handler;
-//import android.os.StrictMode;
 import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
@@ -58,9 +52,6 @@ public class LoginView extends AppCompatActivity implements LocationListener {
         try {
             GlobalUtils.initializeFromConfig(this);
         } catch (IOException e) {
-            /* TODO: Unable to find the config file or
-             *       Failed reading configuration file, exit in graceful manner
-             */
             System.exit(1);
         }
 
@@ -119,7 +110,7 @@ public class LoginView extends AppCompatActivity implements LocationListener {
 //        updateUI(account);
     }
 
-    private void signIn(){
+    private void signIn() {
         Intent signInIntent = mGoogleSignInClient.getSignInIntent();
         startActivityForResult(signInIntent, 3);
     }
@@ -139,7 +130,7 @@ public class LoginView extends AppCompatActivity implements LocationListener {
         }
     }
 
-    private void handleSignInResult (Task<GoogleSignInAccount> task) {
+    private void handleSignInResult(Task<GoogleSignInAccount> task) {
         System.out.println("called sign in button");
         try {
             GoogleSignInAccount account = task.getResult(ApiException.class);
@@ -178,7 +169,7 @@ public class LoginView extends AppCompatActivity implements LocationListener {
                 .add("grant_type", "authorization_code")
                 .add("client_id", getString(R.string.default_web_client_id))
                 .add("client_secret", GlobalUtils.OAUTH_CLIENT_SECRET)
-                .add("redirect_uri","")
+                .add("redirect_uri", "")
                 .add("code", authcode)
                 .build();
 
@@ -206,7 +197,7 @@ public class LoginView extends AppCompatActivity implements LocationListener {
                     GlobalUtils.API_KEY = newResponse.body().string();
 
                     System.out.println("Api key updated to " + GlobalUtils.API_KEY + "\n");
-                    notifyCreateAccount( jsonObject.get("access_token").toString());
+                    notifyCreateAccount(jsonObject.get("access_token").toString());
                     notifyFirebaseToken();
 
                     updateUI(faccount);
@@ -298,26 +289,21 @@ public class LoginView extends AppCompatActivity implements LocationListener {
 
     @Override
     public void onPointerCaptureChanged(boolean hasCapture) {
-
     }
 
     @Override
     public void onLocationChanged(Location location) {
-
     }
 
     @Override
     public void onStatusChanged(String s, int i, Bundle bundle) {
-
     }
 
     @Override
     public void onProviderEnabled(String s) {
-
     }
 
     @Override
     public void onProviderDisabled(String s) {
-
     }
 }

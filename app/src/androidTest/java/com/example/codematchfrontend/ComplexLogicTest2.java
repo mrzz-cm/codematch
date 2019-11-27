@@ -18,13 +18,11 @@ import org.hamcrest.TypeSafeMatcher;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.IOException;
-import java.util.LinkedList;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -42,7 +40,7 @@ import static androidx.test.espresso.matcher.ViewMatchers.withId;
 import static androidx.test.espresso.matcher.ViewMatchers.withText;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
 
 @LargeTest
 @RunWith(AndroidJUnit4.class)
@@ -126,23 +124,28 @@ public class ComplexLogicTest2 {
                         isDisplayed()));
         appCompatImageButton.perform(click());
     }
-    String QuestionID;
+
+    private String QuestionID;
+
     private void getQuestionIDFromSeeker() {
 
         Request get_all_questions_request = new Request.Builder()
                 .url(GlobalUtils.BASE_URL + "/user/" + GlobalUtils.EMAIL)
                 .addHeader("Authorization", "Bearer " + GlobalUtils.API_KEY)
-                .build();        GlobalUtils.HTTP_CLIENT.newCall(get_all_questions_request).enqueue(new Callback() {
+                .build();
+        GlobalUtils.HTTP_CLIENT.newCall(get_all_questions_request).enqueue(new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                System.out.println("Error: "+ e.toString());
-            }            @Override
+                System.out.println("Error: " + e.toString());
+            }
+
+            @Override
             public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
                 System.out.println("Get all questions returned code " + response.code());
                 try {
                     JSONObject jsonObject = new JSONObject(response.body().string());
-                    if (jsonObject.has("currentQuestion") && !jsonObject.isNull("currentQuestion")){
-                         String question_id = jsonObject.get("currentQuestion").toString();
+                    if (jsonObject.has("currentQuestion") && !jsonObject.isNull("currentQuestion")) {
+                        String question_id = jsonObject.get("currentQuestion").toString();
                         QuestionID = question_id;
                     }
 
@@ -153,24 +156,28 @@ public class ComplexLogicTest2 {
         });
 
     }
-    String Seeker;
-    String Helper;
+
+    private String Helper;
+
     private void getJSONFromQuestion() {
 
         Request get_question_title_request = new Request.Builder()
                 .url(GlobalUtils.BASE_URL + "/questions/" + QuestionID)
                 .addHeader("Authorization", "Bearer " + GlobalUtils.API_KEY)
-                .build();        GlobalUtils.HTTP_CLIENT.newCall(get_question_title_request).enqueue(new Callback() {
+                .build();
+        GlobalUtils.HTTP_CLIENT.newCall(get_question_title_request).enqueue(new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                System.out.println("Error: "+ e.toString());
-            }            @Override
+                System.out.println("Error: " + e.toString());
+            }
+
+            @Override
             public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
                 System.out.println("Get question (title) returned code " + response.code());
                 try {
                     final JSONObject jsonObject = new JSONObject(response.body().string());
-                    if (jsonObject.has("title")){
-                        new Handler(Looper.getMainLooper()).post(new Runnable(){
+                    if (jsonObject.has("title")) {
+                        new Handler(Looper.getMainLooper()).post(new Runnable() {
                             @Override
                             public void run() {
                                 try {
@@ -186,13 +193,11 @@ public class ComplexLogicTest2 {
                 }
             }
         });
-            getQuestionIDFromSeeker();
-            getJSONFromQuestion();
-            assertTrue (Helper.equals("testuser1@example.com"));
+        getQuestionIDFromSeeker();
+        getJSONFromQuestion();
+        assertEquals(Helper, "testuser1@example.com");
 
     }
-
-
 
     private static Matcher<View> childAtPosition(
             final Matcher<View> parentMatcher, final int position) {
