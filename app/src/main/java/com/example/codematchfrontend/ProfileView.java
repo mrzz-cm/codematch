@@ -41,28 +41,36 @@ public class ProfileView extends AppCompatActivity implements CoursesListAdapter
 
 
     /**
-     * Called when the user taps the notificationviewbutton button
+     * User taps notificationViewButton
      */
     public void switchTabToNotifyView() {
-        // Do something in response to button
         Intent intent = new Intent(this, NotifyView.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
         startActivity(intent);
     }
 
+    /**
+     * User taps postingViewButton
+     */
     public void switchTabToPostingView() {
-        // Do something in response to button
         Intent intent = new Intent(this, PostingView.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
         startActivity(intent);
     }
 
+    /**
+     * User taps profileViewButton
+     */
     public void switchTabToProfileView() {
         Intent intent = new Intent(this, ProfileView.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
         startActivity(intent);
     }
 
+    /**
+     * Create a ProfileView
+     * @param savedInstanceState State to restore
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         RecyclerView.LayoutManager layoutManager;
@@ -82,7 +90,7 @@ public class ProfileView extends AppCompatActivity implements CoursesListAdapter
                 DividerItemDecoration.VERTICAL);
         coursesView.addItemDecoration(dividerItemDecoration);
 
-        courses = new LinkedList<String>();
+        courses = new LinkedList<>();
         adapter = new CoursesListAdapter(this, this.courses);
         coursesView.setAdapter(adapter);
 
@@ -99,6 +107,9 @@ public class ProfileView extends AppCompatActivity implements CoursesListAdapter
         updateAllCourses();
     }
 
+    /**
+     * Update a users rating
+     */
     private void updateRating() {
         final TextView ratingView = findViewById(R.id.rating);
         Request get_rating_request = new Request.Builder()
@@ -138,12 +149,15 @@ public class ProfileView extends AppCompatActivity implements CoursesListAdapter
         });
     }
 
+    /**
+     * Update a user's courses
+     */
     private void updateAllCourses() {
         this.courses.clear();
         adapter.notifyDataSetChanged();
 
         System.out.println("updating all courses");
-        System.out.println("id passted to get courses: " + GlobalUtils.EMAIL);
+        System.out.println("id pasted to get courses: " + GlobalUtils.EMAIL);
         Request get_all_courses_request = new Request.Builder()
                 .url(GlobalUtils.BASE_URL + "/user/" + GlobalUtils.EMAIL)
                 .addHeader("Authorization", "Bearer " + GlobalUtils.API_KEY)
@@ -176,10 +190,12 @@ public class ProfileView extends AppCompatActivity implements CoursesListAdapter
     }
 
     @Override
-    public void onItemClick(View view, int position) {
-    }
+    public void onItemClick(View view, int position) {}
 
-
+    /**
+     * Add a course to a user
+     * @param course Course to add
+     */
     private void addcourse(String course) {
         if (!courses.contains(course)) {
             courses.add(course);
@@ -216,6 +232,10 @@ public class ProfileView extends AppCompatActivity implements CoursesListAdapter
         }
     }
 
+    /**
+     * Add cousre update to application
+     * @param course Course to add
+     */
     private void addCourseUpdate(final String course) {
         if (!courses.contains(course)) {
             new Handler(Looper.getMainLooper()).post(new Runnable() {
@@ -228,6 +248,11 @@ public class ProfileView extends AppCompatActivity implements CoursesListAdapter
         }
     }
 
+    /**
+     * Trigger upon creation of the options menu
+     * @param menu Menu to create
+     * @return true on success
+     */
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
@@ -235,6 +260,11 @@ public class ProfileView extends AppCompatActivity implements CoursesListAdapter
         return true;
     }
 
+    /**
+     * Trigger options based on an item selection
+     * @param item item selected
+     * @return
+     */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
