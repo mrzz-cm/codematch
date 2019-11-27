@@ -397,6 +397,8 @@ public class NotifyView extends AppCompatActivity implements NotifyViewAdapter.N
         final TextView titleText = (TextView) dialog.findViewById(R.id.question_title);
         final ImageView questionImage = (ImageView) dialog.findViewById(R.id.question_image);
         final TextView currentlyMatched = (TextView) dialog.findViewById(R.id.currentlyMatched2);
+        final Button closeQuestionButton = dialog.findViewById(R.id.close_dialog);
+        final Button deleteQuestionButton = dialog.findViewById(R.id.delete_question);
 
         // first get the question ID of the current user
         Request get_question_id_request = new Request.Builder()
@@ -452,6 +454,8 @@ public class NotifyView extends AppCompatActivity implements NotifyViewAdapter.N
                                             }
                                             if (jsonObject.has("finalHelper") && !jsonObject.isNull("finalHelper")) {
                                                 currentlyMatched.setText("Currently matched helper: " + jsonObject.getString("finalHelper"));
+                                                deleteQuestionButton.setAlpha(0);
+                                                deleteQuestionButton.setClickable(false);
                                             }
                                         } catch (JSONException e) {
                                             e.printStackTrace();
@@ -470,7 +474,6 @@ public class NotifyView extends AppCompatActivity implements NotifyViewAdapter.N
         questionText.setMovementMethod(new ScrollingMovementMethod());
         dialog.show();
 
-        final Button closeQuestionButton = dialog.findViewById(R.id.close_dialog);
         closeQuestionButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -478,7 +481,6 @@ public class NotifyView extends AppCompatActivity implements NotifyViewAdapter.N
             }
         });
 
-        final Button deleteQuestionButton = dialog.findViewById(R.id.delete_question);
         setupDeleteQuestionListener(deleteQuestionButton, dialog);
     }
 
