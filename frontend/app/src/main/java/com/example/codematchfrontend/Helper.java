@@ -2,29 +2,33 @@ package com.example.codematchfrontend;
 
 import android.content.Context;
 import android.content.res.Resources;
-import android.util.Log;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
-public final class Helper {
-    private static final String TAG = "Helper";
+final class Helper {
 
-    public static String getConfigValue(Context context, String name) {
+    /**
+     * Retrieve a configuration entry
+     *
+     * @param context Class context
+     * @param name    Name of property being requested
+     * @return Property requested
+     * @throws Resources.NotFoundException Unable to find the config file
+     * @throws IOException                 Failed reading configuration file
+     */
+    protected static String getConfigValue(Context context, String name)
+            throws Resources.NotFoundException, IOException {
+
+        // Retrieve raw resources
         Resources resources = context.getResources();
+        InputStream rawResource = resources.openRawResource(R.raw.config);
 
-        try {
-            InputStream rawResource = resources.openRawResource(R.raw.config);
-            Properties properties = new Properties();
-            properties.load(rawResource);
-            return properties.getProperty(name);
-        } catch (Resources.NotFoundException e) {
-            Log.e(TAG, "Unable to find the config file: " + e.getMessage());
-        } catch (IOException e) {
-            Log.e(TAG, "Failed to open config file.");
-        }
+        Properties properties = new Properties();
 
-        return null;
+        // Read raw config
+        properties.load(rawResource);
+        return properties.getProperty(name);
     }
 }

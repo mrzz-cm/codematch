@@ -10,20 +10,20 @@ import java.util.List;
 
 import androidx.recyclerview.widget.RecyclerView;
 
-public class CoursesListAdapter extends RecyclerView.Adapter<CoursesListAdapter.CoursesListHolder>{
+public class CoursesListAdapter extends RecyclerView.Adapter<CoursesListAdapter.CoursesListHolder> {
     private List<String> dataset;
-    public CoursesListAdapter.CoursesListClickListener clickListener;
+    private CoursesListAdapter.CoursesListClickListener clickListener;
 
 
-    public CoursesListAdapter(Context ctx, List<String> data) {
+    protected CoursesListAdapter(Context ctx, List<String> data) {
         this.dataset = data;
         clickListener = (CoursesListClickListener) ctx;
     }
 
-    public class CoursesListHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
-        public TextView itemView;
+    public class CoursesListHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+        protected TextView itemView;
 
-        public CoursesListHolder(View itemView) {
+        protected CoursesListHolder(View itemView) {
             super(itemView);
             this.itemView = itemView.findViewById(R.id.course_name);
 
@@ -41,7 +41,8 @@ public class CoursesListAdapter extends RecyclerView.Adapter<CoursesListAdapter.
     public CoursesListAdapter.CoursesListHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.courses_entry_layout, parent, false);
-        return new CoursesListAdapter.CoursesListHolder(view);    }
+        return new CoursesListAdapter.CoursesListHolder(view);
+    }
 
     @Override
     public void onBindViewHolder(CoursesListAdapter.CoursesListHolder holder, int position) {

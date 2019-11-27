@@ -60,7 +60,7 @@ public class PostQuestionTest {
             loginAccount.click();
         }
 
-        try{
+        try {
             Thread.sleep(10000);
 
         } catch (InterruptedException e) {
@@ -68,36 +68,24 @@ public class PostQuestionTest {
         }
 
         ViewInteraction floatingActionButton = onView(
-                allOf(withId(R.id.postQuestionFAB),
-                        childAtPosition(
-                                childAtPosition(
-                                        withId(android.R.id.content),
-                                        0),
-                                4),
-                        isDisplayed()));
+                allOf(withId(R.id.postingViewButton)));
         floatingActionButton.perform(click());
 
-        try{
+        try {
             Thread.sleep(5000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
 
         ViewInteraction appCompatButton = onView(
-                allOf(withId(R.id.postQuestionButton), withText("Post question"),
-                        childAtPosition(
-                                childAtPosition(
-                                        withId(android.R.id.content),
-                                        0),
-                                4),
-                        isDisplayed()));
+                allOf(withId(R.id.postQuestionButton)));
         appCompatButton.perform(click());
 
         device.openNotification();
         device.wait(Until.hasObject(By.textStartsWith("codematchfrontend")), 1000);
         UiObject2 title = device.findObject(By.text("codematchfrontend"));
         UiObject2 description = device.findObject(By.text("No match was found for your problem."));
-        assert(description.getText().equals("No match was found for your problem."));
+        assert (description.getText().equals("No match was found for your problem."));
         title.click();
     }
 

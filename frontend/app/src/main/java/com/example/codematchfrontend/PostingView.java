@@ -2,16 +2,20 @@ package com.example.codematchfrontend;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
+
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.MediaType;
+import okhttp3.MultipartBody;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
+import android.Manifest;
 import android.app.Activity;
-//import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -22,12 +26,13 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import org.jetbrains.annotations.NotNull;
-import org.json.JSONException;
-import org.json.JSONObject;
 
+import java.io.File;
 import java.io.IOException;
 
 public class PostingView extends AppCompatActivity {
+
+    private File imageFile;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,7 +46,7 @@ public class PostingView extends AppCompatActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         Button postButton = (Button) findViewById(R.id.postQuestionButton);
-        postButton.setOnClickListener(new View.OnClickListener(){
+        postButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 postQuestion();
@@ -52,13 +57,16 @@ public class PostingView extends AppCompatActivity {
         });
 
         Button uploadImageButton = (Button) findViewById(R.id.attachImageButton);
-        uploadImageButton.setOnClickListener(new View.OnClickListener(){
+        uploadImageButton.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View view) {
                 pickImage();
             }
         });
+
+        ActivityCompat.requestPermissions(PostingView.this,
+                new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, 1);
     }
 
     private void pickImage() {
@@ -75,20 +83,12 @@ public class PostingView extends AppCompatActivity {
             if (data == null) {
                 return;
             } else {
-//                Uri image = data.getData();
-//                InputStream imageStream = null;
-//                try{
-//                    imageStream = getContentResolver().openInputStream(image);
-//                } catch (FileNotFoundException e) {
-//                    e.printStackTrace();
-//                }
-
-                System.out.println("detected image");
-//                Bitmap bitmapedimage = BitmapFactory.decodeStream(imageStream);
-
+                Uri image = data.getData();
+                imageFile = new File(FileUtils.getRealPath(this, image));
             }
         }
     }
+
 
     private void postQuestion() {
         // get the question data
@@ -96,18 +96,28 @@ public class PostingView extends AppCompatActivity {
         String courseIDs = ((EditText) findViewById(R.id.coursesInput)).getText().toString();
         String questionTitle = ((EditText) findViewById(R.id.questionTitleText)).getText().toString();
 
-        JSONObject jsonObject = new JSONObject();
-        try {
-            jsonObject.put("userId", GlobalUtils.EMAIL);
-            jsonObject.put("title", questionTitle);
-            jsonObject.put("courseCode", courseIDs);
-            jsonObject.put("questionText", question);
-        } catch (JSONException e) {
-            e.printStackTrace();
+        final MediaType MEDIA_TYPE_PNG = MediaType.parse("image/png");
+        String imageName = "";
+        RequestBody body = null;
+        if (imageFile != null) {
+            imageName = imageFile.getName();
+            body = new MultipartBody.Builder()
+                    .setType(MultipartBody.FORM)
+                    .addFormDataPart("userId", GlobalUtils.EMAIL)
+                    .addFormDataPart("title", questionTitle)
+                    .addFormDataPart("courseCode", courseIDs)
+                    .addFormDataPart("questionText", question)
+                    .addFormDataPart("questionImage", imageName,
+                            RequestBody.create(MEDIA_TYPE_PNG, imageFile))
+                    .build();
+        } else {
+            body = new MultipartBody.Builder()
+                    .setType(MultipartBody.FORM)
+                    .addFormDataPart("userId", GlobalUtils.EMAIL)
+                    .addFormDataPart("title", questionTitle)
+                    .addFormDataPart("courseCode", courseIDs)
+                    .build();
         }
-
-        MediaType JSON = MediaType.parse("application/json; charset=utf-8");
-        RequestBody body = RequestBody.create(jsonObject.toString(), JSON);
 
         Request notify_questions_create_request = new Request.Builder()
                 .url(GlobalUtils.BASE_URL + "/questions/create")
@@ -116,43 +126,49 @@ public class PostingView extends AppCompatActivity {
                 .build();
 
         GlobalUtils.HTTP_CLIENT.newCall(notify_questions_create_request).enqueue(new Callback() {
-             @Override
-             public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                 System.out.println("Error: "+ e.toString());
-             }
+            @Override
+            public void onFailure(@NotNull Call call, @NotNull IOException e) {
+                System.out.println("Error: " + e.toString());
+            }
 
-             @Override
-             public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+            @Override
+            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
                 System.out.println("Question create request returned code " + response.code());
-             }
-         });
+                System.out.println(response.body().string());
+            }
+        });
     }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.toolbar_menu, menu);
         return true;
     }
+
     public void switchTabToNotifyView() {
         // Do something in response to button
         Intent intent = new Intent(this, NotifyView.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
         startActivity(intent);
     }
+
     public void switchTabToPostingView() {
         // Do something in response to button
         Intent intent = new Intent(this, PostingView.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
         startActivity(intent);
     }
+
     public void switchTabToProfileView() {
-        Intent intent = new Intent (this, ProfileView.class);
+        Intent intent = new Intent(this, ProfileView.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
         startActivity(intent);
     }
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch(item.getItemId()) {
+        switch (item.getItemId()) {
             case R.id.postingViewButton:
                 Toast.makeText(this, "Posting View selected!!", Toast.LENGTH_SHORT).show();
                 switchTabToPostingView();
@@ -165,7 +181,8 @@ public class PostingView extends AppCompatActivity {
                 Toast.makeText(this, "Profile View selected!!", Toast.LENGTH_SHORT).show();
                 switchTabToProfileView();
                 break;
-            default: return super.onOptionsItemSelected(item);
+            default:
+                return super.onOptionsItemSelected(item);
         }
         return true;
     }

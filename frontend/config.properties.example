@@ -1,0 +1,3 @@
+# Default properties
+baseUrl=https://cm.johnramsden.ca/api
+oauthClientSecret=REDACTED

@@ -1,16 +1,34 @@
 package com.example.codematchfrontend;
 
+import android.content.Context;
+import android.content.res.Resources;
+
+import java.io.IOException;
+
 import okhttp3.OkHttpClient;
 
+class GlobalUtils {
+    protected static String BASE_URL;
+    protected static String OAUTH_CLIENT_SECRET;
+    protected static String API_KEY = "";
+    protected static String EMAIL = "";
+    protected static String FIREBASE_TOKEN = "";
+    protected static final OkHttpClient HTTP_CLIENT = new OkHttpClient();
 
-public class GlobalUtils {
-    public static String BASE_URL = "https://cm.johnramsden.ca/";
-    public static String API_KEY = "";
-    public static String EMAIL = "";
-    public static String FIREBASE_TOKEN = "";
-    public static OkHttpClient HTTP_CLIENT = new OkHttpClient();
-    public static int createID() {
-        int id = (int)System.currentTimeMillis();
-        return id;
+    /**
+     * Initialize each configuration global variable by reading from the configuration file
+     *
+     * @param context Application context
+     * @throws Resources.NotFoundException Unable to find the config file
+     * @throws IOException                 Failed reading configuration file
+     */
+    protected static void initializeFromConfig(Context context)
+            throws Resources.NotFoundException, IOException {
+        BASE_URL = Helper.getConfigValue(context, "baseUrl");
+        OAUTH_CLIENT_SECRET = Helper.getConfigValue(context, "oauthClientSecret");
+    }
+
+    protected static int createID() {
+        return (int) System.currentTimeMillis();
     }
 }

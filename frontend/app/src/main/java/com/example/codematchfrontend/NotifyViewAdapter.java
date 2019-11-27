@@ -6,7 +6,6 @@ import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-//import android.widget.AdapterView;
 import android.widget.TextView;
 
 import org.jetbrains.annotations.NotNull;
@@ -17,6 +16,7 @@ import java.io.IOException;
 import java.util.LinkedList;
 
 import androidx.recyclerview.widget.RecyclerView;
+
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.Request;
@@ -25,12 +25,12 @@ import okhttp3.Response;
 public class NotifyViewAdapter extends RecyclerView.Adapter<NotifyViewAdapter.NotifyViewHolder> {
 
     private LinkedList<String> dataset;
-    public NotificationItemClickListener clickListener;
+    private NotificationItemClickListener clickListener;
 
-    public class NotifyViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
-        public TextView itemView;
+    public class NotifyViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+        protected TextView itemView;
 
-        public NotifyViewHolder(View itemView) {
+        NotifyViewHolder(View itemView) {
             super(itemView);
             this.itemView = itemView.findViewById(R.id.notificationname);
 
@@ -44,7 +44,7 @@ public class NotifyViewAdapter extends RecyclerView.Adapter<NotifyViewAdapter.No
         }
     }
 
-    public NotifyViewAdapter(Context context, LinkedList<String> dataset) {
+    protected NotifyViewAdapter(Context context, LinkedList<String> dataset) {
         this.dataset = dataset;
         clickListener = (NotificationItemClickListener) context;
     }
@@ -70,7 +70,7 @@ public class NotifyViewAdapter extends RecyclerView.Adapter<NotifyViewAdapter.No
         GlobalUtils.HTTP_CLIENT.newCall(get_question_title_request).enqueue(new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                System.out.println("Error: "+ e.toString());
+                System.out.println("Error: " + e.toString());
             }
 
             @Override
@@ -78,8 +78,8 @@ public class NotifyViewAdapter extends RecyclerView.Adapter<NotifyViewAdapter.No
                 System.out.println("Get question (title) returned code " + response.code());
                 try {
                     final JSONObject jsonObject = new JSONObject(response.body().string());
-                    if (jsonObject.has("title")){
-                        new Handler(Looper.getMainLooper()).post(new Runnable(){
+                    if (jsonObject.has("title")) {
+                        new Handler(Looper.getMainLooper()).post(new Runnable() {
                             @Override
                             public void run() {
                                 try {

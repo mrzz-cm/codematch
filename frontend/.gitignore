@@ -15,3 +15,4 @@
 private_key.pepk
 /.idea
 /keystore/upload-keystore.jks
+/app/src/main/res/raw/config.properties

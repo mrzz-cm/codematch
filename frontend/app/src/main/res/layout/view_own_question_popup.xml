@@ -4,6 +4,7 @@
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
+
     <Button
         android:id="@+id/close_dialog"
         android:layout_width="wrap_content"
@@ -14,7 +15,7 @@
         android:textStyle="bold" />
 
     <TextView
-        android:id="@+id/currentlyMatched"
+        android:id="@+id/currentlyMatched2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Not matched yet"
@@ -55,33 +56,25 @@
         android:layout_height="0dp"
         android:layout_weight="0.2"
         android:layout_marginBottom="15dp"
-        android:layout_marginLeft="15dp"
-        android:layout_marginRight="15dp"
         android:layout_marginTop="10dp"
         android:orientation="horizontal"
+        android:gravity="center"
         android:paddingBottom="10dp"
         android:weightSum="100"
         >
 
         <Button
-            android:id="@+id/alertbox_yes"
-            android:layout_width="20dp"
+            android:id="@+id/delete_question"
+            android:layout_centerInParent="true"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="48"
             android:minHeight="250dp"
-            android:text="Accept"
+            android:text="Delete my question"
             android:textSize="17sp"
             android:textStyle="bold" />
 
-        <Button
-            android:id="@+id/alertbox_no"
-            android:layout_width="20dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="48"
-            android:minHeight="250dp"
-            android:text="Decline"
-            android:textSize="17sp"
-            android:textStyle="bold" />
     </LinearLayout>
+
 
 </LinearLayout>
