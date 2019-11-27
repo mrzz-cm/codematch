@@ -21,9 +21,9 @@ public class CoursesListAdapter extends RecyclerView.Adapter<CoursesListAdapter.
     }
 
     public class CoursesListHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
-        TextView itemView;
+        protected TextView itemView;
 
-        CoursesListHolder(View itemView) {
+        protected CoursesListHolder(View itemView) {
             super(itemView);
             this.itemView = itemView.findViewById(R.id.course_name);
 

@@ -28,7 +28,7 @@ public class NotifyViewAdapter extends RecyclerView.Adapter<NotifyViewAdapter.No
     private NotificationItemClickListener clickListener;
 
     public class NotifyViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
-        TextView itemView;
+        protected TextView itemView;
 
         NotifyViewHolder(View itemView) {
             super(itemView);
