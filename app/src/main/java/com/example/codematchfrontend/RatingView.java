@@ -25,6 +25,10 @@ import okhttp3.Response;
 public class RatingView extends AppCompatActivity {
     private TextInputLayout textInputRating;
 
+    /**
+     * Trigger creation of view
+     * @param savedInstanceState State to restore
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -41,6 +45,17 @@ public class RatingView extends AppCompatActivity {
         });
     }
 
+    /**
+     * Validate user input
+     * @param view
+     */
+    public void confirmInput(View view) {
+        if (!validateRating()) {
+            return;
+        }
+        String input = "Thank you for rating : " + textInputRating.getEditText().getText().toString();
+        Toast.makeText(this, input, Toast.LENGTH_SHORT).show();
+    }
 
     private boolean validateRating() {
         String ratingInput = textInputRating.getEditText().getText().toString().trim();
@@ -56,15 +71,6 @@ public class RatingView extends AppCompatActivity {
             textInputRating.setError(null);
             return true;
         }
-
-    }
-
-    public void confirmInput(View view) {
-        if (!validateRating()) {
-            return;
-        }
-        String input = "Thank you for rating : " + textInputRating.getEditText().getText().toString();
-        Toast.makeText(this, input, Toast.LENGTH_SHORT).show();
 
     }
 
