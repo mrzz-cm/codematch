@@ -19,7 +19,7 @@
     "fastify-oauth2": "^2.3.0",
     "fastify-plugin": "latest",
     "fastify-static": "^2.5.0",
-    "minimist": "^1.2.0",
+    "minimist": "^1.2.2",
     "multer": "^1.4.2",
     "node-gcm": "^1.0.2",
     "request": "^2.88.0",
